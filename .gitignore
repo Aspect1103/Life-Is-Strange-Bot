@@ -1,2 +1,4 @@
 Config.py
 BotFiles/service_account_secret.json
+__pycache/
+*.pyc
