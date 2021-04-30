@@ -1,14 +1,17 @@
-# Import libraries
+# Builtin
+import logging
+import os
+# Pip
 from discord.ext import commands
 from discord import Game
 from discord import Status
-import logging
-import os
+# Custom
+from Utils import Utils
+import Config
 
 # Initialise discord variables
-token = "default"  # Default token
-#token = "test"  # Test token
-client = commands.Bot(command_prefix=["s?", "S?"], description="A LiS Discord Bot")
+token = Config.token
+client = commands.Bot(command_prefix="$", description="A LiS Discord Bot")
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__))
@@ -21,7 +24,7 @@ async def on_ready():
     # Get channel ID for test channel
     channel = client.get_channel(817807544482922496)
     # Change the presence to show the help command
-    await client.change_presence(status=Status.online, activity=Game(name="s?help"))
+    await client.change_presence(status=Status.online, activity=Game(name=f"{client.command_prefix}help"))
     # Send message to user signalling that the bot is ready
     await channel.send("Running")
 
@@ -34,14 +37,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(mes
 logger.addHandler(handler)
 
 # Load all extensions (filenames for the exterior cogs)
-extensions = [
-    "Cogs.Admin",
-    "Cogs.Fanfic",
-    "Cogs.Images",
-    "Cogs.Other",
-    "Cogs.Trivia"
-]
-for extension in extensions:
+for extension in Utils.extensions:
     client.load_extension(extension)
 
 # Start discord bot

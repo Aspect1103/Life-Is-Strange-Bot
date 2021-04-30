@@ -1,20 +1,21 @@
-# Import libraries
-from discord.ext import commands
-from discord import Embed
-from discord import Colour
-from datetime import datetime
-from dpymenus import PaginatedMenu
-import gspread
-import AO3
+# Builtin
 import os
 import random
 import math
-import json
+# Pip
+from discord.ext import commands
+from discord import Embed
+from discord import Colour
+from dpymenus import PaginatedMenu
+import gspread
+import AO3
+# Custom
+from Utils import Utils
+import Config
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 ignorePath = os.path.join(rootDirectory, "TextFiles", "ignoreFics.txt")
-idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 
 
 # Cog to manage fanfic commands
@@ -22,7 +23,8 @@ class Fanfic(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.session = AO3.Session("username", "password")
+        self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
+        self.colour = Colour.green()
         self.ignore = []
         self.allowedIDs = None
         self.worksheetArray = None
@@ -48,13 +50,8 @@ class Fanfic(commands.Cog):
             for line in file.readlines():
                 self.ignore.append(line)
 
-        # Load allowed channel IDs
-        with open(idPath, "r") as file:
-            self.allowedIDs = json.loads(file.read())["fanfic"]
-
-    # Function to check if a command is in the correct channel
-    def channelCheck(self, ctx):
-        return ctx.channel.id in self.allowedIDs
+        # Setup allowed channel IDs
+        self.allowedIDs = Utils.allowedIDs["fanfic"]
 
     # Function to make random quotes
     def quoteMaker(self, link):
@@ -89,7 +86,7 @@ class Fanfic(commands.Cog):
 
     # Function to create embeds
     def quoteEmbedCreater(self, quote, work, authors, chapterName):
-        quoteEmbed = Embed(colour=Colour.green())
+        quoteEmbed = Embed(colour=self.colour)
         quoteEmbed.title = work.title
         quoteEmbed.url = work.url
         quoteEmbed.add_field(name=chapterName, value=quote)
@@ -117,7 +114,7 @@ class Fanfic(commands.Cog):
         return result
 
     # Function to search the worksheet array and return matches
-    def searcher(self, terms):
+    def searcherOld(self, terms):
         # Create temporary 2D array
         tempWorksheet = self.worksheetArray
         # Iterate over each term and find matches
@@ -147,6 +144,93 @@ class Fanfic(commands.Cog):
         # Return the matched results
         return tempWorksheet
 
+    # Function to search for possible matches for words: and chapters:
+    def intSearch(term, rowElement, search):
+        searchNumber = int("".join([str(num) for num in search if num.isdigit()]))
+        if "==" in search:
+            return rowElement == searchNumber
+        elif "!=" in search:
+            return not rowElement == searchNumber
+        elif ">" in search:
+            return int(rowElement) > searchNumber
+        elif ">=" in search:
+            return int(rowElement) >= searchNumber
+        elif "<" in search:
+            return int(rowElement) < searchNumber
+        elif "<=" in search:
+            return int(rowElement) <= searchNumber
+        elif "-" in search:
+            splitted = search.split("-")
+            num1 = int("".join([str(num) for num in splitted[0] if num.isdigit()]))
+            num2 = int("".join([str(num) for num in splitted[1] if num.isdigit()]))
+            return num1 < int(rowElement) < num2
+
+    # Function to search the worksheet array and return matches
+    def searcher(self, terms):
+        # Array to store final matches
+        result = []
+        # Iterate over every row in the worksheet
+        for row in self.worksheetArray:
+            # Array to store results of checks
+            check = []
+            # Iterate over each term
+            for term in terms:
+                formattedTerm = term.split(":")[1]
+                if "title:" in term:
+                    # Verify title
+                    def filterTitle(row, search):
+                        return search in row[1]
+                    check.append(filterTitle(row, formattedTerm))
+                elif "author:" in term:
+                    # Verify author
+                    def filterAuthor(row, search):
+                        return search in row[2]
+                    check.append(filterAuthor(row, formattedTerm))
+                elif "ship:" in term:
+                    # Verify ship
+                    def filterShip(row, search):
+                        return search in row[3].split("/")
+                    check.append(filterShip(row, formattedTerm))
+                elif "series:" in term:
+                    # Verify series
+                    def filterSeries(row, search):
+                        return search in row[6]
+                    check.append(filterSeries(row, formattedTerm))
+                elif "status:" in term:
+                    # Verify status
+                    def filterStatus(row, search):
+                        if search == "Completed":
+                            return row[6] == "Completed"
+                        elif search == "In progress":
+                            return row[6] == "In progress"
+                        elif search == "Abandoned":
+                            return row[6] == "Abandoned"
+                        else:
+                            return False
+                    check.append(filterStatus(row, formattedTerm))
+                elif "smut:" in term:
+                    # Verify smut
+                    def filterSmut(row, search):
+                        if search == "Yes":
+                            return row[7] == "Yes"
+                        elif search == "No":
+                            return row[7] == "No"
+                        elif search == "?":
+                            return row[7] == "?"
+                        return False
+                    check.append(filterSmut(row, formattedTerm))
+                elif "words:" in term:
+                    # Verify words
+                    check.append(self.intSearch(row[8], formattedTerm))
+                elif "chapters:" in term:
+                    # Verify chapters
+                    check.append(self.intSearch(row[9], formattedTerm))
+            # If all of the checks passed, then row matches
+            if all(check):
+                result.append(row)
+        # Return all the matches
+        return result
+
     # Function to find the last quote posted
     async def findLastQuote(self, ctx):
         async for message in ctx.channel.history(limit=100):
@@ -159,7 +243,7 @@ class Fanfic(commands.Cog):
                     pass
 
     # quote command with a cooldown of 1 use every 15 seconds per guild
-    @commands.command(help="Grabs a random quote from a LiS fic on AO3. It has a cooldown of 15 seconds")
+    @commands.command(help="Grabs a random quote from a LiS fic on AO3. It has a cooldown of 15 seconds", usage="quote")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def quote(self, ctx):
         # Grab a random fic link
@@ -173,8 +257,8 @@ class Fanfic(commands.Cog):
         # Create embed and send it
         await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
-    # nextQuote command with a cooldown of 1 user every 15 seconds per guild
-    @commands.command(aliases=["nq"], help="Finds the last quote posted and picks another quote from the same story. It has a cooldown of 15 seconds")
+    # nextQuote command with a cooldown of 1 use every 15 seconds per guild
+    @commands.command(aliases=["nq"], help="Finds the last quote posted and picks another quote from the same story. It has a cooldown of 15 seconds", usage="nextQuote|nq")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def nextQuote(self, ctx):
         # Get the last quote posted then get a new one
@@ -192,40 +276,43 @@ class Fanfic(commands.Cog):
             # No more valid quotes found
             await ctx.channel.send("Cannot find any more quotes")
 
-    # searchQuote command with a cooldown of 1 user every 15 seconds per guild
-    @commands.command(aliases=["sq"], help="Takes multiple arguments and picks a random fic which matches those terms. It has a cooldown of 15 seconds", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term\nChapters - Result matches this term")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    # searchQuote command with a cooldown of 1 use every 15 seconds per guild
+    @commands.command(aliases=["sq"], help="Takes multiple arguments and picks a random fic which matches those terms. It has a cooldown of 15 seconds", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term\nChapters - Result matches this term",  usage="searchQuote|sq (argument):(term) ...")
+    @commands.cooldown(1, 15, commands.BucketType.guild)
     async def searchQuote(self, ctx, *searchTerms):
-        # Search the worksheet array to find matching rows
-        matches = self.searcher(searchTerms)
-        if len(matches) == 0:
-            # No matches found
-            await ctx.channel.send("No matches found")
-        elif len(matches) == 1:
-            # Create quote for single match
-            quote, work, authors, chapterName = self.quoteMaker(matches[0][10])
-            if quote == "":
-                # No valid quotes found
-                await ctx.channel.send("No valid quotes found")
-            else:
-                # Valid quote found
-                await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
-        else:
-            # Get random fic and create quote
-            quote = ""
-            while quote == "" and len(matches) > 0:
-                quote, work, authors, chapterName = self.quoteMaker(matches.pop(random.randint(0, len(matches)-1))[10])
-                if quote != "":
+        if len(searchTerms) > 0:
+            # Search the worksheet array to find matching rows
+            matches = self.searcher(searchTerms)
+            if len(matches) == 0:
+                # No matches found
+                await ctx.channel.send("No matches found")
+            elif len(matches) == 1:
+                # Create quote for single match
+                quote, work, authors, chapterName = self.quoteMaker(matches[0][10])
+                if quote == "":
+                    # No valid quotes found
+                    await ctx.channel.send("No valid quotes found")
+                else:
                     # Valid quote found
                     await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
-                    break
             else:
-                # No valid quotes found
-                await ctx.channel.send("No valid quotes found")
+                # Get random fic and create quote
+                quote = ""
+                while quote == "" and len(matches) > 0:
+                    quote, work, authors, chapterName = self.quoteMaker(matches.pop(random.randint(0, len(matches)-1))[10])
+                    if quote != "":
+                        # Valid quote found
+                        await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+                        break
+                else:
+                    # No valid quotes found
+                    await ctx.channel.send("No valid quotes found")
+        else:
+            # No search terms provided
+            await ctx.channel.send("No search terms provided")
 
-
-    # outline command with a cooldown of 1 user every 15 seconds per guild
-    @commands.command(help="Finds the last quote posted and displays the metadata for that fic. It has a cooldown of 15 seconds")
+    # outline command with a cooldown of 1 use every 15 seconds per guild
+    @commands.command(help="Finds the last quote posted and displays the metadata for that fic. It has a cooldown of 15 seconds", usage="outline")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def outline(self, ctx):
         # Get the last quote posted and store its url
@@ -233,7 +320,7 @@ class Fanfic(commands.Cog):
         lastUrl = lastQuote.url
         # Create AO3 object then use it to create an info embed
         work = AO3.Work(AO3.utils.workid_from_url(lastUrl), self.session)
-        infoEmbed = Embed(colour=Colour.gold())
+        infoEmbed = Embed(colour=self.colour)
         infoEmbed.title = work.title
         infoEmbed.url = work.url
         infoEmbed.set_author(name=self.listConverter(work.authors, True))
@@ -261,8 +348,8 @@ class Fanfic(commands.Cog):
         # Display the embed
         await ctx.channel.send(embed=infoEmbed)
 
-    # works command with a cooldown of 1 user every 45 seconds per guild
-    @commands.command(help="Finds the last quote posted and displays all works posted by that author. It has a cooldown of 45 seconds")
+    # works command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(help="Finds the last quote posted and displays all works posted by that author. It has a cooldown of 45 seconds", usage="works")
     @commands.cooldown(1, 45, commands.BucketType.guild)
     async def works(self, ctx):
         # Get the last quote posted and create an AO3 User object
@@ -283,7 +370,7 @@ class Fanfic(commands.Cog):
                 # Create embed objects for each page
                 pages = []
                 for count, arr in enumerate(splitList):
-                    tempEmbed = Embed(colour=Colour.blue())
+                    tempEmbed = Embed(colour=self.colour)
                     tempEmbed.title = authorName
                     tempEmbed.url = user.url
                     tempEmbed.set_footer(text=f"Page {count+1} of {maxPage}. Total: {len(works)}")
@@ -300,7 +387,7 @@ class Fanfic(commands.Cog):
                 await menu.open()
             else:
                 # Create normal menu
-                pageEmbed = Embed(colour=Colour.blue())
+                pageEmbed = Embed(colour=self.colour)
                 pageEmbed.title = authorName
                 pageEmbed.url = user.url
                 for work in works:
@@ -309,21 +396,22 @@ class Fanfic(commands.Cog):
         else:
             await ctx.channel.send(f"{authorName} has {user.works} works which is over the limit of {pageLimit*20}")
 
-    # Function to run channelCheck for s?trivia
+    # Function to run channelCheck for trivia
     async def cog_check(self, ctx):
-        return self.channelCheck(ctx)
+        return Utils.channelCheck(ctx, self.allowedIDs)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
         if isinstance(error, commands.CheckFailure):
             textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs]
-            guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
-            await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+            if all(element is None for element in textChannelAllowed):
+                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
+            else:
+                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
+                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        with open(errorPath, "a") as file:
-            file.write(f"{datetime.now()}, {error}\n")
+        Utils.errorWrite(error)
 
 
 # Function which initialises the Fanfic cog
