@@ -1,0 +1,6 @@
+Config.py
+BotFiles/service_account_secret.json
+BotFiles/error.txt
+__pycache/
+*.pyc
+*.log
