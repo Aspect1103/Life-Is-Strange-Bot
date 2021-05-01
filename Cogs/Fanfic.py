@@ -349,7 +349,7 @@ class Fanfic(commands.Cog):
 
     # works command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help="Finds the last quote posted and displays all works posted by that author. It has a cooldown of 45 seconds", usage="works")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.cooldown(1, 45, commands.BucketType.guild)
     async def works(self, ctx):
         # Get the last quote posted and create an AO3 User object
         lastQuote = await self.findLastQuote(ctx)
