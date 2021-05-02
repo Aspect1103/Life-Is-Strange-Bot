@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import deviantart
 # Custom
 from Utils import Utils
+from Utils import Connect4
 import Config
 
 # Path variables
@@ -113,6 +114,12 @@ class General(commands.Cog):
         questionEmbed = Embed(title=randomQuestion,  colour=self.colour)
         questionEmbed.set_footer(text=f"{len(self.questionArray)} questions")
         await ctx.channel.send(embed=questionEmbed)
+
+    # connect4 command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(help="")
+    @commands.cooldown(1, 60, commands.BucketType.guild)
+    async def connect4(self, ctx):
+        pass
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
