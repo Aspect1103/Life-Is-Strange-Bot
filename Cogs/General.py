@@ -26,7 +26,7 @@ class General(commands.Cog):
         self.nextQuestion = 0
         self.colour = Colour.blue()
         self.allowedIDsImage = None
-        self.allowedIDsQuestion = None
+        self.allowedIDsGeneral = None
         self.deviantAPI = None
         self.questionArray = None
         self.generalInit()
@@ -42,8 +42,8 @@ class General(commands.Cog):
         self.questionArray = temp
 
         # Setup allowed channel IDs
-        self.allowedIDs = Utils.allowedIDs["image"]
-        self.allowedIDsQuestion = Utils.allowedIDs["question"]
+        self.allowedIDsImage = Utils.allowedIDs["image"]
+        self.allowedIDsGeneral = Utils.allowedIDs["general"]
 
         # Setup the deviantart api
         self.refresh()
@@ -125,16 +125,16 @@ class General(commands.Cog):
     async def cog_check(self, ctx):
         if str(ctx.command) == "art":
             return Utils.channelCheck(ctx, self.allowedIDsImage)
-        elif str(ctx.command) == "question":
-            return Utils.channelCheck(ctx, self.allowedIDsQuestion)
+        elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+            return Utils.channelCheck(ctx, self.allowedIDsGeneral)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             if str(ctx.command) == "image":
                 textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
-            elif str(ctx.command) == "question":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsQuestion]
+            elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:

@@ -27,8 +27,15 @@ class BotStuff(commands.Cog, name="Bot Stuff"):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.orange()
+        self.allowedIDs = None
         self.client.help_command = Help(command_attrs=attributes)
         self.client.help_command.cog = self
+        self.botInit()
+
+    # Function to initialise fanfic variables
+    def botInit(self):
+        # Setup allowed channel IDs
+        self.allowedIDs = Utils.allowedIDs["bot"]
 
     # Function to verify a channel command
     def channelVerify(self, ctx, args):
@@ -124,7 +131,7 @@ class BotStuff(commands.Cog, name="Bot Stuff"):
         listEmbed = Embed(title="Restricted Categories", colour=self.colour)
         for key, value in Utils.allowedIDs.items():
             textChannelAllowed = [self.client.get_channel(channel) for channel in value]
-            if len([element for element in textChannelAllowed if element.guild.id == ctx.guild.id]) == 0:
+            if len([element for element in filter(None, textChannelAllowed) if element.guild.id == ctx.guild.id]) == 0:
                 listEmbed.add_field(name=f"{key.capitalize()} Category", value=f"Not setup yet. Use {ctx.prefix}channel to add some", inline=False)
             else:
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
@@ -165,6 +172,10 @@ class BotStuff(commands.Cog, name="Bot Stuff"):
         # Send embed
         await ctx.channel.send(embed=aboutEmbed)
 
+    # Function to run channelCheck for trivia
+    async def cog_check(self, ctx):
+        return Utils.channelCheck(ctx, self.allowedIDs)
+
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
@@ -181,7 +192,7 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.allowedIDs = Utils.allowedIDs["help"]
+        self.allowedIDs = Utils.allowedIDs["bot"]
         self.colour = Colour.orange()
 
     # Function to get the command signature (the actual command)
