@@ -50,7 +50,7 @@ class Miscellaneous(commands.Cog):
         await ctx.channel.send("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
 
     # about command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays information about the bot", usage="about")
+    @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
         # Create embed
