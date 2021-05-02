@@ -23,7 +23,7 @@ class General(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.nextQuestion = 0
-        self.colour = Colour.purple()
+        self.colour = Colour.blue()
         self.allowedIDsImage = None
         self.allowedIDsQuestion = None
         self.deviantAPI = None
