@@ -29,7 +29,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.colour = Colour.purple()
         self.allowedIDsTrivia = None
         self.allowedIDsChoices = None
-        self.allowedIDsQuestion = None
         self.triviaQuestions = None
         self.choicesTable = None
         self.lifeIsStrangeInit()
