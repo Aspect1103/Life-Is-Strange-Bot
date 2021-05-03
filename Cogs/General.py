@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import deviantart
 # Custom
 from Utils import Utils
-from Utils import Connect4
+from Utils.Connect4 import Connect4
 import Config
 
 # Path variables
@@ -115,11 +115,22 @@ class General(commands.Cog):
         questionEmbed.set_footer(text=f"{len(self.questionArray)} questions")
         await ctx.channel.send(embed=questionEmbed)
 
-    # connect4 command with a cooldown of 1 use every 60 seconds per guild
+    # connect4 command with a cooldown of 1 use every 300 seconds per guild
     @commands.command(help="")
-    @commands.cooldown(1, 60, commands.BucketType.guild)
+    @commands.cooldown(1, 300, commands.BucketType.guild)
     async def connect4(self, ctx):
-        pass
+        # Function to stop the bot from reacting to itself
+        def checker(reaction, user):
+            return user.id != self.client.user.id and str(reaction) == "✅" and user.id != ctx.author.id
+        # Create game object
+        game = Connect4(ctx, self.client, self.colour)
+        await game._sendInitialEmbed()
+        # Loop until an opponent is found
+        while True:
+            reaction, user = await self.client.wait_for("reaction_add", check=checker)
+            break
+        # Play game
+        await game.start(user)
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
@@ -129,25 +140,25 @@ class General(commands.Cog):
             return Utils.channelCheck(ctx, self.allowedIDsGeneral)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
-            if str(ctx.command) == "image":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
-            elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        elif isinstance(error.original, deviantart.api.DeviantartError):
-            if error.original.args[0].code == 401:
-                await ctx.channel.send("Refreshing client")
-                self.refresh()
-                await ctx.channel.send("Client refreshed. Please try again")
-        Utils.errorWrite(error)
+    # async def cog_command_error(self, ctx, error):
+    #     if isinstance(error, commands.CheckFailure):
+    #         if str(ctx.command) == "image":
+    #             textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
+    #         elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+    #             textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
+    #         if all(element is None for element in textChannelAllowed):
+    #             await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
+    #         else:
+    #             guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
+    #             await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+    #     elif isinstance(error, commands.CommandOnCooldown):
+    #         await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+    #     elif isinstance(error.original, deviantart.api.DeviantartError):
+    #         if error.original.args[0].code == 401:
+    #             await ctx.channel.send("Refreshing client")
+    #             self.refresh()
+    #             await ctx.channel.send("Client refreshed. Please try again")
+    #     Utils.errorWrite(error)
 
 
 # Function which initialises the General cog

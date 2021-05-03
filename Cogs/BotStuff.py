@@ -125,7 +125,6 @@ class BotStuff(commands.Cog, name="Bot Stuff"):
 
     # channel list command with a cooldown of 1 use every 10 seconds per guild
     @channel.command(help="Lists all the channels a section is allowed in. It has a cooldown of 10 seconds", usage="channel list")
-    @adminOrOwner()
     async def list(self, ctx):
         # Create embed
         listEmbed = Embed(title="Restricted Categories", colour=self.colour)
@@ -236,7 +235,7 @@ class Help(commands.HelpCommand):
                 if commandSignatures:
                     # Create embed
                     helpEmbed = Embed(title=f"Page {pageCount}/{len(mapping.items()) - 1}", colour=self.colour)
-                    helpEmbed.add_field(name=f"{cog.qualified_name} Category", value="\n".join(commandSignatures), inline=False)
+                    helpEmbed.add_field(name=f"{cog.qualified_name} Cog", value="\n".join(commandSignatures), inline=False)
                     helpEmbed.set_footer(text=f"{len(commands)} commands. Requested by {self.context.author}")
                     pages.append(helpEmbed)
             # Create paginator
