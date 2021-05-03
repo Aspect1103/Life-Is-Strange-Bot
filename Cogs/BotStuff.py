@@ -179,10 +179,15 @@ class BotStuff(commands.Cog, name="Bot Stuff"):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        elif isinstance(error, commands.CheckFailure):
-            await ctx.channel.send("You do not have the correct permissions to run this command.")
         elif isinstance(error, commands.NotOwner):
             await ctx.channel.send("You are not owner")
+        elif isinstance(error, commands.CheckFailure):
+            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs]
+            if all(element is None for element in textChannelAllowed):
+                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some or you do not have the sufficient permissions to run this command")
+            else:
+                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
+                await ctx.channel.send(f"This command is only allowed in {guildAllowed} or you do not have the sufficient permissions to run this command")
         Utils.errorWrite(error)
 
 
