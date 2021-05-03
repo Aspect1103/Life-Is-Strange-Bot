@@ -140,25 +140,25 @@ class General(commands.Cog):
             return Utils.channelCheck(ctx, self.allowedIDsGeneral)
 
     # Catch any cog errors
-    # async def cog_command_error(self, ctx, error):
-    #     if isinstance(error, commands.CheckFailure):
-    #         if str(ctx.command) == "image":
-    #             textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
-    #         elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
-    #             textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
-    #         if all(element is None for element in textChannelAllowed):
-    #             await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-    #         else:
-    #             guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-    #             await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
-    #     elif isinstance(error, commands.CommandOnCooldown):
-    #         await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-    #     elif isinstance(error.original, deviantart.api.DeviantartError):
-    #         if error.original.args[0].code == 401:
-    #             await ctx.channel.send("Refreshing client")
-    #             self.refresh()
-    #             await ctx.channel.send("Client refreshed. Please try again")
-    #     Utils.errorWrite(error)
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            if str(ctx.command) == "image":
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
+            elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
+            if all(element is None for element in textChannelAllowed):
+                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
+            else:
+                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
+                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+        elif isinstance(error, commands.CommandOnCooldown):
+            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+        elif isinstance(error.original, deviantart.api.DeviantartError):
+            if error.original.args[0].code == 401:
+                await ctx.channel.send("Refreshing client")
+                self.refresh()
+                await ctx.channel.send("Client refreshed. Please try again")
+        Utils.errorWrite(error)
 
 
 # Function which initialises the General cog
