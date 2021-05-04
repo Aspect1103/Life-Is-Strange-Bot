@@ -1,5 +1,5 @@
 # Builtin
-from itertools import chain
+from itertools import chain, groupby
 # Pip
 from discord.ext.commands import Context
 from discord import Member
@@ -71,7 +71,40 @@ class Connect4:
 
     # Function to check for wins
     def _winChecker(self):
-        return False
+        # Function to check for consecutive numbers
+        def consecutiveCheck(row):
+            totalConsecutive = 0
+            if self._nextPlayer == self._player1:
+                valueToCheck = 1
+            else:
+                valueToCheck = 2
+            for value in row:
+                if value == valueToCheck:
+                    totalConsecutive += 1
+                else:
+                    totalConsecutive = 0
+                if totalConsecutive >= 4:
+                    return True
+            return False
+        # Function to check for vertical wins
+        def verticalCheck():
+            verticalRow = [row[self._lastIndex[1]] for row in self._grid]
+            return consecutiveCheck(verticalRow)
+        # Function to check for horizontal wins
+        def horizontalCheck():
+            horizontalRow = self._grid[self._lastIndex[0]]
+            return consecutiveCheck(horizontalRow)
+        # Function to check for diagonal wins
+        def diagonalCheck():
+            return False
+        return verticalCheck() or horizontalCheck() or diagonalCheck()
+
+    # Function to get positive and negative diagonals
+    def _getDiagonals(self):
+        positiveDiagonal = [self._grid[self._lastIndex[0]][self._lastIndex[1]]]
+
+        for j in range(len(self._grid[0])-(self._lastIndex[1]+1)):
+            positiveDiagonal.append(self._grid[self._lastIndex[0]-(j+1)][self._lastIndex[0]-2+j])
 
     # Function to manage the connect 4 moves
     async def _manager(self, reaction):
@@ -118,7 +151,6 @@ class Connect4:
                     self._playing = False
                     self._winner = self._nextPlayer.name
                 else:
-                    pass
                     if self._nextPlayer == self._player1:
                         self._nextPlayer = self._player2
                     else:

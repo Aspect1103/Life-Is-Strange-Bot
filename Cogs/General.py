@@ -116,7 +116,7 @@ class General(commands.Cog):
         await ctx.channel.send(embed=questionEmbed)
 
     # connect4 command with a cooldown of 1 use every 300 seconds per guild
-    @commands.command(help="")
+    @commands.command(help="Displays a player vs player game of connect 4. It has a cooldown of 300 seconds", usage="connect4")
     @commands.cooldown(1, 300, commands.BucketType.guild)
     async def connect4(self, ctx):
         # Function to stop the bot from reacting to itself
