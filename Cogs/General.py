@@ -130,6 +130,7 @@ class General(commands.Cog):
             reaction, user = await self.client.wait_for("reaction_add", check=checker)
             break
         # Play game
+        await ctx.channel.send(f"Let's play! {ctx.author.mention} vs {user.mention}")
         await game.start(user)
 
     # Function to run channelCheck for general
