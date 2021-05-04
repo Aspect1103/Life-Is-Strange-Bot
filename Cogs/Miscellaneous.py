@@ -23,6 +23,7 @@ class Miscellaneous(commands.Cog):
         self.allowedIDsBot = None
         self.client.help_command = Help(command_attrs=attributes)
         self.client.help_command.cog = self
+        self.miscellaneousInit()
 
     # Function to initialise miscellaneous variables
     def miscellaneousInit(self):
@@ -73,10 +74,17 @@ class Miscellaneous(commands.Cog):
             raise CheckFailure
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    if isinstance(error, commands.CommandOnCooldown):
-    #        await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-    #    Utils.errorWrite(error)
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+        elif isinstance(error, commands.CheckFailure):
+            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsBot]
+            if all(element is None for element in textChannelAllowed):
+                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
+            else:
+                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
+                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+        Utils.errorWrite(error)
 
 
 # Cog to manage the help command

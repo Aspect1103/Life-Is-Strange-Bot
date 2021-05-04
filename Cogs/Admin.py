@@ -109,11 +109,11 @@ class Admin(commands.Cog):
     @channel.command(help="Lists all the channels a section is allowed in. It has a cooldown of 10 seconds", usage="channel list")
     async def list(self, ctx):
         # Create embed
-        listEmbed = Embed(title="Restricted Categories", colour=self.colour)
+        listEmbed = Embed(title="Restricted Commands/Categories", colour=self.colour)
         for key, value in Utils.allowedIDs.items():
             textChannelAllowed = [self.client.get_channel(channel) for channel in value]
             if len([element for element in filter(None, textChannelAllowed) if element.guild.id == ctx.guild.id]) == 0:
-                listEmbed.add_field(name=f"{key.capitalize()} Category", value=f"Not setup yet. Use {ctx.prefix}channel to add some", inline=False)
+                listEmbed.add_field(name=f"{key.capitalize()}", value=f"Not setup yet. Use {ctx.prefix}channel to add some", inline=False)
             else:
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
                 listEmbed.add_field(name=f"{key.capitalize()} Category", value=guildAllowed, inline=False)
