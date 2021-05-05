@@ -159,7 +159,7 @@ class General(commands.Cog):
         await game.start(user)
 
     # tictactoe command with a cooldown of 1 use every 90 seconds per guild
-    @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 300 seconds", usage="tictactoe")
+    @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 90 seconds", usage="tictactoe")
     @commands.cooldown(1, 90, commands.BucketType.guild)
     async def tictactoe(self, ctx):
         # Create tictactoe game object
