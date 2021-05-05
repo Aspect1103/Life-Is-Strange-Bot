@@ -9,13 +9,14 @@ from discord import Colour
 from bs4 import BeautifulSoup
 import deviantart
 # Custom
-from Utils import Utils
 from Utils.Connect4 import Connect4
+from Utils.TicTacToe import TicTacToe
+from Utils import Utils
 import Config
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-questionPath = os.path.join(rootDirectory, "TextFiles", "../TextFiles/questions.txt")
+questionPath = os.path.join(rootDirectory, "TextFiles", "questions.txt")
 
 
 # Cog to manage general commands
@@ -25,6 +26,9 @@ class General(commands.Cog):
         self.client = client
         self.nextQuestion = 0
         self.colour = Colour.blue()
+        self.imageGroup = ["art"]
+        self.generalGroup = ["question", "connect4", "tictactoe"]
+        self.gameInitReaction = "✅"
         self.allowedIDsImage = None
         self.allowedIDsGeneral = None
         self.deviantAPI = None
@@ -63,6 +67,27 @@ class General(commands.Cog):
             return int(float(stringNumber)*1000)
         else:
             return int(stringAmmount)
+
+    # Function to manage games
+    async def gameManager(self, gameObj):
+        # Function to detect if another player has reacted
+        def gameReactChecker(reaction, user):
+            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id and user.id != gameObj.ctx.author.id
+        # Send reaction embed
+        initialEmbed = Embed(title=f"{gameObj} Request", description=f"{gameObj.player1.mention} wants to play {gameObj}. React to this message if you want to challenge them!", colour=self.colour)
+        gameObj.gameMessage = await gameObj.ctx.send(embed=initialEmbed)
+        await gameObj.gameMessage.add_reaction(self.gameInitReaction)
+        # Wait until another player reacts
+        while True:
+            reaction, user = await self.client.wait_for("reaction_add", check=gameReactChecker)
+            gameObj.player2 = user
+            break
+        # Play game
+        await gameObj.ctx.channel.send(f"Let's play! {gameObj.player1.mention} vs {gameObj.player2.mention}")
+        await gameObj.gameMessage.clear_reactions()
+        await gameObj.updateBoard()
+        await gameObj.sendEmojis()
+        await gameObj.start()
 
     # art command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a random LiS fanart based on a tag. It has a cooldown of 15 seconds", description="\nArguments:\nTag - The deviantart tag to search on", usage="art (tag)")
@@ -133,19 +158,28 @@ class General(commands.Cog):
         await ctx.channel.send(f"Let's play! {ctx.author.mention} vs {user.mention}")
         await game.start(user)
 
+    # tictactoe command with a cooldown of 1 use every 300 seconds per guild
+    @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 300 seconds", usage="tictactoe")
+    @commands.cooldown(1, 300, commands.BucketType.guild)
+    async def tictactoe(self, ctx):
+        # Create tictactoe game object
+        tictactoe = TicTacToe(ctx, self.client, self.colour)
+        # Run game manager to start the game
+        await self.gameManager(tictactoe)
+
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
-        if str(ctx.command) == "art":
+        if str(ctx.command) in self.imageGroup:
             return Utils.channelCheck(ctx, self.allowedIDsImage)
-        elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+        elif str(ctx.command) in self.generalGroup:
             return Utils.channelCheck(ctx, self.allowedIDsGeneral)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            if str(ctx.command) == "image":
+            if str(ctx.command) in self.imageGroup:
                 textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
-            elif str(ctx.command) == "question" or str(ctx.command) == "connect4":
+            elif str(ctx.command) in self.generalGroup:
                 textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")

@@ -71,7 +71,7 @@ class Miscellaneous(commands.Cog):
             # Send embed
             await ctx.channel.send(embed=aboutEmbed)
         else:
-            raise CheckFailure
+            raise CheckFailure("The check functions for command about failed.")
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
