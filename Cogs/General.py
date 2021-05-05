@@ -83,7 +83,7 @@ class General(commands.Cog):
             gameObj.player2 = user
             break
         # Play game
-        await gameObj.ctx.channel.send(f"Let's play! {gameObj.player1.mention} vs {gameObj.player2.mention}")
+        await gameObj.ctx.channel.send(f"Let's play {gameObj}! {gameObj.player1.mention} vs {gameObj.player2.mention}")
         await gameObj.gameMessage.clear_reactions()
         await gameObj.updateBoard()
         await gameObj.sendEmojis()
