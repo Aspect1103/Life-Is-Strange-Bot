@@ -142,6 +142,7 @@ class TicTacToe:
                     self.winChecker()
                     self.switchPlayer()
                     self.changeMade = False
-            self.drawCheck()
+                else:
+                    self.drawCheck()
             await self.updateBoard()
         await self.gameMessage.clear_reactions()
