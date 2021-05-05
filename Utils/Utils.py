@@ -34,4 +34,3 @@ idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 allowedIDs = initIDs()
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
-extensions = ["Cogs.General"]
