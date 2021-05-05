@@ -139,10 +139,9 @@ class TicTacToe:
             self.moveManager(str(reaction))
             if self.isPlaying:
                 if self.changeMade:
-                    self.winChecker()
                     self.switchPlayer()
                     self.changeMade = False
-                else:
                     self.drawCheck()
+                    self.winChecker()
             await self.updateBoard()
         await self.gameMessage.clear_reactions()
