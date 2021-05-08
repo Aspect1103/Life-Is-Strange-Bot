@@ -398,7 +398,7 @@ class Fanfic(commands.Cog):
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs]
+            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs[str(ctx.guild.id)]]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:

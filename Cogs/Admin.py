@@ -12,12 +12,12 @@ class Admin(commands.Cog):
         self.client = client
         self.colour = Colour.orange()
         self.allowedIDs = None
-        self.botInit()
+        self.adminInit()
 
     # Function to initialise admin variables
-    def botInit(self):
+    def adminInit(self):
         # Setup allowed channel IDs
-        self.allowedIDs = Utils.allowedIDs["bot"]
+        self.allowedIDs = Utils.allowedIDs["admin"]
 
     # Function to verify a channel command
     def channelVerify(self, ctx, args):
@@ -58,7 +58,7 @@ class Admin(commands.Cog):
         pass
 
     # channel add command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description="Arguments: Section Name - Either fanfic/trivia/image/help\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)")
+    @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description=f"Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)")
     @commands.is_owner()
     async def add(self, ctx, *args):
         # Run verifier
@@ -66,14 +66,14 @@ class Admin(commands.Cog):
         if result is True:
             # Arguments are valid
             tempDict = Utils.allowedIDs
-            if ID in tempDict[args[0]]:
+            if ID in tempDict[args[0]][str(ctx.guild.id)]:
                 # Channel already added
                 await ctx.channel.send("Channel is already added")
             else:
                 # Channel not added
-                newRow = tempDict[args[0]]
+                newRow = tempDict[args[0]][str(ctx.guild.id)]
                 newRow.append(ID)
-                tempDict[args[0]] = newRow
+                tempDict[args[0]][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
                 await ctx.channel.send("Changes applied. Please refresh the bot")
@@ -82,7 +82,7 @@ class Admin(commands.Cog):
             await ctx.channel.send(result)
 
     # channel remove command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="Arguments: Section Name - Either fanfic/trivia/image/help\nChanne - Mention of the channel which you want to remove", usage="channel remove (section name) (channel)")
+    @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to remove", usage="channel remove (section name) (channel)")
     @commands.is_owner()
     async def remove(self, ctx, *args):
         # Run verifier
@@ -90,14 +90,14 @@ class Admin(commands.Cog):
         if result is True:
             # Arguments are valid
             tempDict = Utils.allowedIDs
-            if not ID in tempDict[args[0]]:
+            if not ID in tempDict[args[0]][str(ctx.guild.id)]:
                 # Channel not added
                 await ctx.channel.send("Channel is not added")
             else:
                 # Channel added
-                newRow = tempDict[args[0]]
+                newRow = tempDict[args[0]][str(ctx.guild.id)]
                 newRow.remove(ID)
-                tempDict[args[0]] = newRow
+                tempDict[args[0]][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
                 await ctx.channel.send("Changes applied. Please refresh the bot")
@@ -109,14 +109,14 @@ class Admin(commands.Cog):
     @channel.command(help="Lists all the channels a section is allowed in. It has a cooldown of 10 seconds", usage="channel list")
     async def list(self, ctx):
         # Create embed
-        listEmbed = Embed(title="Restricted Commands/Categories", colour=self.colour)
+        listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
         for key, value in Utils.allowedIDs.items():
-            textChannelAllowed = [self.client.get_channel(channel) for channel in value]
-            if len([element for element in filter(None, textChannelAllowed) if element.guild.id == ctx.guild.id]) == 0:
+            textChannelAllowed = [self.client.get_channel(channel) for channel in value[ctx.guild.id]]
+            if len([element for element in filter(None, textChannelAllowed)]) == 0:
                 listEmbed.add_field(name=f"{key.capitalize()}", value=f"Not setup yet. Use {ctx.prefix}channel to add some", inline=False)
             else:
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                listEmbed.add_field(name=f"{key.capitalize()} Category", value=guildAllowed, inline=False)
+                listEmbed.add_field(name=f"{key.capitalize()}", value=guildAllowed, inline=False)
         # Send embed
         await ctx.channel.send(embed=listEmbed)
 
@@ -148,7 +148,7 @@ class Admin(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             await ctx.channel.send("You are not owner")
         elif isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs]
+            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs[str(ctx.guild.id)]]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:

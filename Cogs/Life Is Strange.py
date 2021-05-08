@@ -216,9 +216,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             if str(ctx.command) == "trivia":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsTrivia]
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsTrivia[str(ctx.guild.id)]]
             elif str(ctx.command) == "choices":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsChoices]
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsChoices[str(ctx.guild.id)]]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:

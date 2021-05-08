@@ -1,4 +1,5 @@
 # Builtin
+import asyncio
 import random
 import requests
 import os
@@ -29,6 +30,7 @@ class General(commands.Cog):
         self.imageGroup = ["art"]
         self.generalGroup = ["question", "connect4", "tictactoe"]
         self.gameInitReaction = "✅"
+        self.isNewGameAllowed = True
         self.allowedIDsImage = None
         self.allowedIDsGeneral = None
         self.deviantAPI = None
@@ -69,25 +71,35 @@ class General(commands.Cog):
             return int(stringAmmount)
 
     # Function to manage games
-    async def gameManager(self, gameObj):
+    async def gameManager(self, ctx, gameObj):
         # Function to detect if another player has reacted
         def gameReactChecker(reaction, user):
-            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id and user.id != gameObj.ctx.author.id
-        # Send reaction embed
-        initialEmbed = Embed(title=f"{gameObj} Request", description=f"{gameObj.player1.mention} wants to play {gameObj}. React to this message if you want to challenge them!", colour=self.colour)
-        gameObj.gameMessage = await gameObj.ctx.send(embed=initialEmbed)
-        await gameObj.gameMessage.add_reaction(self.gameInitReaction)
-        # Wait until another player reacts
-        while True:
-            reaction, user = await self.client.wait_for("reaction_add", check=gameReactChecker)
-            gameObj.player2 = user
-            break
-        # Play game
-        await gameObj.ctx.channel.send(f"Let's play {gameObj}! {gameObj.player1.mention} vs {gameObj.player2.mention}")
-        await gameObj.gameMessage.clear_reactions()
-        await gameObj.updateBoard()
-        await gameObj.sendEmojis()
-        await gameObj.start()
+            #return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id and user.id != gameObj.ctx.author.id
+            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id
+        # Test if a new game is allowed
+        if self.isNewGameAllowed:
+            self.isNewGameAllowed = False
+            # Send reaction embed
+            initialEmbed = Embed(title=f"{gameObj} Request", description=f"{gameObj.player1.mention} wants to play {gameObj}. React to this message if you want to challenge them!", colour=self.colour)
+            gameObj.gameMessage = await gameObj.ctx.send(embed=initialEmbed)
+            await gameObj.gameMessage.add_reaction(self.gameInitReaction)
+            # Wait until another player reacts
+            while True:
+                try:
+                    reaction, user = await self.client.wait_for("reaction_add", timeout=gameObj.timeout, check=gameReactChecker)
+                    gameObj.player2 = user
+                except asyncio.TimeoutError:
+                    await gameObj.ctx.send("Game has timed out")
+                break
+            # Play game
+            await gameObj.ctx.channel.send(f"Let's play {gameObj}! {gameObj.player1.mention} vs {gameObj.player2.mention}")
+            await gameObj.gameMessage.clear_reactions()
+            await gameObj.updateBoard()
+            await gameObj.sendEmojis()
+            await gameObj.start()
+            self.isNewGameAllowed = True
+        else:
+            await ctx.channel.send("No new games allowed, finish the current one")
 
     # art command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a random LiS fanart based on a tag. It has a cooldown of 15 seconds", description="\nArguments:\nTag - The deviantart tag to search on", usage="art (tag)")
@@ -144,19 +156,10 @@ class General(commands.Cog):
     @commands.command(help="Displays a player vs player game of connect 4. It has a cooldown of 300 seconds", usage="connect4")
     @commands.cooldown(1, 300, commands.BucketType.guild)
     async def connect4(self, ctx):
-        # Function to stop the bot from reacting to itself
-        def checker(reaction, user):
-            return user.id != self.client.user.id and str(reaction) == "✅" and user.id != ctx.author.id
-        # Create game object
-        game = Connect4(ctx, self.client, self.colour)
-        await game._sendInitialEmbed()
-        # Loop until an opponent is found
-        while True:
-            reaction, user = await self.client.wait_for("reaction_add", check=checker)
-            break
-        # Play game
-        await ctx.channel.send(f"Let's play! {ctx.author.mention} vs {user.mention}")
-        await game.start(user)
+        # Create connect 4 game object
+        connect4 = Connect4(ctx, self.client, self.colour)
+        # Run game manager to start the game
+        await self.gameManager(ctx, connect4)
 
     # tictactoe command with a cooldown of 1 use every 90 seconds per guild
     @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 90 seconds", usage="tictactoe")
@@ -165,7 +168,7 @@ class General(commands.Cog):
         # Create tictactoe game object
         tictactoe = TicTacToe(ctx, self.client, self.colour)
         # Run game manager to start the game
-        await self.gameManager(tictactoe)
+        await self.gameManager(ctx, tictactoe)
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
@@ -178,9 +181,9 @@ class General(commands.Cog):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
             if str(ctx.command) in self.imageGroup:
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage]
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage[str(ctx.guild.id)]]
             elif str(ctx.command) in self.generalGroup:
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral]
+                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral[str(ctx.guild.id)]]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:

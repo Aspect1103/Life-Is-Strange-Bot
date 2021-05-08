@@ -28,7 +28,7 @@ class Miscellaneous(commands.Cog):
     # Function to initialise miscellaneous variables
     def miscellaneousInit(self):
         # Setup allowed channel IDs
-        self.allowedIDsBot = Utils.allowedIDs["bot"]
+        self.allowedIDsAdmin = Utils.allowedIDs["admin"]
 
     # bum command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a hypnotic gif. It has a cooldown of 10 seconds", usage="bum")
@@ -58,7 +58,7 @@ class Miscellaneous(commands.Cog):
     @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
-        if Utils.channelCheck(ctx, self.allowedIDsBot):
+        if Utils.channelCheck(ctx, self.allowedIDsAdmin[ctx.guild.id]):
             # Create embed
             botInfo = await self.client.application_info()
             aboutEmbed = Embed(title=f"About {ctx.me.name}", colour=self.colour)
@@ -78,7 +78,7 @@ class Miscellaneous(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
         elif isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsBot]
+            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsAdmin[ctx.guild.id]]
             if all(element is None for element in textChannelAllowed):
                 await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
             else:
@@ -92,7 +92,7 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.allowedIDs = Utils.allowedIDs["bot"]
+        self.allowedIDs = Utils.allowedIDs["admin"]
         self.colour = Colour.orange()
 
     # Function to get the command signature (the actual command)
@@ -113,8 +113,8 @@ class Help(commands.HelpCommand):
             return True, self.context.bot.get_channel(self.context.channel.id)
         else:
             # Current channel is wrong
-            textChannelAllowed = [self.context.bot.get_channel(channel) for channel in self.allowedIDs]
-            if len([channel for channel in filter(None, textChannelAllowed) if channel.guild.id == self.context.guild.id]) == 0:
+            textChannelAllowed = [self.context.bot.get_channel(channel) for channel in self.allowedIDs[str(self.context.guild.id)]]
+            if len([channel for channel in filter(None, textChannelAllowed)]) == 0:
                 return False, f"No channels added. Use {self.clean_prefix}channel to add some"
             else:
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == self.context.guild.id])

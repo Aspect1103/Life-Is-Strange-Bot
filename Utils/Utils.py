@@ -13,13 +13,16 @@ def initIDs():
 # Function to write changes to IDs.txt
 def idWriter(newDict):
     with open(idPath, "w") as file:
-        jsonString = json.dumps(newDict)
+        jsonString = json.dumps(newDict, indent=4)
         file.write(jsonString)
 
 
 # Function to check if a command is in the correct channel
 def channelCheck(ctx, allowedIDs):
-    return ctx.channel.id in allowedIDs
+    try:
+        return ctx.channel.id in allowedIDs[str(ctx.guild.id)]
+    except KeyError:
+        return False
 
 
 # Function to write messages to error.txt

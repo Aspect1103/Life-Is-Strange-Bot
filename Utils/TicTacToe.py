@@ -1,4 +1,6 @@
 # Pip
+import asyncio
+
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
@@ -15,6 +17,7 @@ class TicTacToe:
             self.colour = color
         else:
             raise TypeError("Invalid parameters")
+        self.timeout = 300
         self.player1 = self.ctx.author
         self.player2 = None
         self.nextPlayer = self.player1
@@ -129,19 +132,27 @@ class TicTacToe:
                 gameEmbed.title = f"Game Over! {self.result[1]} Won"
             elif self.result[0] == "Draw":
                 gameEmbed.title = f"Game Over! It's A Draw"
+            else:
+                gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
 
     # Start the game
     async def start(self):
         while self.isPlaying:
-            reaction, user = await self.client.wait_for("reaction_add", check=self.checkMove)
-            await self.gameMessage.remove_reaction(reaction, user)
-            self.moveManager(str(reaction))
-            if self.isPlaying:
-                if self.changeMade:
-                    self.switchPlayer()
-                    self.changeMade = False
-                    self.drawCheck()
-                    self.winChecker()
-            await self.updateBoard()
+            try:
+                reaction, user = await self.client.wait_for("reaction_add", timeout=self.timeout, check=self.checkMove)
+                await self.gameMessage.remove_reaction(reaction, user)
+                self.moveManager(str(reaction))
+                if self.isPlaying:
+                    if self.changeMade:
+                        self.changeMade = False
+                        self.drawCheck()
+                        self.winChecker()
+                        self.switchPlayer()
+                await self.updateBoard()
+            except asyncio.TimeoutError:
+                await self.ctx.send("Game has timed out")
+                self.isPlaying = False
+                self.result = "Timeout"
+                await self.updateBoard()
         await self.gameMessage.clear_reactions()
