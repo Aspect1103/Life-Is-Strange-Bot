@@ -20,6 +20,9 @@ def idWriter(newDict):
 # Function to check if a command is in the correct channel
 def channelCheck(ctx, allowedIDs):
     try:
+        guildIDs = allowedIDs[str(ctx.guild.id)]
+        if guildIDs[0] == -1:
+            return True
         return ctx.channel.id in allowedIDs[str(ctx.guild.id)]
     except KeyError:
         return False

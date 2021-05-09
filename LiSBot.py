@@ -2,6 +2,7 @@
 import logging
 import os
 # Pip
+import discord
 from discord.ext import commands
 from discord import Game
 from discord import Status
@@ -16,6 +17,24 @@ client = commands.Bot(command_prefix="$", description="A LiS Discord Bot")
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__))
 logPath = os.path.join(rootDirectory, "BotFiles", "lisBot.log")
+
+
+# Run when discord bot has joined a guild
+@client.event
+async def on_guild_join(guild):
+    tempDict = Utils.allowedIDs
+    for key, value in tempDict.items():
+        value[str(guild.id)] = [-1]
+    Utils.idWriter(tempDict)
+
+
+# Run when discord bot has left a guild
+@client.event
+async def on_guild_remove(guild):
+    tempDict = Utils.allowedIDs
+    for key, value in tempDict.items():
+        del value[str(guild.id)]
+    Utils.idWriter(tempDict)
 
 
 # Run when discord bot has started

@@ -10,7 +10,10 @@ from Utils import Utils
 # Attributes for the help command
 attributes = {
     "cooldown": commands.Cooldown(1, 5, commands.BucketType.user),
-    "help": "Displays the help command. It has a cooldown of 5 seconds"
+    "help": "Displays the help command. It has a cooldown of 5 seconds",
+    "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
+    "usage": "help (cog/group/command name)",
+    "brief": "Bot Stuff"
 }
 
 
@@ -28,7 +31,7 @@ class Miscellaneous(commands.Cog):
     # Function to initialise miscellaneous variables
     def miscellaneousInit(self):
         # Setup allowed channel IDs
-        self.allowedIDsAdmin = Utils.allowedIDs["admin"]
+        self.allowedIDsAdmin = Utils.allowedIDs["bot stuff"]
 
     # bum command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a hypnotic gif. It has a cooldown of 10 seconds", usage="bum")
@@ -55,7 +58,7 @@ class Miscellaneous(commands.Cog):
         await ctx.channel.send("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
 
     # about command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about")
+    @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about", brief="Bot Stuff")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
         if Utils.channelCheck(ctx, self.allowedIDsAdmin[ctx.guild.id]):
@@ -92,7 +95,7 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.allowedIDs = Utils.allowedIDs["admin"]
+        self.allowedIDs = Utils.allowedIDs["bot stuff"]
         self.colour = Colour.orange()
 
     # Function to get the command signature (the actual command)
@@ -197,13 +200,12 @@ class Help(commands.HelpCommand):
             aliases = self.create_alises(command)
             # Create embed
             commandHelpEmbed = Embed(title=f"{self.clean_prefix}{command.qualified_name} Help", colour=self.colour)
-            commandHelpEmbed.set_footer(text=f"Requested by {self.context.author}")
             if aliases != None:
                 commandHelpEmbed.set_footer(text=aliases)
             if command.description == "":
-                commandHelpEmbed.add_field(name=command.help, value=f"No arguments\n\nUsage: {self.clean_prefix}{command.usage}")
+                commandHelpEmbed.add_field(name=command.help, value=f"No arguments\n\nUsage: {self.clean_prefix}{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
             else:
-                commandHelpEmbed.add_field(name=command.help, value=f"{command.description}\n\nUsage: {self.clean_prefix}{command.usage}")
+                commandHelpEmbed.add_field(name=command.help, value=f"{command.description}\n\nUsage: {self.clean_prefix}{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
             # Send embed
             channel = self.get_destination()
             await channel.send(embed=commandHelpEmbed)

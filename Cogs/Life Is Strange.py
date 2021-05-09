@@ -152,7 +152,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return episodeEmbed
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help="Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of 60 seconds", usage="trivia")
+    @commands.command(help="Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of 60 seconds", usage="trivia", brief="Trivia")
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def trivia(self, ctx):
         # Grab random trivia
@@ -176,7 +176,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             await triviaMessage.edit(embed=resultEmbed)
 
     # choices command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)")
+    @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Choices")
     @commands.cooldown(1, 0, commands.BucketType.guild)
     async def choices(self, ctx, *epNumber):
         if len(epNumber) == 0:

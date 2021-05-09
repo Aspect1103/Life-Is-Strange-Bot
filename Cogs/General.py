@@ -102,7 +102,7 @@ class General(commands.Cog):
             await ctx.channel.send("No new games allowed, finish the current one")
 
     # art command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays a random LiS fanart based on a tag. It has a cooldown of 15 seconds", description="\nArguments:\nTag - The deviantart tag to search on", usage="art (tag)")
+    @commands.command(help="Displays a random LiS fanart based on a tag. It has a cooldown of 15 seconds", description="\nArguments:\nTag - The deviantart tag to search on", usage="art (tag)", brief="Image")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def art(self, ctx, *tag):
         if len(tag) == 0:
@@ -139,7 +139,7 @@ class General(commands.Cog):
                     await ctx.channel.send(f"{randomImage.title} by {randomImage.author}. Link: {randomImage.url}")
 
     # question command with a cooldown of 1 use every 15 seconds per guild
-    @commands.command(help="Displays a random question for users to answer. It has a cooldown of 15 seconds", usage="question")
+    @commands.command(help="Displays a random question for users to answer. It has a cooldown of 15 seconds", usage="question", brief="General")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def question(self, ctx):
         if self.nextQuestion == len(self.questionArray):
@@ -153,7 +153,7 @@ class General(commands.Cog):
         await ctx.channel.send(embed=questionEmbed)
 
     # connect4 command with a cooldown of 1 use every 300 seconds per guild
-    @commands.command(help="Displays a player vs player game of connect 4. It has a cooldown of 300 seconds", usage="connect4")
+    @commands.command(help="Displays a player vs player game of connect 4. It has a cooldown of 300 seconds", usage="connect4", brief="General")
     @commands.cooldown(1, 300, commands.BucketType.guild)
     async def connect4(self, ctx):
         # Create connect 4 game object
@@ -162,7 +162,7 @@ class General(commands.Cog):
         await self.gameManager(ctx, connect4)
 
     # tictactoe command with a cooldown of 1 use every 90 seconds per guild
-    @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 90 seconds", usage="tictactoe")
+    @commands.command(help="Displays a player vs player game of tic tac toe. It has a cooldown of 90 seconds", usage="tictactoe", brief="General")
     @commands.cooldown(1, 90, commands.BucketType.guild)
     async def tictactoe(self, ctx):
         # Create tictactoe game object
