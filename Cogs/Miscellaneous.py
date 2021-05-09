@@ -140,7 +140,7 @@ class Help(commands.HelpCommand):
                     # Create embed
                     helpEmbed = Embed(title=f"Page {pageCount}/{len(mapping.items()) - 1}", colour=self.colour)
                     helpEmbed.add_field(name=f"{cog.qualified_name} Cog", value="\n".join(commandSignatures), inline=False)
-                    helpEmbed.set_footer(text=f"{len(commands)} commands. Requested by {self.context.author}")
+                    helpEmbed.set_footer(text=f"{len(commands)} commands")
                     pages.append(helpEmbed)
             # Create paginator
             paginator = Paginator(self.context, self.context.bot)
@@ -156,7 +156,7 @@ class Help(commands.HelpCommand):
         if valid:
             # Create embed
             cogHelpEmbed = Embed(title=f"{cog.qualified_name} Help", colour=self.colour)
-            cogHelpEmbed.set_footer(text=f"{len(cog.get_commands())} commands. Requested by {self.context.author}")
+            cogHelpEmbed.set_footer(text=f"{len(cog.get_commands())} commands")
             for command in cog.get_commands():
                 # Create aliases string
                 aliases = self.create_alises(command)
@@ -177,7 +177,7 @@ class Help(commands.HelpCommand):
         if valid:
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
-            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands. Requested by {self.context.author}")
+            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands")
             for command in group.commands:
                 # Create aliases string
                 aliases = self.create_alises(command)
