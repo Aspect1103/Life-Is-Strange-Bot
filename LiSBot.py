@@ -2,7 +2,6 @@
 import logging
 import os
 # Pip
-import discord
 from discord.ext import commands
 from discord import Game
 from discord import Status
