@@ -109,17 +109,16 @@ class Help(commands.HelpCommand):
         self.restrictor = Restrictor(self.context.bot, self.commandGroups)
         result = await self.restrictor.commandCheck(self.context)
         if result:
-            return True, None
+            return None
         else:
-            # Current channel is wrong
             result = await self.restrictor.grabAllowed(self.context)
-            return False, result
+            return result
 
     # Function to display help on the entire bot
     async def send_bot_help(self, mapping):
         # Test if the current channel is correct
-        valid, result = await self.channelCheck()
-        if valid:
+        result = await self.channelCheck()
+        if result is None:
             # Create embed list
             pages = []
             # Get iterable dict of each cog and their commands
