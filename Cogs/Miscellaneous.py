@@ -5,6 +5,7 @@ from discord import Embed
 from discord import Colour
 # Custom
 from Utils.Paginator import Paginator
+from Utils.Restrictor import Restrictor
 from Utils import Utils
 
 # Attributes for the help command
@@ -22,16 +23,11 @@ class Miscellaneous(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
+        self.commandGroups = {"about": "bot stuff"}
+        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.orange()
-        self.allowedIDsBot = None
         self.client.help_command = Help(command_attrs=attributes)
         self.client.help_command.cog = self
-        self.miscellaneousInit()
-
-    # Function to initialise miscellaneous variables
-    def miscellaneousInit(self):
-        # Setup allowed channel IDs
-        self.allowedIDsAdmin = Utils.allowedIDs["bot stuff"]
 
     # bum command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a hypnotic gif. It has a cooldown of 10 seconds", usage="bum")
@@ -61,32 +57,30 @@ class Miscellaneous(commands.Cog):
     @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about", brief="Bot Stuff")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
-        if Utils.channelCheck(ctx, self.allowedIDsAdmin[ctx.guild.id]):
-            # Create embed
-            botInfo = await self.client.application_info()
-            aboutEmbed = Embed(title=f"About {ctx.me.name}", colour=self.colour)
-            aboutEmbed.add_field(name="Developer", value=botInfo.owner, inline=True)
-            aboutEmbed.add_field(name="Need Help?", value=f"Use {ctx.prefix}help", inline=True)
-            aboutEmbed.add_field(name="GitHub Link", value="https://github.com/Aspect1103/Life-Is-Strange-Bot", inline=True)
-            aboutEmbed.set_image(url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
-            aboutEmbed.set_thumbnail(url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
-            aboutEmbed.set_footer(text="Have a suggestion to improve the bot? DM me!", icon_url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
-            # Send embed
-            await ctx.channel.send(embed=aboutEmbed)
-        else:
-            raise CheckFailure("The check functions for command about failed.")
+        # Create embed
+        botInfo = await self.client.application_info()
+        aboutEmbed = Embed(title=f"About {ctx.me.name}", colour=self.colour)
+        aboutEmbed.add_field(name="Developer", value=botInfo.owner, inline=True)
+        aboutEmbed.add_field(name="Need Help?", value=f"Use {ctx.prefix}help", inline=True)
+        aboutEmbed.add_field(name="GitHub Link", value="https://github.com/Aspect1103/Life-Is-Strange-Bot", inline=True)
+        aboutEmbed.set_image(url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
+        aboutEmbed.set_thumbnail(url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
+        aboutEmbed.set_footer(text="Have a suggestion to improve the bot? DM me!", icon_url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
+        # Send embed
+        await ctx.channel.send(embed=aboutEmbed)
+
+    # Function to run channelCheck for general
+    async def cog_check(self, ctx):
+        result = await self.restrictor.commandCheck(ctx)
+        return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
+        if isinstance(error, commands.CheckFailure):
+            result = await self.restrictor.grabAllowed(ctx)
+            await ctx.channel.send(result)
+        elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        elif isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsAdmin[ctx.guild.id]]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
         Utils.errorWrite(error)
 
 
@@ -95,7 +89,8 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.allowedIDs = Utils.allowedIDs["bot stuff"]
+        self.commandGroups = {"help": "bot stuff"}
+        self.restrictor = None
         self.colour = Colour.orange()
 
     # Function to get the command signature (the actual command)
@@ -110,23 +105,20 @@ class Help(commands.HelpCommand):
         return aliases
 
     # Function to check and determine the end channel for the help command
-    def channelCheck(self):
-        if Utils.channelCheck(self.context, self.allowedIDs):
-            # Current channel is correct
-            return True, self.context.bot.get_channel(self.context.channel.id)
+    async def channelCheck(self):
+        self.restrictor = Restrictor(self.context.bot, self.commandGroups)
+        result = await self.restrictor.commandCheck(self.context)
+        if result:
+            return True, None
         else:
             # Current channel is wrong
-            textChannelAllowed = [self.context.bot.get_channel(channel) for channel in self.allowedIDs[str(self.context.guild.id)]]
-            if len([channel for channel in filter(None, textChannelAllowed)]) == 0:
-                return False, f"No channels added. Use {self.clean_prefix}channel to add some"
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == self.context.guild.id])
-                return False, f"This command is only allowed in {guildAllowed}"
+            result = await self.restrictor.grabAllowed(self.context)
+            return False, result
 
     # Function to display help on the entire bot
     async def send_bot_help(self, mapping):
         # Test if the current channel is correct
-        valid, result = self.channelCheck()
+        valid, result = await self.channelCheck()
         if valid:
             # Create embed list
             pages = []
@@ -152,7 +144,7 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific cog
     async def send_cog_help(self, cog):
         # Test if the current channel is correct
-        valid, result = self.channelCheck()
+        valid, result = await self.channelCheck()
         if valid:
             # Create embed
             cogHelpEmbed = Embed(title=f"{cog.qualified_name} Help", colour=self.colour)
@@ -173,7 +165,7 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific group
     async def send_group_help(self, group):
         # Test if the current channel is correct
-        valid, result = self.channelCheck()
+        valid, result = await self.channelCheck()
         if valid:
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
@@ -194,7 +186,7 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific command
     async def send_command_help(self, command):
         # Test if the current channel is correct
-        valid, result = self.channelCheck()
+        valid, result = await self.channelCheck()
         if valid:
             # Create aliases
             aliases = self.create_alises(command)

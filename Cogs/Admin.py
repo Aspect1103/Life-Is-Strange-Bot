@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
+from Utils.Restrictor import Restrictor
 from Utils import Utils
 
 
@@ -11,13 +12,9 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.orange()
+        self.commandGroups = {"stop": "bot stuff", "channel": "bot stuff", "channel add": "bot stuff", "channel remove": "bot stuff", "channel list": "bot stuff", "refresh": "bot stuff"}
+        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.allowedIDs = None
-        self.adminInit()
-
-    # Function to initialise admin variables
-    def adminInit(self):
-        # Setup allowed channel IDs
-        self.allowedIDs = Utils.allowedIDs["bot stuff"]
 
     # Function to verify a channel command
     def channelVerify(self, ctx, args):
@@ -44,9 +41,10 @@ class Admin(commands.Cog):
                 return f"Section not found. Try {validSections}", None
 
     # stop command
-    @commands.command(aliases=["stop"], help="Stops the bot", usage="stop_s|stop", brief="Bot Stuff")
+    @commands.command(help="Stops the bot", usage="stop", brief="Bot Stuff")
     @commands.is_owner()
-    async def stop_s(self, ctx):
+    async def stop(self, ctx):
+        print(ctx.command)
         await ctx.channel.send("Stopping bot")
         await self.client.close()
 
@@ -139,8 +137,6 @@ class Admin(commands.Cog):
         # Unload all extensions
         for extension in extensions:
             self.client.unload_extension(extension)
-        # Refresh allowed IDs
-        Utils.allowedIDs = Utils.initIDs()
         # Load all extensions
         for extension in extensions:
             self.client.load_extension(extension)
@@ -148,21 +144,18 @@ class Admin(commands.Cog):
 
     # Function to run channelCheck for trivia
     async def cog_check(self, ctx):
-        return Utils.channelCheck(ctx, self.allowedIDs)
+        result = await self.restrictor.commandCheck(ctx)
+        return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandOnCooldown):
+        if isinstance(error, commands.CheckFailure):
+            result = await self.restrictor.grabAllowed(ctx)
+            await ctx.channel.send(result)
+        elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
         elif isinstance(error, commands.NotOwner):
             await ctx.channel.send("You are not owner")
-        elif isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs[str(ctx.guild.id)]]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
         Utils.errorWrite(error)
 
 

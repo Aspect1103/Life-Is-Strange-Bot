@@ -11,8 +11,9 @@ from discord import Embed
 from discord import Colour
 from bs4 import BeautifulSoup
 # Custom
-from Utils import Utils
+from Utils.Restrictor import Restrictor
 from Utils.Paginator import Paginator
+from Utils import Utils
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -25,10 +26,10 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.nextTrivia = 0
+        self.commandGroups = {"trivia": "trivia", "choices": "choices"}
+        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.purple()
-        self.allowedIDsTrivia = None
-        self.allowedIDsChoices = None
+        self.nextTrivia = 0
         self.triviaQuestions = None
         self.choicesTable = None
         self.lifeIsStrangeInit()
@@ -43,10 +44,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 temp.append(line)
         random.shuffle(temp)
         self.triviaQuestions = temp
-
-        # Setup allowed channel IDs
-        self.allowedIDsTrivia = Utils.allowedIDs["trivia"]
-        self.allowedIDsChoices = Utils.allowedIDs["choices"]
 
         # Setup the choices table
         self.choiceGrabber()
@@ -207,23 +204,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to run channelCheck for trivia
     async def cog_check(self, ctx):
-        if str(ctx.command) == "trivia":
-            return Utils.channelCheck(ctx, self.allowedIDsTrivia)
-        elif str(ctx.command) == "choices":
-            return Utils.channelCheck(ctx, self.allowedIDsChoices)
+        result = await self.restrictor.commandCheck(ctx)
+        return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            if str(ctx.command) == "trivia":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsTrivia[str(ctx.guild.id)]]
-            elif str(ctx.command) == "choices":
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsChoices[str(ctx.guild.id)]]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+            result = await self.restrictor.grabAllowed(ctx)
+            await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
         Utils.errorWrite(error)

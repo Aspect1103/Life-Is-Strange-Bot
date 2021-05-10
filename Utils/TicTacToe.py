@@ -1,6 +1,6 @@
-# Pip
+# Builtin
 import asyncio
-
+# Pip
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed

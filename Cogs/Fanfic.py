@@ -9,8 +9,9 @@ from discord import Colour
 import gspread
 import AO3
 # Custom
-from Utils import Utils
 from Utils.Paginator import Paginator
+from Utils.Restrictor import Restrictor
+from Utils import Utils
 import Config
 
 # Path variables
@@ -24,9 +25,10 @@ class Fanfic(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
+        self.commandGroups = {"quote": "fanfic", "nextQuote": "fanfic", "srarchQuote": "fanfic", "outline": "fanfic", "works": "fanfic"}
+        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.green()
         self.ignore = []
-        self.allowedIDs = None
         self.worksheetArray = None
         self.fanficInit()
 
@@ -49,9 +51,6 @@ class Fanfic(commands.Cog):
         with open(ignorePath, "r") as file:
             for line in file.readlines():
                 self.ignore.append(line)
-
-        # Setup allowed channel IDs
-        self.allowedIDs = Utils.allowedIDs["fanfic"]
 
     # Function to make random quotes
     def quoteMaker(self, link):
@@ -393,17 +392,14 @@ class Fanfic(commands.Cog):
 
     # Function to run channelCheck for trivia
     async def cog_check(self, ctx):
-        return Utils.channelCheck(ctx, self.allowedIDs)
+        result = await self.restrictor.commandCheck(ctx)
+        return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDs[str(ctx.guild.id)]]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+            result = await self.restrictor.grabAllowed(ctx)
+            await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
         elif isinstance(error.original, AO3.utils.HTTPError):

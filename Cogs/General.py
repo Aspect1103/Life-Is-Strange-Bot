@@ -12,6 +12,7 @@ import deviantart
 # Custom
 from Utils.Connect4 import Connect4
 from Utils.TicTacToe import TicTacToe
+from Utils.Restrictor import Restrictor
 from Utils import Utils
 import Config
 
@@ -25,14 +26,12 @@ class General(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.nextQuestion = 0
+        self.commandGroups = {"art": "image", "question": "general", "connect4": "general", "tictactoe": "general"}
+        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.blue()
-        self.imageGroup = ["art"]
-        self.generalGroup = ["question", "connect4", "tictactoe"]
         self.gameInitReaction = "✅"
+        self.nextQuestion = 0
         self.isNewGameAllowed = True
-        self.allowedIDsImage = None
-        self.allowedIDsGeneral = None
         self.deviantAPI = None
         self.questionArray = None
         self.generalInit()
@@ -46,10 +45,6 @@ class General(commands.Cog):
                 temp.append(line.replace("\n", ""))
         random.shuffle(temp)
         self.questionArray = temp
-
-        # Setup allowed channel IDs
-        self.allowedIDsImage = Utils.allowedIDs["image"]
-        self.allowedIDsGeneral = Utils.allowedIDs["general"]
 
         # Setup the deviantart api
         self.refresh()
@@ -172,23 +167,14 @@ class General(commands.Cog):
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
-        if str(ctx.command) in self.imageGroup:
-            return Utils.channelCheck(ctx, self.allowedIDsImage)
-        elif str(ctx.command) in self.generalGroup:
-            return Utils.channelCheck(ctx, self.allowedIDsGeneral)
+        result = await self.restrictor.commandCheck(ctx)
+        return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            if str(ctx.command) in self.imageGroup:
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsImage[str(ctx.guild.id)]]
-            elif str(ctx.command) in self.generalGroup:
-                textChannelAllowed = [self.client.get_channel(channel) for channel in self.allowedIDsGeneral[str(ctx.guild.id)]]
-            if all(element is None for element in textChannelAllowed):
-                await ctx.channel.send(f"No channels added. Use {ctx.prefix}channel to add some")
-            else:
-                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed) if channel.guild.id == ctx.guild.id])
-                await ctx.channel.send(f"This command is only allowed in {guildAllowed}")
+            result = await self.restrictor.grabAllowed(ctx)
+            await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
         elif isinstance(error.original, deviantart.api.DeviantartError):

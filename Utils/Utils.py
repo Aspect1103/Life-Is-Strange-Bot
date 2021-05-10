@@ -17,17 +17,6 @@ def idWriter(newDict):
         file.write(jsonString)
 
 
-# Function to check if a command is in the correct channel
-def channelCheck(ctx, allowedIDs):
-    try:
-        guildIDs = allowedIDs[str(ctx.guild.id)]
-        if guildIDs[0] == -1:
-            return True
-        return ctx.channel.id in allowedIDs[str(ctx.guild.id)]
-    except KeyError:
-        return False
-
-
 # Function to write messages to error.txt
 def errorWrite(error):
     with open(errorPath, "a") as file:
@@ -38,5 +27,5 @@ def errorWrite(error):
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
-allowedIDs = initIDs()
+IDs = initIDs()
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
