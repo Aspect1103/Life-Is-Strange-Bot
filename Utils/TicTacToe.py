@@ -155,4 +155,3 @@ class TicTacToe:
                 self.isPlaying = False
                 self.result = "Timeout"
                 await self.updateBoard()
-        await self.gameMessage.clear_reactions()

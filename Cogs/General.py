@@ -69,32 +69,29 @@ class General(commands.Cog):
     async def gameManager(self, ctx, gameObj):
         # Function to detect if another player has reacted
         def gameReactChecker(reaction, user):
-            #return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id and user.id != gameObj.ctx.author.id
-            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id
-        # Test if a new game is allowed
-        if self.isNewGameAllowed:
-            self.isNewGameAllowed = False
-            # Send reaction embed
-            initialEmbed = Embed(title=f"{gameObj} Request", description=f"{gameObj.player1.mention} wants to play {gameObj}. React to this message if you want to challenge them!", colour=self.colour)
-            gameObj.gameMessage = await gameObj.ctx.send(embed=initialEmbed)
-            await gameObj.gameMessage.add_reaction(self.gameInitReaction)
-            # Wait until another player reacts
-            while True:
-                try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=gameObj.timeout, check=gameReactChecker)
-                    gameObj.player2 = user
-                except asyncio.TimeoutError:
-                    await gameObj.ctx.send("Game has timed out")
-                break
-            # Play game
+            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id and user.id != gameObj.ctx.author.id
+            #return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == gameObj.ctx.guild.id
+        # Send reaction embed
+        initialEmbed = Embed(title=f"{gameObj} Request", description=f"{gameObj.player1.mention} wants to play {gameObj}. React to this message if you want to challenge them!", colour=self.colour)
+        gameObj.gameMessage = await gameObj.ctx.send(embed=initialEmbed)
+        await gameObj.gameMessage.add_reaction(self.gameInitReaction)
+        # Wait until another player reacts
+        while True:
+            try:
+                reaction, user = await self.client.wait_for("reaction_add", timeout=gameObj.timeout, check=gameReactChecker)
+                gameObj.player2 = user
+            except asyncio.TimeoutError:
+                await gameObj.ctx.send("Game has timed out")
+            break
+        # Play game
+        if gameObj.player2 is not None:
             await gameObj.ctx.channel.send(f"Let's play {gameObj}! {gameObj.player1.mention} vs {gameObj.player2.mention}")
             await gameObj.gameMessage.clear_reactions()
             await gameObj.updateBoard()
             await gameObj.sendEmojis()
             await gameObj.start()
-            self.isNewGameAllowed = True
-        else:
-            await ctx.channel.send("No new games allowed, finish the current one")
+        await gameObj.gameMessage.clear_reactions()
+        self.isNewGameAllowed = True
 
     # art command with a cooldown of 1 use every 10 seconds per guild
     @commands.command(help="Displays a random LiS fanart based on a tag. It has a cooldown of 15 seconds", description="\nArguments:\nTag - The deviantart tag to search on", usage="art (tag)", brief="Image")
