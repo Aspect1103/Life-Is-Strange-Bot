@@ -26,7 +26,7 @@ class General(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.commandGroups = {"art": "image", "question": "general", "connect4": "general", "tictactoe": "general"}
+        self.commandGroups = {"image": ["art"], "general": ["question", "connect4", "tictactoe"]}
         self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.blue()
         self.gameInitReaction = "✅"

@@ -25,7 +25,7 @@ class Fanfic(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
-        self.commandGroups = {"quote": "fanfic", "nextQuote": "fanfic", "srarchQuote": "fanfic", "outline": "fanfic", "works": "fanfic"}
+        self.commandGroups = {"fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"]}
         self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.green()
         self.ignore = []

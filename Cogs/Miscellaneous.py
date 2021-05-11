@@ -23,7 +23,7 @@ class Miscellaneous(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.commandGroups = {"about": "bot stuff"}
+        self.commandGroups = {"bot stuff": ["about"]}
         self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.orange()
         self.client.help_command = Help(command_attrs=attributes)
@@ -89,7 +89,7 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.commandGroups = {"help": "bot stuff"}
+        self.commandGroups = {"bot stuff": ["help"]}
         self.restrictor = None
         self.colour = Colour.orange()
 

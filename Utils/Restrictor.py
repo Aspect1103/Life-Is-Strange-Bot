@@ -25,19 +25,18 @@ class Restrictor:
 
     # Function to get the allowed channels for a command
     def getAllowed(self, ctx):
-        if str(ctx.command) in self.commandGroups.keys():
-            restrictedSection = self.commandGroups[str(ctx.command)]
-            allowedChannels = self.IDs[restrictedSection][str(ctx.guild.id)]
-            if allowedChannels != -1:
-                return allowedChannels
+        for key, value in self.commandGroups.items():
+            if str(ctx.command) in value:
+                allowedChannels = self.IDs[key][str(ctx.guild.id)]
+                if allowedChannels != -1:
+                    return allowedChannels
         return None
 
     # Function to check if a command is allowed in a specific channel
     async def commandCheck(self, ctx):
         allowedChannel = self.getAllowed(ctx)
         if allowedChannel is not None:
-            if allowedChannel[0] != -1:
-                return ctx.channel.id in allowedChannel
+            return ctx.channel.id in allowedChannel
         return True
 
     # Function to grab the allowed channels
@@ -45,7 +44,5 @@ class Restrictor:
         allowedChannel = self.getAllowed(ctx)
         if allowedChannel is not None:
             textChannelAllowed = [self.client.get_channel(channel) for channel in allowedChannel]
-            if all(element is None for element in textChannelAllowed):
-                return f"No channels added. Use {ctx.prefix}channel to add some"
-            guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
+            guildAllowed = ", ".join([channel.mention for channel in textChannelAllowed])
             return f"This command is only allowed in {guildAllowed}"

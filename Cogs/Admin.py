@@ -12,7 +12,7 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.orange()
-        self.commandGroups = {"stop": "bot stuff", "channel": "bot stuff", "channel add": "bot stuff", "channel remove": "bot stuff", "channel list": "bot stuff", "refresh": "bot stuff"}
+        self.commandGroups = {"bot stuff": ["stop", "channel", "channel add", "channel remove", "channel list", "refresh"]}
         self.restrictor = Restrictor(self.client, self.commandGroups)
         self.allowedIDs = None
 

@@ -26,7 +26,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.commandGroups = {"trivia": "trivia", "choices": "choices"}
+        self.commandGroups = {"trivia": ["trivia"], "choices": ["choices"]}
         self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.purple()
         self.nextTrivia = 0
