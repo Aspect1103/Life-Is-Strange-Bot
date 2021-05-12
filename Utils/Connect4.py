@@ -5,6 +5,7 @@ from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
 from discord import Colour
+import numpy
 
 
 # Connect4 class to play connect 4 in a discord channel
@@ -103,15 +104,24 @@ class Connect4:
             return consecutiveCheck(horizontalRow)
         # Function to check for diagonal wins
         def diagonalCheck():
+            result = []
             diagonals = self.getDiagonals()
-            return consecutiveCheck(diagonals[0]) or consecutiveCheck(diagonals[1])
+            for direction in diagonals:
+                for row in direction:
+                    result.append(consecutiveCheck(row))
+            return any(result)
         if verticalCheck() or horizontalCheck() or diagonalCheck():
             self.isPlaying = False
             self.result = ("Win", self.nextPlayer)
 
     # Function to get the diagonals
     def getDiagonals(self):
-        return [[0], [0]]
+        def getPositive(npArray):
+            return [npArray[::-1, :].diagonal(i) for i in range(-npArray.shape[0]+1, npArray.shape[1])]
+        def getNegative(npArray):
+            return [npArray.diagonal(i) for i in range(npArray.shape[1]-1, -npArray.shape[0], -1)]
+        npArray = numpy.array(self.grid)
+        return [getPositive(npArray), getNegative(npArray)]
 
     # Function to determine who goes next
     def switchPlayer(self):
@@ -160,8 +170,8 @@ class Connect4:
                     if self.changeMade:
                         self.changeMade = False
                         self.drawCheck()
-                        #self.winChecker()
-                        #self.switchPlayer()
+                        self.winChecker()
+                        self.switchPlayer()
                 await self.updateBoard()
             except asyncio.TimeoutError:
                 await self.ctx.send("Game has timed out")
