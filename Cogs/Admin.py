@@ -26,7 +26,7 @@ class Admin(commands.Cog):
             return "Too many arguments", None
         else:
             # Correct amount of arguments
-            if args[0] in Utils.allowedIDs:
+            if args[0] in Utils.IDs:
                 # Section exists
                 channelID = int("".join([str(num) for num in args[1] if num.isdigit()]))
                 if self.client.get_channel(channelID).guild.id == ctx.guild.id:
@@ -37,7 +37,7 @@ class Admin(commands.Cog):
                     return "Invalid channel for guild", None
             else:
                 # Section doesn't exist
-                validSections = "/".join(Utils.allowedIDs.keys())
+                validSections = "/".join(Utils.IDs.keys())
                 return f"Section not found. Try {validSections}", None
 
     # stop command
@@ -63,7 +63,7 @@ class Admin(commands.Cog):
         result, ID = self.channelVerify(ctx, args)
         if result is True:
             # Arguments are valid
-            tempDict = Utils.allowedIDs
+            tempDict = Utils.IDs
             if ID in tempDict[args[0]][str(ctx.guild.id)]:
                 # Channel already added
                 await ctx.channel.send("Channel is already added")
@@ -89,7 +89,7 @@ class Admin(commands.Cog):
         result, ID = self.channelVerify(ctx, args)
         if result is True:
             # Arguments are valid
-            tempDict = Utils.allowedIDs
+            tempDict = Utils.IDs
             if not ID in tempDict[args[0]][str(ctx.guild.id)]:
                 # Channel not added
                 await ctx.channel.send("Channel is not added")
@@ -112,7 +112,7 @@ class Admin(commands.Cog):
     async def list(self, ctx):
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
-        for key, value in Utils.allowedIDs.items():
+        for key, value in Utils.IDs.items():
             if value[str(ctx.guild.id)][0] == -1:
                 # Command/category allowed everywhere not restricted
                 listEmbed.add_field(name=f"{key.title()}", value="This command is allowed everywhere. Enjoy!", inline=False)

@@ -37,13 +37,6 @@ class TicTacToe:
     def checkMove(self, reaction, user):
         return reaction.message.id == self.gameMessage.id and user.id == self.nextPlayer.id and str(reaction) in self.gameEmojis
 
-    # Function to determine who goes next
-    def switchPlayer(self):
-        if self.nextPlayer == self.player1:
-            self.nextPlayer = self.player2
-        else:
-            self.nextPlayer = self.player1
-
     # Function to manage moves made by the player
     def moveManager(self, reaction):
         if reaction == self.gameEmojis[0]:
@@ -79,6 +72,13 @@ class TicTacToe:
         else:
             pass
 
+    # Function to test for a draw
+    def drawCheck(self):
+        temp = [item for row in self.grid for item in row]
+        if all(item != 0 for item in temp):
+            self.isPlaying = False
+            self.result = ("Draw", self.nextPlayer)
+
     # Function to check for wins
     def winChecker(self):
         checks = [
@@ -98,12 +98,12 @@ class TicTacToe:
             self.isPlaying = False
             self.result = ("Win", self.nextPlayer)
 
-    # Function to test for a draw
-    def drawCheck(self):
-        temp = [item for row in self.grid for item in row]
-        if all(item != 0 for item in temp):
-            self.isPlaying = False
-            self.result = ("Draw", self.nextPlayer)
+    # Function to determine who goes next
+    def switchPlayer(self):
+        if self.nextPlayer == self.player1:
+            self.nextPlayer = self.player2
+        else:
+            self.nextPlayer = self.player1
 
     # Function to setup ini send game reaction emojis
     async def sendEmojis(self):
