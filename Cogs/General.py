@@ -26,8 +26,6 @@ class General(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.commandGroups = {"image": ["art"], "general": ["question", "connect4", "tictactoe"]}
-        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.blue()
         self.gameInitReaction = "✅"
         self.nextQuestion = 0
@@ -164,13 +162,13 @@ class General(commands.Cog):
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
-        result = await self.restrictor.commandCheck(ctx)
+        result = await Utils.restrictor.commandCheck(ctx)
         return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            result = await self.restrictor.grabAllowed(ctx)
+            result = await Utils.restrictor.grabAllowed(ctx)
             await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")

@@ -23,8 +23,6 @@ class Miscellaneous(commands.Cog):
     # Initialise the client
     def __init__(self, client):
         self.client = client
-        self.commandGroups = {"bot stuff": ["about"]}
-        self.restrictor = Restrictor(self.client, self.commandGroups)
         self.colour = Colour.orange()
         self.client.help_command = Help(command_attrs=attributes)
         self.client.help_command.cog = self
@@ -71,13 +69,13 @@ class Miscellaneous(commands.Cog):
 
     # Function to run channelCheck for general
     async def cog_check(self, ctx):
-        result = await self.restrictor.commandCheck(ctx)
+        result = await Utils.restrictor.commandCheck(ctx)
         return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            result = await self.restrictor.grabAllowed(ctx)
+            result = await Utils.restrictor.grabAllowed(ctx)
             await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
@@ -89,8 +87,6 @@ class Help(commands.HelpCommand):
     # Initialise attributes
     def __init__(self, **options):
         super().__init__(**options)
-        self.commandGroups = {"bot stuff": ["help"]}
-        self.restrictor = None
         self.colour = Colour.orange()
 
     # Function to get the command signature (the actual command)
@@ -106,12 +102,11 @@ class Help(commands.HelpCommand):
 
     # Function to check and determine the end channel for the help command
     async def channelCheck(self):
-        self.restrictor = Restrictor(self.context.bot, self.commandGroups)
-        result = await self.restrictor.commandCheck(self.context)
+        result = await Utils.restrictor.commandCheck(self.context)
         if result:
             return None
         else:
-            result = await self.restrictor.grabAllowed(self.context)
+            result = await Utils.restrictor.grabAllowed(self.context)
             return result
 
     # Function to display help on the entire bot

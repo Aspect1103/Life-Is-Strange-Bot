@@ -9,19 +9,17 @@ rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 
 
-# Function to create allowedIDs
-def initIDs():
-    with open(idPath, "r") as file:
-        return json.loads(file.read())
-
-
 # Restrictor class to switch between different embeds
 class Restrictor:
     # Initialise variables
-    def __init__(self, client: Client, commandGroups: dict):
-        self.client = client
-        self.IDs = initIDs()
+    def __init__(self, IDs: dict, commandGroups: dict):
+        self.IDs = IDs
         self.commandGroups = commandGroups
+        self.client = None
+
+    # Function to set the client variables
+    def setClient(self, client: Client):
+        self.client = client
 
     # Function to get the allowed channels for a command
     def getAllowed(self, ctx):

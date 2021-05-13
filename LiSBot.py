@@ -41,6 +41,8 @@ async def on_guild_remove(guild):
 async def on_ready():
     # Get channel ID for test channel
     channel = client.get_channel(817807544482922496)
+    # Setup the client variable for the restrictor class
+    Utils.restrictor.setClient(client)
     # Change the presence to show the help command
     await client.change_presence(status=Status.online, activity=Game(name=f"{client.command_prefix}help"))
     # Send message to user signalling that the bot is ready
