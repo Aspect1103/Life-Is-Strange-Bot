@@ -12,7 +12,6 @@ import deviantart
 # Custom
 from Utils.Connect4 import Connect4
 from Utils.TicTacToe import TicTacToe
-from Utils.Restrictor import Restrictor
 from Utils import Utils
 import Config
 

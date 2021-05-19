@@ -10,7 +10,6 @@ import gspread
 import AO3
 # Custom
 from Utils.Paginator import Paginator
-from Utils.Restrictor import Restrictor
 from Utils import Utils
 import Config
 
@@ -278,8 +277,13 @@ class Fanfic(commands.Cog):
     async def searchQuote(self, ctx, *searchTerms):
         if len(searchTerms) > 0:
             # Search the worksheet array to find matching rows
-            matches = self.searcher(searchTerms)
-            if len(matches) == 0:
+            try:
+                matches = self.searcher(searchTerms)
+            except IndexError:
+                matches = None
+            if matches is None:
+                await ctx.channel.send("Invalid format. Make sure there are no spaces for each term")
+            elif len(matches) == 0:
                 # No matches found
                 await ctx.channel.send("No matches found")
             elif len(matches) == 1:

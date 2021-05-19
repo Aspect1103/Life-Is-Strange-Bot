@@ -1,11 +1,9 @@
 # Pip
-from discord.ext.commands import CheckFailure
 from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
 from Utils.Paginator import Paginator
-from Utils.Restrictor import Restrictor
 from Utils import Utils
 
 # Attributes for the help command

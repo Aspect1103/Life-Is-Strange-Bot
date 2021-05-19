@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
-from Utils.Restrictor import Restrictor
 from Utils import Utils
 
 

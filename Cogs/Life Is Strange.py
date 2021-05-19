@@ -11,7 +11,6 @@ from discord import Embed
 from discord import Colour
 from bs4 import BeautifulSoup
 # Custom
-from Utils.Restrictor import Restrictor
 from Utils.Paginator import Paginator
 from Utils import Utils
 
