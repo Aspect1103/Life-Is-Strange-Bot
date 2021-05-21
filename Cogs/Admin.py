@@ -83,7 +83,7 @@ class Admin(commands.Cog):
                 tempDict[args[0]][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await ctx.channel.send("Changes applied. Please refresh the bot")
+                await ctx.channel.send(f"Changes applied. Please call {self.client.command_prefix}channelRefresh")
         else:
             # Arguments are invalid
             await ctx.channel.send(result)
@@ -110,7 +110,7 @@ class Admin(commands.Cog):
                 tempDict[args[0]][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await ctx.channel.send("Changes applied. Please refresh the bot")
+                await ctx.channel.send(f"Changes applied. Please call {self.client.command_prefix}channelRefresh")
         else:
             # Arguments are invalid
             await ctx.channel.send(result)
