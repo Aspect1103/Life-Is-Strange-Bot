@@ -392,7 +392,7 @@ class Fanfic(commands.Cog):
         else:
             await ctx.channel.send(f"{authorName} has {user.works} works which is over the limit of {pageLimit*20}")
 
-    # Function to run channelCheck for trivia
+    # Function to run channelCheck for Fanfic
     async def cog_check(self, ctx):
         result = await Utils.restrictor.commandCheck(ctx)
         return result

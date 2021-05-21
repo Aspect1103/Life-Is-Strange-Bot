@@ -5,13 +5,23 @@ from discord import Colour
 # Custom
 from Utils import Utils
 
+# Custom check for administrator permissions or owner
+def adminOrOwner():
+    async def predicate(ctx):
+        if ctx.author.permissions_in(ctx.channel).administrator:
+            return True
+        else:
+            if ctx.author.id == 538399052895748100:
+                return True
+            raise commands.MissingPermissions(["Administrator"])
+    return commands.check(predicate)
+
 
 # Cog to manage admin commands
 class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.orange()
-        self.allowedIDs = None
 
     # Function to verify a channel command
     def channelVerify(self, ctx, args):
@@ -41,20 +51,20 @@ class Admin(commands.Cog):
     @commands.command(help="Stops the bot", usage="stop", brief="Bot Stuff")
     @commands.is_owner()
     async def stop(self, ctx):
-        print(ctx.command)
         await ctx.channel.send("Stopping bot")
         await self.client.close()
 
     # Base function to initialise the channel group commands
     @commands.group(invoke_without_command=True, help="Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of 10 seconds", usage="channel", brief="Bot Stuff")
     @commands.cooldown(1, 10, commands.BucketType.guild)
-    @commands.is_owner()
+    @adminOrOwner()
     async def channel(self, ctx):
         pass
 
     # channel add command with a cooldown of 1 use every 10 seconds per guild
     @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description=f"Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
-    @commands.is_owner()
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @adminOrOwner()
     async def add(self, ctx, *args):
         # Run verifier
         result, ID = self.channelVerify(ctx, args)
@@ -80,7 +90,8 @@ class Admin(commands.Cog):
 
     # channel remove command with a cooldown of 1 use every 10 seconds per guild
     @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to remove", usage="channel remove (section name) (channel)", brief="Bot Stuff")
-    @commands.is_owner()
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @adminOrOwner()
     async def remove(self, ctx, *args):
         # Run verifier
         result, ID = self.channelVerify(ctx, args)
@@ -106,6 +117,7 @@ class Admin(commands.Cog):
 
     # channel list command with a cooldown of 1 use every 10 seconds per guild
     @channel.command(help="Lists all the channels a section is allowed in. It has a cooldown of 10 seconds", usage="channel list", brief="Bot Stuff")
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def list(self, ctx):
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
@@ -124,10 +136,10 @@ class Admin(commands.Cog):
         # Send embed
         await ctx.channel.send(embed=listEmbed)
 
-    # refresh command with a cooldown of 1 use every 30 seconds per guild
-    @commands.command(help="Refreshes stored variables used by the bot. The cooldown does not currently work, but please do not over-use this command", usage="refresh", brief="Bot Stuff")
+    # botRefresh command
+    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="refresh", brief="Bot Stuff")
     @commands.is_owner()
-    async def refresh(self, ctx):
+    async def botRefresh(self, ctx):
         await ctx.channel.send("Refreshing extensions")
         # List to store extension names
         extensions = Utils.extensions
@@ -139,20 +151,31 @@ class Admin(commands.Cog):
             self.client.load_extension(extension)
         await ctx.channel.send("Finished refreshing extensions")
 
-    # Function to run channelCheck for trivia
+    # channelRefresh command with a cooldown of 1 use every 30 seconds per guild
+    @commands.command(aliases=["cr"], help="Refreshes channel IDs", usage="channelRefresh", brief="Bot Stuff")
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @adminOrOwner()
+    async def channelRefresh(self, ctx):
+        await ctx.channel.send("Refreshing channel IDs")
+        Utils.restrictor.IDs = Utils.initIDs()
+        await ctx.channel.send("Finished channel IDs")
+
+    # Function to run channelCheck for Admin
     async def cog_check(self, ctx):
         result = await Utils.restrictor.commandCheck(ctx)
         return result
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.channel.send("You do not have sufficient permission to run this command")
+        elif isinstance(error, commands.NotOwner):
+            await ctx.channel.send("You are not owner")
+        elif isinstance(error, commands.CheckFailure):
             result = await Utils.restrictor.grabAllowed(ctx)
             await ctx.channel.send(result)
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        elif isinstance(error, commands.NotOwner):
-            await ctx.channel.send("You are not owner")
         Utils.errorWrite(error)
 
 

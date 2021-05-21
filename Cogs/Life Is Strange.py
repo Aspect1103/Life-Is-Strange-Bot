@@ -200,7 +200,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             # Too many arguments
             await ctx.channel.send("Too many arguments")
 
-    # Function to run channelCheck for trivia
+    # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
         result = await Utils.restrictor.commandCheck(ctx)
         return result

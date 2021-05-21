@@ -65,7 +65,7 @@ class Miscellaneous(commands.Cog):
         # Send embed
         await ctx.channel.send(embed=aboutEmbed)
 
-    # Function to run channelCheck for general
+    # Function to run channelCheck for Miscellaneous
     async def cog_check(self, ctx):
         result = await Utils.restrictor.commandCheck(ctx)
         return result

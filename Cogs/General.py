@@ -159,7 +159,7 @@ class General(commands.Cog):
         # Run game manager to start the game
         await self.gameManager(ctx, tictactoe)
 
-    # Function to run channelCheck for general
+    # Function to run channelCheck for General
     async def cog_check(self, ctx):
         result = await Utils.restrictor.commandCheck(ctx)
         return result
