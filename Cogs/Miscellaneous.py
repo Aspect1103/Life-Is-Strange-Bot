@@ -136,8 +136,8 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific cog
     async def send_cog_help(self, cog):
         # Test if the current channel is correct
-        valid, result = await self.channelCheck()
-        if valid:
+        result = await self.channelCheck()
+        if result is None:
             # Create embed
             cogHelpEmbed = Embed(title=f"{cog.qualified_name} Help", colour=self.colour)
             cogHelpEmbed.set_footer(text=f"{len(cog.get_commands())} commands")
@@ -157,8 +157,8 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific group
     async def send_group_help(self, group):
         # Test if the current channel is correct
-        valid, result = await self.channelCheck()
-        if valid:
+        result = await self.channelCheck()
+        if result is None:
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
             groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands")
@@ -178,8 +178,8 @@ class Help(commands.HelpCommand):
     # Function to display help on a specific command
     async def send_command_help(self, command):
         # Test if the current channel is correct
-        valid, result = await self.channelCheck()
-        if valid:
+        result = await self.channelCheck()
+        if result is None:
             # Create aliases
             aliases = self.create_alises(command)
             # Create embed
