@@ -1,4 +1,5 @@
 # Builtin
+import asyncio
 import os
 import random
 import math
@@ -9,6 +10,7 @@ from discord import Colour
 import gspread
 import AO3
 # Custom
+from Utils.SearchQuoteManager import SearchQuoteManager
 from Utils.Paginator import Paginator
 from Utils import Utils
 import Config
@@ -27,6 +29,7 @@ class Fanfic(commands.Cog):
         self.colour = Colour.green()
         self.ignore = []
         self.worksheetArray = None
+        self.quoteSearcher = None
         self.fanficInit()
 
     # Function to initialise fanfic variables
@@ -53,8 +56,8 @@ class Fanfic(commands.Cog):
     def quoteMaker(self, link):
         # Create work object
         work = AO3.Work(AO3.utils.workid_from_url(link), self.session)
-        if str(work.workid) in self.ignore:
-            # Work is a mystery
+        if str(work.id) in self.ignore:
+            # Work is ignored
             return "", None, None, None
         # Repeat until a good quote is found
         quote = ""
@@ -63,8 +66,8 @@ class Fanfic(commands.Cog):
         while (len(quote.split()) < 10 or len(quote.split()) > 170) and retries > 0:
             retries -= 1
             # Get a random chapter's text
-            randomChapter = random.randint(1, work.chapters)
-            randomChapterText = work.get_chapter_text(randomChapter)
+            randomChapter = work.chapters[random.randint(0, work.nchapters)-1]
+            randomChapterText = randomChapter.text
             # Format the text
             textList = list(filter(None, randomChapterText.split("\n")))
             if len(textList) == 0:
@@ -78,7 +81,7 @@ class Fanfic(commands.Cog):
             # No quote can be found
             return "", None, None, None
         # Return final values
-        return quote, work, authors, work.chapter_names[randomChapter-1]
+        return quote, work, authors, randomChapter.title
 
     # Function to create embeds
     def quoteEmbedCreater(self, quote, work, authors, chapterName):
@@ -107,124 +110,6 @@ class Fanfic(commands.Cog):
         result = []
         for i in range(listAmmount):
             result.append(arr[i * perListSize:i * perListSize + perListSize])
-        return result
-
-    # Function to search the worksheet array and return matches
-    def searcherOld(self, terms):
-        # Create temporary 2D array
-        tempWorksheet = self.worksheetArray
-        # Iterate over each term and find matches
-        for term in terms:
-            formattedTerm = str(term.split(":")[1])
-            if "title:" in term:
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[1]]
-            elif "author:" in term:
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[2]]
-            elif "ship:" in term:
-                # do matches
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[3]]
-            elif "series:" in term:
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[5]]
-            elif "status:" in term:
-                # do matches
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[6]]
-            elif "smut:" in term:
-                # do matches
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[7]]
-            elif "words:" in term:
-                # do matches + other stuff
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[8]]
-            elif "chapters:" in term:
-                # do matches + other stuff
-                tempWorksheet = [element for element in tempWorksheet if formattedTerm in element[9]]
-        # Return the matched results
-        return tempWorksheet
-
-    # Function to search for possible matches for words: and chapters:
-    def intSearch(term, rowElement, search):
-        searchNumber = int("".join([str(num) for num in search if num.isdigit()]))
-        if "==" in search:
-            return rowElement == searchNumber
-        elif "!=" in search:
-            return not rowElement == searchNumber
-        elif ">" in search:
-            return int(rowElement) > searchNumber
-        elif ">=" in search:
-            return int(rowElement) >= searchNumber
-        elif "<" in search:
-            return int(rowElement) < searchNumber
-        elif "<=" in search:
-            return int(rowElement) <= searchNumber
-        elif "-" in search:
-            splitted = search.split("-")
-            num1 = int("".join([str(num) for num in splitted[0] if num.isdigit()]))
-            num2 = int("".join([str(num) for num in splitted[1] if num.isdigit()]))
-            return num1 < int(rowElement) < num2
-
-    # Function to search the worksheet array and return matches
-    def searcher(self, terms):
-        # Array to store final matches
-        result = []
-        # Iterate over every row in the worksheet
-        for row in self.worksheetArray:
-            # Array to store results of checks
-            check = []
-            # Iterate over each term
-            for term in terms:
-                formattedTerm = term.split(":")[1]
-                if "title:" in term:
-                    # Verify title
-                    def filterTitle(row, search):
-                        return search in row[1]
-                    check.append(filterTitle(row, formattedTerm))
-                elif "author:" in term:
-                    # Verify author
-                    def filterAuthor(row, search):
-                        return search in row[2]
-                    check.append(filterAuthor(row, formattedTerm))
-                elif "ship:" in term:
-                    # Verify ship
-                    def filterShip(row, search):
-                        return search in row[3].split("/")
-                    check.append(filterShip(row, formattedTerm))
-                elif "series:" in term:
-                    # Verify series
-                    def filterSeries(row, search):
-                        return search in row[6]
-                    check.append(filterSeries(row, formattedTerm))
-                elif "status:" in term:
-                    # Verify status
-                    def filterStatus(row, search):
-                        if search == "Completed":
-                            return row[6] == "Completed"
-                        elif search == "In progress":
-                            return row[6] == "In progress"
-                        elif search == "Abandoned":
-                            return row[6] == "Abandoned"
-                        else:
-                            return False
-                    check.append(filterStatus(row, formattedTerm))
-                elif "smut:" in term:
-                    # Verify smut
-                    def filterSmut(row, search):
-                        if search == "Yes":
-                            return row[7] == "Yes"
-                        elif search == "No":
-                            return row[7] == "No"
-                        elif search == "?":
-                            return row[7] == "?"
-                        return False
-                    check.append(filterSmut(row, formattedTerm))
-                elif "words:" in term:
-                    # Verify words
-                    check.append(self.intSearch(row[8], formattedTerm))
-                elif "chapters:" in term:
-                    # Verify chapters
-                    check.append(self.intSearch(row[9], formattedTerm))
-            # If all of the checks passed, then row matches
-            if all(check):
-                result.append(row)
-        # Return all the matches
         return result
 
     # Function to find the last quote posted
@@ -271,45 +156,66 @@ class Fanfic(commands.Cog):
             # No more valid quotes found
             await ctx.channel.send("Cannot find any more quotes")
 
-    # searchQuote command with a cooldown of 1 use every 15 seconds per guild
-    @commands.command(aliases=["sq"], help="Takes multiple arguments and picks a random fic which matches those terms. It has a cooldown of 15 seconds", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term\nChapters - Result matches this term",  usage="searchQuote|sq (argument):(term) ...", brief="Fanfic")
+    # Base function to initialise the searchQuote group commands
+    @commands.group(invoke_without_command=True, aliases=["sq"], help="Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of 15 seconds", usage="searchQuote", brief="Fanfic")
     @commands.cooldown(1, 15, commands.BucketType.guild)
-    async def searchQuote(self, ctx, *searchTerms):
-        if len(searchTerms) > 0:
-            # Search the worksheet array to find matching rows
+    async def searchQuote(self, ctx):
+       await ctx.send_help(ctx.command)
+
+    # searchQuote start command with a cooldown of 1 use every 30 seconds per guild
+    @searchQuote.command()
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def start(self, ctx):
+        # Function to check a user's reaction
+        def checker(reaction, user):
+            return reaction.message.id == self.quoteSearcher.message.id and user.id == self.quoteSearcher.ctx.author.id and str(reaction) == "⏹️"
+        # Initialise the SearchQuoteManager object
+        message = await ctx.channel.send(embed=Embed(title="Quote Searcher", description=f"No filters added. Use {ctx.prefix}searchQuote add to add a filter", colour=self.colour))
+        self.quoteSearcher = SearchQuoteManager(self.client, ctx, message, self.colour, self.worksheetArray)
+        await message.add_reaction("⏹️")
+        # Wait until the stop button is pressed with a timeout of 5 minutes
+        while True:
             try:
-                matches = self.searcher(searchTerms)
-            except IndexError:
-                matches = None
-            if matches is None:
-                await ctx.channel.send("Invalid format. Make sure there are no spaces for each term")
-            elif len(matches) == 0:
-                # No matches found
-                await ctx.channel.send("No matches found")
-            elif len(matches) == 1:
-                # Create quote for single match
-                quote, work, authors, chapterName = self.quoteMaker(matches[0][10])
-                if quote == "":
-                    # No valid quotes found
-                    await ctx.channel.send("No valid quotes found")
-                else:
+                reaction, user = await self.client.wait_for("reaction_add", timeout=300, check=checker)
+            except asyncio.TimeoutError:
+                pass
+            await message.clear_reactions()
+            break
+        # Pick a row
+        tempArray = self.quoteSearcher.array
+        if len(tempArray) == 0:
+            # No matches found
+            await ctx.channel.send("No matches found")
+        elif len(tempArray) == 1:
+            # Create quote for single match
+            quote, work, authors, chapterName = self.quoteMaker(tempArray[0][10])
+            if quote != "":
+                # Valid quote found
+                await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+            else:
+                # No valid quotes found
+                await ctx.channel.send("No valid quotes found")
+        else:
+            # Multiple matches
+            quote = ""
+            while quote == "" and len(tempArray) > 0:
+                quote, work, authors, chapterName = self.quoteMaker(tempArray.pop(random.randint(0, len(tempArray)-1))[10])
+                if quote != "":
                     # Valid quote found
                     await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+                    break
             else:
-                # Get random fic and create quote
-                quote = ""
-                while quote == "" and len(matches) > 0:
-                    quote, work, authors, chapterName = self.quoteMaker(matches.pop(random.randint(0, len(matches)-1))[10])
-                    if quote != "":
-                        # Valid quote found
-                        await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
-                        break
-                else:
-                    # No valid quotes found
-                    await ctx.channel.send("No valid quotes found")
+                # No valid quotes found
+                await ctx.channel.send("No valid quotes found")
+        self.quoteSearcher = None
+
+    # searchQuote add command
+    @searchQuote.command()
+    async def add(self, ctx, *args):
+        if self.quoteSearcher is None:
+            await ctx.channel.send(f"Quote searcher not initialised. Run {ctx.prefix}searchQuote start to initialise it")
         else:
-            # No search terms provided
-            await ctx.channel.send("No search terms provided")
+            await self.quoteSearcher.addFilter(ctx, args)
 
     # outline command with a cooldown of 1 use every 15 seconds per guild
     @commands.command(help="Finds the last quote posted and displays the metadata for that fic. It has a cooldown of 15 seconds", usage="outline", brief="Fanfic")

@@ -1,6 +1,5 @@
 # Builtin
 import os
-import json
 # Pip
 from discord import Client
 

@@ -59,7 +59,7 @@ class Admin(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @adminOrOwner()
     async def channel(self, ctx):
-        pass
+        await ctx.send_help(ctx.command)
 
     # channel add command with a cooldown of 1 use every 10 seconds per guild
     @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description=f"Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
