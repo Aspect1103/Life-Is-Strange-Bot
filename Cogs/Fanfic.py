@@ -251,7 +251,7 @@ class Fanfic(commands.Cog):
         if tags != None:
             infoEmbed.add_field(name="Additional Tags:", value=tags)
         infoEmbed.add_field(name="Summary:", value=work.summary)
-        infoEmbed.set_footer(text=f"Words: {work.words}. Chapters: {work.chapters}. Language: {work.language}")
+        infoEmbed.set_footer(text=f"Words: {work.words}. Chapters: {work.nchapters}. Language: {work.language}")
         # Display the embed
         await ctx.channel.send(embed=infoEmbed)
 
