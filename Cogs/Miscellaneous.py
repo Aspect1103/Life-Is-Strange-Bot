@@ -161,14 +161,9 @@ class Help(commands.HelpCommand):
         if result is None:
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
-            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands")
+            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands. {self.create_alises(group)}")
             for command in group.commands:
-                # Create aliases string
-                aliases = self.create_alises(command)
-                if aliases != None:
-                    groupHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}\n\n{aliases}", inline=False)
-                else:
-                    groupHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}", inline=False)
+                groupHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}", inline=False)
             # Send embed
             channel = self.get_destination()
             await channel.send(embed=groupHelpEmbed)

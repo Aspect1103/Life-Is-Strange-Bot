@@ -207,6 +207,7 @@ class Fanfic(commands.Cog):
             else:
                 # No valid quotes found
                 await ctx.channel.send("No valid quotes found")
+        # Reset the quote searcher object so it can be reused
         self.quoteSearcher = None
 
     # searchQuote add command
