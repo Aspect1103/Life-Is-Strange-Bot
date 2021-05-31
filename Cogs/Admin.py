@@ -33,7 +33,7 @@ class Admin(commands.Cog):
             return "Too many arguments", None
         else:
             # Correct amount of arguments
-            if args[0] in Utils.IDs:
+            if args[0].lower() in Utils.IDs:
                 # Section exists
                 channelID = int("".join([str(num) for num in args[1] if num.isdigit()]))
                 if self.client.get_channel(channelID).guild.id == ctx.guild.id:
@@ -62,7 +62,7 @@ class Admin(commands.Cog):
         await ctx.send_help(ctx.command)
 
     # channel add command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description=f"Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
+    @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @adminOrOwner()
     async def add(self, ctx, *args):
@@ -89,7 +89,7 @@ class Admin(commands.Cog):
             await ctx.channel.send(result)
 
     # channel remove command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="Arguments: Section Name - Either admin/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to remove", usage="channel remove (section name) (channel)", brief="Bot Stuff")
+    @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Stuff")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @adminOrOwner()
     async def remove(self, ctx, *args):
@@ -137,7 +137,7 @@ class Admin(commands.Cog):
         await ctx.channel.send(embed=listEmbed)
 
     # botRefresh command
-    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="refresh", brief="Bot Stuff")
+    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Stuff")
     @commands.is_owner()
     async def botRefresh(self, ctx):
         await ctx.channel.send("Refreshing extensions")
@@ -152,7 +152,7 @@ class Admin(commands.Cog):
         await ctx.channel.send("Finished refreshing extensions")
 
     # channelRefresh command with a cooldown of 1 use every 30 seconds per guild
-    @commands.command(aliases=["cr"], help="Refreshes channel IDs", usage="channelRefresh", brief="Bot Stuff")
+    @commands.command(aliases=["cr"], help="Refreshes channel IDs", usage="channelRefresh|cr", brief="Bot Stuff")
     @commands.cooldown(1, 30, commands.BucketType.guild)
     @adminOrOwner()
     async def channelRefresh(self, ctx):

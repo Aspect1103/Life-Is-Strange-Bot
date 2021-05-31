@@ -157,13 +157,13 @@ class Fanfic(commands.Cog):
             await ctx.channel.send("Cannot find any more quotes")
 
     # Base function to initialise the searchQuote group commands
-    @commands.group(invoke_without_command=True, aliases=["sq"], help="Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of 15 seconds", usage="searchQuote", brief="Fanfic")
+    @commands.group(invoke_without_command=True, aliases=["sq"], help="Group command for searching for specific fics. This command has subcommads. It has a cooldown of 15 seconds", usage="searchQuote|sq", brief="Fanfic")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def searchQuote(self, ctx):
        await ctx.send_help(ctx.command)
 
     # searchQuote start command with a cooldown of 1 use every 30 seconds per guild
-    @searchQuote.command()
+    @searchQuote.command(help="Starts the quote searcher to search for specific fics", usage="searchQuote|sq start", brief="Fanfic")
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def start(self, ctx):
         # Function to check a user's reaction
@@ -211,7 +211,7 @@ class Fanfic(commands.Cog):
         self.quoteSearcher = None
 
     # searchQuote add command
-    @searchQuote.command()
+    @searchQuote.command(help="Add a filter to the quote searcher", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term. Use '>', '<', '>=', '<=', '==', '!=', '-' (for a range)\nChapters - Result matches this term", usage="searchQuote|sq (title/author/ship/series/status/smut/words/chapters) (term)", brief="Fanfic")
     async def add(self, ctx, *args):
         if self.quoteSearcher is None:
             await ctx.channel.send(f"Quote searcher not initialised. Run {ctx.prefix}searchQuote start to initialise it")

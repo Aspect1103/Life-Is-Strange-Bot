@@ -159,9 +159,13 @@ class Help(commands.HelpCommand):
         # Test if the current channel is correct
         result = await self.channelCheck()
         if result is None:
+            # Create aliases string
+            aliases = self.create_alises(group)
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
-            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands. {self.create_alises(group)}")
+            groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands")
+            if aliases != None:
+                groupHelpEmbed.description = aliases
             for command in group.commands:
                 groupHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}", inline=False)
             # Send embed
@@ -175,7 +179,7 @@ class Help(commands.HelpCommand):
         # Test if the current channel is correct
         result = await self.channelCheck()
         if result is None:
-            # Create aliases
+            # Create aliases string
             aliases = self.create_alises(command)
             # Create embed
             commandHelpEmbed = Embed(title=f"{self.clean_prefix}{command.qualified_name} Help", colour=self.colour)
