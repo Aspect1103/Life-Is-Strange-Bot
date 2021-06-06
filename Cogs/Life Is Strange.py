@@ -172,7 +172,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # choices command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Choices")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.cooldown(1, 45, commands.BucketType.guild)
     async def choices(self, ctx, *epNumber):
         if len(epNumber) == 0:
             # Display all choices with a paginator
