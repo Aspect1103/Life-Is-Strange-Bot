@@ -31,10 +31,10 @@ idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 IDs = initIDs()
 commandGroups = {
-    "bot stuff": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh",  "about"],
+    "bot stuff": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe"],
-    "choices": ["choices"],
+    "life is strange": ["choices", "memory"],
     "image": ["art"],
     "trivia": ["trivia"]
 }

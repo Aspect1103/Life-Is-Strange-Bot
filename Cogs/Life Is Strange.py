@@ -9,6 +9,7 @@ import asyncio
 from discord.ext import commands
 from discord import Embed
 from discord import Colour
+from discord import File
 from bs4 import BeautifulSoup
 # Custom
 from Utils.Paginator import Paginator
@@ -171,7 +172,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await triviaMessage.clear_reactions()
 
     # choices command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Choices")
+    @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
     @commands.cooldown(1, 45, commands.BucketType.guild)
     async def choices(self, ctx, *epNumber):
         if len(epNumber) == 0:
@@ -199,6 +200,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         else:
             # Too many arguments
             await ctx.channel.send("Too many arguments")
+
+    # memory command with a cooldown of 1 use every 30 seconds per guild
+    @commands.command(help="Displays a random Life is Strange image. It has a cooldown of 30 seconds", usage="memory", brief="Life Is Strange")
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def memory(self, ctx):
+        pass
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
