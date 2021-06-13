@@ -19,6 +19,7 @@ from Utils import Utils
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 triviaPath = os.path.join(rootDirectory, "TextFiles", "trivia.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
+memoryPath = os.path.join(rootDirectory, "Screenshots")
 
 
 # Cog to manage life is strange commands
@@ -30,6 +31,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.nextTrivia = 0
         self.triviaQuestions = None
         self.choicesTable = None
+        self.memoryImages = None
         self.lifeIsStrangeInit()
 
     # Function to initialise life is strange variables
@@ -45,6 +47,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
         # Setup the choices table
         self.choiceGrabber()
+
+        # Setup memory images array
+        self.memoryImages = os.listdir(memoryPath)
 
     # Function to create trivia questions
     def triviaMaker(self):
@@ -205,7 +210,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(help="Displays a random Life is Strange image. It has a cooldown of 30 seconds", usage="memory", brief="Life Is Strange")
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def memory(self, ctx):
-        pass
+        randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
+        await ctx.channel.send(file=File(randomImagePath))
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
