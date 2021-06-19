@@ -26,9 +26,14 @@ def errorWrite(error):
 
 
 # Script variables
+extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
+
+# Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
+
+# Restrictor class initialisation
 IDs = initIDs()
 commandGroups = {
     "bot stuff": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about"],
@@ -39,4 +44,5 @@ commandGroups = {
     "trivia": ["trivia"]
 }
 restrictor = Restrictor(IDs, commandGroups)
-extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
+
+# Cooldown variables
