@@ -46,3 +46,8 @@ commandGroups = {
 restrictor = Restrictor(IDs, commandGroups)
 
 # Cooldown variables
+superShort =
+short =
+medium =
+long =
+superLong =

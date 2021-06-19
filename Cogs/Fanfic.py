@@ -158,7 +158,7 @@ class Fanfic(commands.Cog):
 
     # Base function to initialise the searchQuote group commands
     @commands.group(invoke_without_command=True, aliases=["sq"], help="Group command for searching for specific fics. This command has subcommads. It has a cooldown of 15 seconds", usage="searchQuote|sq", brief="Fanfic")
-    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.cooldown(1, 5, commands.BucketType.guild)
     async def searchQuote(self, ctx):
        await ctx.send_help(ctx.command)
 
