@@ -208,7 +208,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # memory command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.medium} seconds", usage="memory", brief="Life Is Strange")
-    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def memory(self, ctx):
         randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
         await ctx.channel.send(file=File(randomImagePath))

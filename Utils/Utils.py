@@ -49,4 +49,4 @@ superShort = 10
 short = 20
 medium = 45
 long = 60
-superLong = 100
+superLong = 300
