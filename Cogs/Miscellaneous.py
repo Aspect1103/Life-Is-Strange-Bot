@@ -8,8 +8,8 @@ from Utils import Utils
 
 # Attributes for the help command
 attributes = {
-    "cooldown": commands.Cooldown(1, 5, commands.BucketType.user),
-    "help": "Displays the help command. It has a cooldown of 5 seconds",
+    "cooldown": commands.Cooldown(1, Utils.superShort, commands.BucketType.user),
+    "help": f"Displays the help command. It has a cooldown of {Utils.superShort} seconds",
     "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
     "usage": "help (cog/group/command name)",
     "brief": "Bot Stuff"
@@ -26,32 +26,32 @@ class Miscellaneous(commands.Cog):
         self.client.help_command.cog = self
 
     # bum command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays a hypnotic gif. It has a cooldown of 10 seconds", usage="bum")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def bum(self, ctx):
         await ctx.channel.send("https://giphy.com/gifs/midland-l4FsJgbbeKQC8MGBy")
 
     # murica command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays a patriot. It has a cooldown of 10 seconds", usage="murica")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.command(help=f"Displays a patriot. It has a cooldown of {Utils.superShort} seconds", usage="murica")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def murica(self, ctx):
         await ctx.channel.send("https://tenor.com/view/merica-gif-9091003")
 
     # puppy command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays a cute puppy. It has a cooldown of 10 seconds", usage="murica")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.command(help=f"Displays a cute puppy. It has a cooldown of {Utils.superShort} seconds", usage="murica")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def puppy(self, ctx):
         await ctx.channel.send("https://www.youtube.com/watch?v=j5a0jTc9S10")
 
     # pizza command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays a delicious pizza. It has a cooldown of 10 seconds", usage="pizza")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.command(help=f"Displays a delicious pizza. It has a cooldown of {Utils.superShort} seconds", usage="pizza")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def pizza(self, ctx):
         await ctx.channel.send("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
 
     # about command with a cooldown of 1 use every 10 seconds per guild
-    @commands.command(help="Displays information about the bot. It has a cooldown of 10 seconds", usage="about", brief="Bot Stuff")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.command(help=f"Displays information about the bot. It has a cooldown of {Utils.superShort} seconds", usage="about", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def about(self, ctx):
         # Create embed
         botInfo = await self.client.application_info()

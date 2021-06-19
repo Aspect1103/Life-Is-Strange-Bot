@@ -40,14 +40,13 @@ commandGroups = {
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe"],
     "life is strange": ["choices", "memory"],
-    "image": ["art"],
     "trivia": ["trivia"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 
 # Cooldown variables
-superShort =
-short =
-medium =
-long =
-superLong =
+superShort = 10
+short = 20
+medium = 45
+long = 60
+superLong = 100

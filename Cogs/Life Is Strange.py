@@ -152,8 +152,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return episodeEmbed
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help="Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of 60 seconds", usage="trivia", brief="Trivia")
-    @commands.cooldown(1, 60, commands.BucketType.guild)
+    @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", usage="trivia", brief="Trivia")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def trivia(self, ctx):
         # Grab random trivia
         triviaObj, correctIndex = self.triviaMaker()
@@ -177,8 +177,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await triviaMessage.clear_reactions()
 
     # choices command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help="Displays the different choices in the game and their responses. It has a cooldown of 30 seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
-    @commands.cooldown(1, 45, commands.BucketType.guild)
+    @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def choices(self, ctx, *epNumber):
         if len(epNumber) == 0:
             # Display all choices with a paginator
@@ -206,9 +206,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             # Too many arguments
             await ctx.channel.send("Too many arguments")
 
-    # memory command with a cooldown of 1 use every 30 seconds per guild
-    @commands.command(help="Displays a random Life is Strange image. It has a cooldown of 30 seconds", usage="memory", brief="Life Is Strange")
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    # memory command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.medium} seconds", usage="memory", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def memory(self, ctx):
         randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
         await ctx.channel.send(file=File(randomImagePath))

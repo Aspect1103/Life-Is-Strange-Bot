@@ -47,23 +47,23 @@ class Admin(commands.Cog):
                 validSections = "/".join(Utils.IDs.keys())
                 return f"Section not found. Try {validSections}", None
 
-    # stop command
+    # stop command to stop the bot
     @commands.command(help="Stops the bot", usage="stop", brief="Bot Stuff")
     @commands.is_owner()
     async def stop(self, ctx):
         await ctx.channel.send("Stopping bot")
         await self.client.close()
 
-    # Base function to initialise the channel group commands
-    @commands.group(invoke_without_command=True, help="Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of 10 seconds", usage="channel", brief="Bot Stuff")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    # Base function to initialise the channel group commands with a cooldown of 10 seconds
+    @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     @adminOrOwner()
     async def channel(self, ctx):
         await ctx.send_help(ctx.command)
 
-    # channel add command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Adds a channel to a section's allowed channels. It has a cooldown of 10 seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    # channel add command with a cooldown of 1 use every 20 seconds per guild
+    @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def add(self, ctx, *args):
         # Run verifier
@@ -88,9 +88,9 @@ class Admin(commands.Cog):
             # Arguments are invalid
             await ctx.channel.send(result)
 
-    # channel remove command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Removes a channel from a section's allowed channels. It has a cooldown of 10 seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Stuff")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    # channel remove command with a cooldown of 1 use every 20 seconds per guild
+    @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def remove(self, ctx, *args):
         # Run verifier
@@ -115,9 +115,9 @@ class Admin(commands.Cog):
             # Arguments are invalid
             await ctx.channel.send(result)
 
-    # channel list command with a cooldown of 1 use every 10 seconds per guild
-    @channel.command(help="Lists all the channels a section is allowed in. It has a cooldown of 10 seconds", usage="channel list", brief="Bot Stuff")
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    # channel list command with a cooldown of 1 use every 20 seconds per guild
+    @channel.command(help=f"Lists all the channels a section is allowed in. It has a cooldown of {Utils.short} seconds", usage="channel list", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def list(self, ctx):
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
@@ -151,9 +151,9 @@ class Admin(commands.Cog):
             self.client.load_extension(extension)
         await ctx.channel.send("Finished refreshing extensions")
 
-    # channelRefresh command with a cooldown of 1 use every 30 seconds per guild
-    @commands.command(aliases=["cr"], help="Refreshes channel IDs", usage="channelRefresh|cr", brief="Bot Stuff")
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    # channelRefresh command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Stuff")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def channelRefresh(self, ctx):
         await ctx.channel.send("Refreshing channel IDs")
