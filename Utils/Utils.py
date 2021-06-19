@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 import json
 # Custom
-from Restrictor import Restrictor
+from .Restrictor import Restrictor
 
 
 # Function to create allowedIDs
