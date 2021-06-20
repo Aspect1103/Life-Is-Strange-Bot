@@ -9,11 +9,12 @@ from discord import Colour
 # Custom
 from Utils.TicTacToe import TicTacToe
 from Utils.Connect4 import Connect4
+from Utils.Hangman import Hangman
 from Utils import Utils
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-questionPath = os.path.join(rootDirectory, "TextFiles", "questions.txt")
+questionPath = os.path.join(rootDirectory, "Resources", "questions.txt")
 
 
 # Cog to manage general commands
@@ -26,15 +27,13 @@ class General(commands.Cog):
         self.nextQuestion = 0
         self.isNewGameAllowed = True
         self.questionArray = None
+        self.hangmanInstance = None
         self.generalInit()
 
     # Function to initialise general variables
     def generalInit(self):
         # Create questions array
-        temp = []
-        with open(questionPath, "r", encoding="utf") as file:
-            for line in file.readlines():
-                temp.append(line.replace("\n", ""))
+        temp = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
         random.shuffle(temp)
         self.questionArray = temp
 
@@ -66,9 +65,10 @@ class General(commands.Cog):
                 await gameObj.sendEmojis()
                 await gameObj.start()
             await gameObj.gameMessage.clear_reactions()
+            del gameObj
             self.isNewGameAllowed = True
         else:
-            await ctx.channel.send("New game not allowed. Finish the last one first")
+            await ctx.channel.send("New game not allowed. Finish any currently running games")
 
     # question command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")
@@ -101,6 +101,32 @@ class General(commands.Cog):
         tictactoe = TicTacToe(ctx, self.client, self.colour)
         # Run game manager to start the game
         await self.gameManager(ctx, tictactoe)
+
+    # Base function to initialise the hangman group commands with a cooldown of 10 seconds
+    @commands.group(invoke_without_command=True, help=f"Group command for playing a hangman game using words from Life is Strange. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="hangman", brief="General")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    async def hangman(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    # hangman start command with a cooldown of 1 use every 60 seconds per guild
+    @hangman.command(help=f"Starts a hangman game using a random word from Life is Strange. It has a cooldown of {Utils.long} seconds", usage="hangman start", brief="General")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    async def start(self, ctx):
+        if self.isNewGameAllowed:
+            self.isNewGameAllowed = False
+            self.hangmanInstance = Hangman(ctx, self.client, self.colour)
+            await self.hangmanInstance.start()
+        else:
+            await ctx.channel.send("New game not allowed. Finish any currently running games")
+
+    # hangman guess command
+    @hangman.command(help="Guesses a character in a hangman game", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
+    async def guess(self, ctx, *args):
+        if self.hangmanInstance is not None:
+            # self.hangmanInstance.guess
+            pass
+        else:
+            await ctx.channel.send(f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
     # Function to run channelCheck for General
     async def cog_check(self, ctx):

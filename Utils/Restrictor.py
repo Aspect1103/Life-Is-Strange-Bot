@@ -5,7 +5,7 @@ from discord import Client
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
+idPath = os.path.join(rootDirectory, "Resources", "IDs.txt")
 
 
 # Restrictor class to switch between different embeds

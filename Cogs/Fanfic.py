@@ -17,7 +17,7 @@ import Config
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-ignorePath = os.path.join(rootDirectory, "TextFiles", "ignoreFics.txt")
+ignorePath = os.path.join(rootDirectory, "Resources", "ignoreFics.txt")
 
 
 # Cog to manage fanfic commands
@@ -48,9 +48,7 @@ class Fanfic(commands.Cog):
         self.worksheetArray = worksheet[:emptyRow]
 
         # Assign the IDs which are to be ignored to the ignore list
-        with open(ignorePath, "r") as file:
-            for line in file.readlines():
-                self.ignore.append(line)
+        self.ignore = [line for line in open(ignorePath, "r").readlines()]
 
     # Function to make random quotes
     def quoteMaker(self, link):
@@ -157,7 +155,7 @@ class Fanfic(commands.Cog):
             await ctx.channel.send("Cannot find any more quotes")
 
     # Base function to initialise the searchQuote group commands with a cooldown of 10 seconds
-    @commands.group(invoke_without_command=True, aliases=["sq"], help=f"Group command for searching for specific fics. This command has subcommads. It has a cooldown of {Utils.superShort} seconds", usage="searchQuote|sq", brief="Fanfic")
+    @commands.group(invoke_without_command=True, aliases=["sq"], help=f"Group command for searching for specific fics. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="searchQuote|sq", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def searchQuote(self, ctx):
        await ctx.send_help(ctx.command)

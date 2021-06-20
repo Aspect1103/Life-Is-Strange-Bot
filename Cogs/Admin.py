@@ -55,7 +55,7 @@ class Admin(commands.Cog):
         await self.client.close()
 
     # Base function to initialise the channel group commands with a cooldown of 10 seconds
-    @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommads. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Stuff")
+    @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Stuff")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     @adminOrOwner()
     async def channel(self, ctx):

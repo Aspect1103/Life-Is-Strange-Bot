@@ -8,21 +8,17 @@ from .Restrictor import Restrictor
 
 # Function to create allowedIDs
 def initIDs():
-    with open(idPath, "r") as file:
-        return json.loads(file.read())
+    return json.loads(open(idPath, "r").read())
 
 
 # Function to write changes to IDs.txt
 def idWriter(newDict):
-    with open(idPath, "w") as file:
-        jsonString = json.dumps(newDict, indent=4)
-        file.write(jsonString)
+    open(idPath, "w").write(json.dumps(newDict, indent=4))
 
 
 # Function to write messages to error.txt
 def errorWrite(error):
-    with open(errorPath, "a") as file:
-        file.write(f"{datetime.now()}, {error}\n")
+    open(errorPath, "a").write(f"{datetime.now()}, {error}\n")
 
 
 # Script variables
@@ -30,15 +26,15 @@ extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Misce
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-idPath = os.path.join(rootDirectory, "TextFiles", "IDs.txt")
+idPath = os.path.join(rootDirectory, "Resources", "IDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 
 # Restrictor class initialisation
 IDs = initIDs()
 commandGroups = {
-    "bot stuff": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about"],
+    "bot stuff": ["stop", "channel", "botRefresh", "channelRefresh", "about"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
-    "general": ["question", "connect4", "tictactoe"],
+    "general": ["question", "connect4", "tictactoe", "hangman"],
     "life is strange": ["choices", "memory"],
     "trivia": ["trivia"]
 }
