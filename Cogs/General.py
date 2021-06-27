@@ -25,6 +25,7 @@ class General(commands.Cog):
         self.colour = Colour.blue()
         self.gameInitReaction = "✅"
         self.nextQuestion = 0
+        self.gameTimeout = 300
         self.isNewGameAllowed = True
         self.questionArray = None
         self.hangmanInstance = None
@@ -52,12 +53,13 @@ class General(commands.Cog):
             # Wait until another player reacts
             while True:
                 try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=gameObj.timeout, check=gameReactChecker)
+                    reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameTimeout, check=gameReactChecker)
                     gameObj.player2 = user
                 except asyncio.TimeoutError:
                     await gameObj.ctx.send("Game has timed out")
                 break
             # Play game
+            gameObj.timeout = self.gameTimeout
             if gameObj.player2 is not None:
                 await gameObj.ctx.channel.send(f"Let's play {gameObj}! {gameObj.player1.mention} vs {gameObj.player2.mention}")
                 await gameObj.gameMessage.clear_reactions()
@@ -116,6 +118,8 @@ class General(commands.Cog):
             self.isNewGameAllowed = False
             self.hangmanInstance = Hangman(ctx, self.client, self.colour)
             await self.hangmanInstance.start()
+            del self.hangmanInstance
+            self.isNewGameAllowed = True
         else:
             await ctx.channel.send("New game not allowed. Finish any currently running games")
 

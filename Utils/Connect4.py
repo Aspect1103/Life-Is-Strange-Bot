@@ -18,7 +18,7 @@ class Connect4:
             self.colour = color
         else:
             raise TypeError("Invalid parameters")
-        self.timeout = 300
+        self.timeout = None
         self.player1 = self.ctx.author
         self.player2 = None
         self.nextPlayer = self.player1

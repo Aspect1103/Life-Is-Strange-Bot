@@ -11,7 +11,7 @@ def initIDs():
     return json.loads(open(idPath, "r").read())
 
 
-# Function to write changes to IDs.txt
+# Function to write changes to channelIDs.txt
 def idWriter(newDict):
     open(idPath, "w").write(json.dumps(newDict, indent=4))
 
@@ -26,7 +26,7 @@ extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Misce
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-idPath = os.path.join(rootDirectory, "Resources", "IDs.txt")
+idPath = os.path.join(rootDirectory, "Resources", "channelIDs.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 
 # Restrictor class initialisation
