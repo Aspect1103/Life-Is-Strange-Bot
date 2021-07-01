@@ -1,4 +1,5 @@
 # Builtin
+import asyncio
 import os
 import random
 # Pip
@@ -32,36 +33,39 @@ class Hangman:
             "https://imgur.com/lNLX9GR"
         ]
         self.words = [word.replace("\n", "") for word in open(hangmanWordsPath, "r").readlines()]
-        self.message = None
-        self.chosenWord = None
-        self.isPlaying = True
         self.guessedLetters = []
+        self.chosenWord = random.choice(self.words).lower()
+        self.title = ["-"]*len(self.chosenWord)
+        self.totalTries = 6
         self.incorrectGuesses = 0
+        self.correctGuesses = 0
+        self.guesses = 0
+        self.isPlaying = True
+        self.message = None
+        self.result = None
 
-    # Create hangman embed title
-    def createTitle(self):
-        result = ["-"]*len(self.chosenWord)
-        for letter in self.guessedLetters:
-            if letter in self.chosenWord:
-                # Find index in self.chosenWord
-                result[self.chosenWord.index(letter)] = letter
-        return "".join(result)
-
-    # Function to check a reaction
+    # Check a reaction
     def checkMove(self, reaction, user):
         return reaction.message.id == self.message.id and str(reaction) == "🛑"
 
-    # Start the game
-    async def start(self):
-        # Grab random word and create initial message
-        self.chosenWord = list(self.words[random.randint(0, len(self.words)-1)])
-        self.message = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
-        await self.message.add_reaction("🛑")
-        await self.embedUpdate()
-        while self.isPlaying:
-            reaction, user = await self.client.wait_for("reaction_add", check=self.checkMove)
+    # Create the title for the embed
+    def createTitle(self):
+        if self.isPlaying:
+            return "".join(self.title).capitalize()
+        else:
+            if self.result:
+                return f"You Win. The Correct Word Was {self.chosenWord.capitalize()}"
+            else:
+                return f"You Lose. The Correct Word Was {self.chosenWord.capitalize()}"
+
+    # Check for a win or lose
+    def winCheck(self):
+        if "".join(self.title) == self.chosenWord:
             self.isPlaying = False
-            await self.message.clear_reactions()
+            self.result = True
+        elif self.incorrectGuesses == self.totalTries:
+            self.isPlaying = False
+            self.result = False
 
     # Update the embed
     async def embedUpdate(self):
@@ -71,10 +75,39 @@ class Hangman:
             hangmanEmbed.add_field(name="Guessed Letters", value="None Yet")
         else:
             hangmanEmbed.add_field(name="Guessed Letters", value=",".join(self.guessedLetters))
-        hangmanEmbed.add_field(name="Tries Left", value=str(6-self.incorrectGuesses))
+        hangmanEmbed.add_field(name="Incorrect Guesses", value=str(self.incorrectGuesses))
+        hangmanEmbed.add_field(name="Total Guesses", value=str(self.guesses))
         hangmanEmbed.set_image(url=self.images[self.incorrectGuesses])
         await self.message.edit(embed=hangmanEmbed)
 
+    # Start the game
+    async def start(self):
+        # Send initial message and then wait for a stop response
+        self.message = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
+        await self.message.add_reaction("🛑")
+        await self.embedUpdate()
+        while self.isPlaying:
+            try:
+                reaction, user = await self.client.wait_for("reaction_add", timeout=0.5, check=self.checkMove)
+                self.isPlaying = False
+            except asyncio.TimeoutError:
+                continue
+
     # Make a guess of one of the characters
-    async def guess(self):
-        pass
+    async def guess(self, args):
+        if len(args) == 0 or len(args) > 1:
+            await self.ctx.channel.send("Make sure there is only one character being guessed")
+        else:
+            userGuess = args[0].lower()
+            self.guesses += 1
+            self.guessedLetters.append(userGuess)
+            correct = 0
+            for count, letter in enumerate(self.chosenWord):
+                if userGuess == letter:
+                    correct += 1
+                    self.correctGuesses += 1
+                    self.title[count] = letter
+            if correct == 0:
+                self.incorrectGuesses += 1
+            self.winCheck()
+            await self.embedUpdate()

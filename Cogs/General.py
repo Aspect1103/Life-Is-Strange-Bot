@@ -118,7 +118,8 @@ class General(commands.Cog):
             self.isNewGameAllowed = False
             self.hangmanInstance = Hangman(ctx, self.client, self.colour)
             await self.hangmanInstance.start()
-            del self.hangmanInstance
+            await self.hangmanInstance.message.clear_reactions()
+            self.hangmanInstance = None
             self.isNewGameAllowed = True
         else:
             await ctx.channel.send("New game not allowed. Finish any currently running games")
@@ -127,8 +128,7 @@ class General(commands.Cog):
     @hangman.command(help="Guesses a character in a hangman game", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
     async def guess(self, ctx, *args):
         if self.hangmanInstance is not None:
-            # self.hangmanInstance.guess
-            pass
+            await self.hangmanInstance.guess(args)
         else:
             await ctx.channel.send(f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
