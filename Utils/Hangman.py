@@ -24,13 +24,13 @@ class Hangman:
         else:
             raise TypeError("Invalid parameters")
         self.images = [
-            "https://imgur.com/Lb0LwVY",
-            "https://imgur.com/JrIiOGl",
-            "https://imgur.com/88PPAod",
-            "https://imgur.com/6SgiO13",
-            "https://imgur.com/zBAK9xm",
-            "https://imgur.com/3TYqwNV",
-            "https://imgur.com/lNLX9GR"
+            "https://imgur.com/Lb0LwVY.png",
+            "https://imgur.com/JrIiOGl.png",
+            "https://imgur.com/88PPAod.png",
+            "https://imgur.com/6SgiO13.png",
+            "https://imgur.com/zBAK9xm.png",
+            "https://imgur.com/3TYqwNV.png",
+            "https://imgur.com/lNLX9GR.png"
         ]
         self.words = [word.replace("\n", "") for word in open(hangmanWordsPath, "r").readlines()]
         self.guessedLetters = []
@@ -41,12 +41,13 @@ class Hangman:
         self.correctGuesses = 0
         self.guesses = 0
         self.isPlaying = True
+        self.user = self.ctx.author
         self.message = None
         self.result = None
 
     # Check a reaction
     def checkMove(self, reaction, user):
-        return reaction.message.id == self.message.id and str(reaction) == "🛑"
+        return reaction.message.id == self.message.id and self.user.id == user.id and str(reaction) == "🛑"
 
     # Create the title for the embed
     def createTitle(self):
@@ -90,6 +91,8 @@ class Hangman:
             try:
                 reaction, user = await self.client.wait_for("reaction_add", timeout=0.5, check=self.checkMove)
                 self.isPlaying = False
+                self.result = False
+                await self.embedUpdate()
             except asyncio.TimeoutError:
                 continue
 

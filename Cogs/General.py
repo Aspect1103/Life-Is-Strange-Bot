@@ -128,7 +128,10 @@ class General(commands.Cog):
     @hangman.command(help="Guesses a character in a hangman game", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
     async def guess(self, ctx, *args):
         if self.hangmanInstance is not None:
-            await self.hangmanInstance.guess(args)
+            if ctx.author.id == self.hangmanInstance.user.id:
+                await self.hangmanInstance.guess(args)
+            else:
+                await ctx.channel.send(f"Only {self.hangmanInstance.user.name} can guess characters")
         else:
             await ctx.channel.send(f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
