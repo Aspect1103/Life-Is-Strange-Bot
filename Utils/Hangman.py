@@ -42,12 +42,16 @@ class Hangman:
         self.guesses = 0
         self.isPlaying = True
         self.user = self.ctx.author
-        self.message = None
+        self.gameMessage = None
         self.result = None
+
+    # Function to return the game name
+    def __repr__(self):
+        return "Hangman"
 
     # Check a reaction
     def checkMove(self, reaction, user):
-        return reaction.message.id == self.message.id and self.user.id == user.id and str(reaction) == "🛑"
+        return reaction.message.id == self.gameMessage.id and self.user.id == user.id and str(reaction) == "🛑"
 
     # Create the title for the embed
     def createTitle(self):
@@ -79,13 +83,13 @@ class Hangman:
         hangmanEmbed.add_field(name="Incorrect Guesses", value=str(self.incorrectGuesses))
         hangmanEmbed.add_field(name="Total Guesses", value=str(self.guesses))
         hangmanEmbed.set_image(url=self.images[self.incorrectGuesses])
-        await self.message.edit(embed=hangmanEmbed)
+        await self.gameMessage.edit(embed=hangmanEmbed)
 
     # Start the game
     async def start(self):
         # Send initial message and then wait for a stop response
-        self.message = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
-        await self.message.add_reaction("🛑")
+        self.gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
+        await self.gameMessage.add_reaction("🛑")
         await self.embedUpdate()
         while self.isPlaying:
             try:

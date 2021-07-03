@@ -1,5 +1,4 @@
 # Builtin
-from typing import List
 import asyncio
 # Pip
 from discord.ext.commands import Context
@@ -25,8 +24,8 @@ class Paginator:
         self.maxIndex = -1
 
     # Function to add pages to the class
-    def addPages(self, pages: List[Embed]):
-        if isinstance(pages, List) and all([isinstance(page, Embed) for page in pages]):
+    def addPages(self, pages: list[Embed]):
+        if isinstance(pages, list) and all([isinstance(page, Embed) for page in pages]):
             if len(pages) > 0:
                 self.pages = pages
                 self.maxIndex = len(self.pages)-1
