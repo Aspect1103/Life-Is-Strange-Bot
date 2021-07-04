@@ -23,7 +23,7 @@ class GameManager:
         self.client = client
         self.colour = colour
         self.gameInitReaction = "✅"
-        self.gameTimeout = 300
+        self.gameInitTimeout = 300
         self.ctx = None
         self.gameObj = None
         self.gameAllowed = None
@@ -61,13 +61,12 @@ class GameManager:
         await self.gameObj.gameMessage.add_reaction(self.gameInitReaction)
         while True:
             try:
-                reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameTimeout, check=gameReactChecker)
+                reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameInitTimeout, check=gameReactChecker)
                 self.gameObj.player2 = user
             except asyncio.TimeoutError:
                 await self.gameObj.ctx.send("Game has timed out")
             break
         if self.gameObj.player2 is not None:
-            self.gameObj.timeout = self.gameTimeout
             await self.gameObj.ctx.channel.send(f"Let's play {self.gameObj}! {self.gameObj.player1.mention} vs {self.gameObj.player2.mention}")
             await self.gameObj.gameMessage.clear_reactions()
             await self.gameObj.updateBoard()

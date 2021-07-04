@@ -1,4 +1,5 @@
 # Builtin
+from datetime import datetime
 import asyncio
 import os
 import random
@@ -7,6 +8,8 @@ from discord.ext.commands import Context
 from discord import Client
 from discord import Colour
 from discord import Embed
+# Custom
+from .Utils import gameActivity
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -36,12 +39,14 @@ class Hangman:
         self.guessedLetters = []
         self.chosenWord = random.choice(self.words).lower()
         self.title = ["-"]*len(self.chosenWord)
+        self.user = self.ctx.author
+        self.lastGuess = datetime.now()
         self.totalTries = 6
         self.incorrectGuesses = 0
         self.correctGuesses = 0
         self.guesses = 0
         self.isPlaying = True
-        self.user = self.ctx.author
+        self.timeout = None
         self.gameMessage = None
         self.result = None
 
@@ -92,16 +97,23 @@ class Hangman:
         await self.gameMessage.add_reaction("🛑")
         await self.embedUpdate()
         while self.isPlaying:
-            try:
-                reaction, user = await self.client.wait_for("reaction_add", timeout=0.5, check=self.checkMove)
+            # Test if the game has been idle for 5 minutes
+            if gameActivity(self.lastGuess):
                 self.isPlaying = False
-                self.result = False
-                await self.embedUpdate()
-            except asyncio.TimeoutError:
-                continue
+                await self.ctx.channel.send("Game has timed out")
+            else:
+                try:
+                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
+                    self.isPlaying = False
+                except asyncio.TimeoutError:
+                    continue
+        # Game has either timed out or user has stopped it
+        self.result = False
+        await self.embedUpdate()
 
     # Make a guess of one of the characters
     async def guess(self, args):
+        self.lastGuess = datetime.now()
         if len(args) == 0 or len(args) > 1:
             await self.ctx.channel.send("Make sure there is only one character being guessed")
         else:

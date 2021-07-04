@@ -1,5 +1,6 @@
 # Builtin
 from datetime import datetime
+from datetime import timedelta
 import os
 import json
 # Custom
@@ -21,8 +22,14 @@ def errorWrite(error):
     open(errorPath, "a").write(f"{datetime.now()}, {error}\n")
 
 
+# Function to determine the time since last game activity
+def gameActivity(lastActivity):
+    return datetime.now() > (lastActivity + timedelta(seconds=gameActivityTimeout))
+
+
 # Script variables
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
+gameActivityTimeout = 10
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)

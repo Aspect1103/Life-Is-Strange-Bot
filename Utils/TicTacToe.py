@@ -1,10 +1,13 @@
 # Builtin
+from datetime import datetime
 import asyncio
 # Pip
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
 from discord import Colour
+# Custom
+from .Utils import gameActivity
 
 
 # TicTacToe class to play tic tac toe in a discord channel
@@ -17,16 +20,16 @@ class TicTacToe:
             self.colour = color
         else:
             raise TypeError("Invalid parameters")
-        self.timeout = None
         self.player1 = self.ctx.author
-        self.player2 = None
         self.nextPlayer = self.player1
+        self.lastActivity = datetime.now()
         self.grid = [[0 for i in range(3)] for j in range(3)]
-        self.gameMessage = None
         self.iconEmojis = ["🟦", "❌", "⭕"]
         self.gameEmojis = ["↖️", "⬆️", "↗️", "⬅️", "⏺️", "➡️", "↙️", "⬇️", "↘️", "🛑"]
         self.isPlaying = True
         self.changeMade = False
+        self.player2 = None
+        self.gameMessage = None
         self.result = None
 
     # Function to return the game name
@@ -139,19 +142,23 @@ class TicTacToe:
     # Start the game
     async def start(self):
         while self.isPlaying:
-            try:
-                reaction, user = await self.client.wait_for("reaction_add", timeout=self.timeout, check=self.checkMove)
-                await self.gameMessage.remove_reaction(reaction, user)
-                self.moveManager(str(reaction))
-                if self.isPlaying:
-                    if self.changeMade:
-                        self.changeMade = False
-                        self.drawCheck()
-                        self.winChecker()
-                        self.switchPlayer()
-                await self.updateBoard()
-            except asyncio.TimeoutError:
-                await self.ctx.send("Game has timed out")
+            # Test if the game has been idle for 5 minutes
+            if gameActivity(self.lastActivity):
                 self.isPlaying = False
+                await self.ctx.channel.send("Game has timed out")
                 self.result = "Timeout"
-                await self.updateBoard()
+            else:
+                try:
+                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
+                    await self.gameMessage.remove_reaction(reaction, user)
+                    self.lastActivity = datetime.now()
+                    self.moveManager(str(reaction))
+                    if self.isPlaying:
+                        if self.changeMade:
+                            self.changeMade = False
+                            self.drawCheck()
+                            self.winChecker()
+                            self.switchPlayer()
+                except asyncio.TimeoutError:
+                    continue
+            await self.updateBoard()
