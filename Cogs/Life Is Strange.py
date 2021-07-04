@@ -1,16 +1,14 @@
 # Builtin
-from collections import defaultdict
 import os
-import requests
 import random
 import csv
 import asyncio
+import json
 # Pip
 from discord.ext import commands
 from discord import Embed
 from discord import Colour
 from discord import File
-from bs4 import BeautifulSoup
 # Custom
 from Utils.Paginator import Paginator
 from Utils import Utils
@@ -18,6 +16,7 @@ from Utils import Utils
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 triviaPath = os.path.join(rootDirectory, "Resources", "trivia.txt")
+choicesPath = os.path.join(rootDirectory, "Resources", "choices.txt")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 memoryPath = os.path.join(rootDirectory, "Screenshots")
 
@@ -42,7 +41,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.triviaQuestions = temp
 
         # Setup the choices table
-        self.choiceGrabber()
+        self.choicesTable = json.loads(open(choicesPath, "r").read())
 
         # Setup memory images array
         self.memoryImages = os.listdir(memoryPath)
@@ -86,63 +85,11 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         finalObj.set_footer(text=f"{len(self.triviaQuestions)} questions")
         return finalObj
 
-    # Function to grab choices info from the wiki
-    def choiceGrabber(self):
-        # Create soup
-        soup = BeautifulSoup(requests.get("https://life-is-strange.fandom.com/wiki/Game_Statistics_(Season_1)").content, features="lxml")
-        # Grab all choice results
-        episodeCount = 0
-        choices = []
-        for count, choice in enumerate(soup.find_all("td")):
-            try:
-                # New episode so change the episode count and the major variable
-                if choice.b.text == "Principal Wells" or choice.b.text == "Kate's Question" or choice.b.text == "Handicap Fund" or choice.b.text == "Chloe's Request" or choice.b.text == "Sacrifice Arcadia Bay":
-                    episodeCount += 1
-                    major = True
-                # Done with major so change to minor
-                if choice.b.text == "Daniel" or choice.b.text == "Max's Plant" or choice.b.text == "Blue Jay" or choice.b.text == "David":
-                    major = False
-                title = choice.b.text
-                # Test for final result since the HTML is kinda weird
-                if title == "Sacrifice Arcadia Bay":
-                    title = "Final Choice"
-                # Create final dict
-                result = {"episode": episodeCount, "major": major, "title": title}
-                for choiceNumber, ulTag in enumerate(choice.find_all("ul")):
-                    if choiceNumber != 1:
-                        # On sacrifice choice so skip it (HTML weird)
-                        text = ""
-                    for liTag in ulTag.find_all("li"):
-                        # Split the text and percentage up
-                        splitted = liTag.text.split(" -")
-                        if len(splitted) == 1:
-                            # Text doesn't conform to the rest so extra stuff needed
-                            splitted = liTag.text.split(".")
-                            percentageCleaned = splitted[1].replace("\xa0", "").replace("—", "").strip()
-                            text += f"{splitted[0]}. - {percentageCleaned}\n"
-                        else:
-                            percentageCleaned = splitted[1].replace("\xa0", "").strip()
-                            text += f"{splitted[0]} - {percentageCleaned}\n"
-                    if "sacrifice" not in text:
-                        # More choices afterwards so add another newline
-                        text += "\n"
-                    # Add final text to result
-                    result["text"] = text
-                # Add result dict to final
-                choices.append(result)
-            except AttributeError:
-                pass
-        # Separate the list of dictionaries into episodes
-        result = defaultdict(list)
-        for dic in choices:
-            result[dic["episode"]].append(dic)
-        self.choicesTable = list(result.values())
-
     # Function to create a choice embed page
     def choicePageMaker(self, count, episode):
         episodeEmbed = Embed(title=f"Episode {count} Choices", colour=self.colour)
-        majorString = "".join([choice["text"] for choice in episode if choice["major"]])
-        minorString = "".join([choice["text"] for choice in episode if not choice["major"]])
+        majorString = "".join([choice["text"] for choice in episode if choice["major"] == "Yes"])
+        minorString = "".join([choice["text"] for choice in episode if choice["major"] == "No"])
         episodeEmbed.add_field(name="Major Choices", value=majorString)
         episodeEmbed.add_field(name="Minor Choices", value=minorString)
         return episodeEmbed

@@ -1,0 +1,414 @@
+[
+  [
+    {
+      "episode": 1,
+      "major": "Yes",
+      "title": "Principal Wells",
+      "text": "You reported Nathan. - 62%\nYou hid the truth. - 38%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "Yes",
+      "title": "Victoria's Outfit",
+      "text": "You made fun of Victoria. - 26%\nYou comforted Victoria. - 74%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "Yes",
+      "title": "David and Kate",
+      "text": "You took a photo of David harassing Kate. - 16%\nYou intervened to help out Kate. - 84%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "Yes",
+      "title": "Chloe's Pot",
+      "text": "You took the blame for Chloe. - 29%\nYou blamed Chloe. - 1%\nYou stayed hidden. - 36%\nYou came out of hiding to intervene. - 34%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Daniel",
+      "text": "You let Daniel draw your portrait. - 41%\nYou didn't let Daniel draw your portrait. - 59%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Ms. Grant",
+      "text": "You signed Ms. Grant's petition. - 42%\nYou didn't sign Ms. Grant's petition. - 58%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Alyssa",
+      "text": "You helped Alyssa. - 78%\nYou didn't help Alyssa. - 22%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Kate's Slate",
+      "text": "You erased the insults on Kate's slate. - 43%\nYou didn't erase Kate's slate. - 57%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Lisa the Plant",
+      "text": "You watered your plant. - 68%\nYou didn't water your plant. - 32%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Dana's Pregnancy Test",
+      "text": "You touched Dana's pregnancy test. - 2%\nYou didn't touch Dana's pregnancy test. - 98%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Victoria's Photos",
+      "text": "You 'reorganized' Victoria's photos. - 21%\nYou didn't touch Victoria's photos. - 79%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Dirty RV",
+      "text": "You wrote on a dirty RV. - 20%\nYou didn't write on a dirty RV. - 80%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "The Bird",
+      "text": "You saved the bird. - 42%\nYou let the bird die. - 58%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Chloe's Snow Globe",
+      "text": "You broke Chloe's snow globe. - 12%\nYou didn't break Chloe's snow globe. - 88%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "Snooping Evidence",
+      "text": "You left evidence while searching through David's stuff. - 19%\nYou didn't leave any evidence. - 81%\n\n"
+    },
+    {
+      "episode": 1,
+      "major": "No",
+      "title": "David's Files",
+      "text": "You read David's files. - 62%\nYou didn't read David's files. - 38%\n\n"
+    }
+  ],
+  [
+    {
+      "episode": 2,
+      "major": "Yes",
+      "title": "Kate's Question",
+      "text": "You told Kate to go to the police. - 34%\nYou told Kate to wait for more proof. - 66%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "Yes",
+      "title": "Kate's Phone Call",
+      "text": "You answered Kate's call. - 81%\nYou didn't answer Kate's call. - 19%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "Yes",
+      "title": "Max and Frank",
+      "text": "You tried to shoot Frank. - 52%\nYou didn't try to shoot Frank. - 48%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "Yes",
+      "title": "Kate's Fate",
+      "text": "You couldn't save Kate. - 37%\nYou saved Kate's life. - 63%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "Yes",
+      "title": "Blame",
+      "text": "You blamed David. - 13%\nYou blamed Nathan. - 71%\nYou blamed Mr. Jefferson. - 16%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Max's Plant",
+      "text": "You watered your plant. - 71%\nYou didn't water your plant. - 29%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Alyssa",
+      "text": "You helped Alyssa. - 60%\nYou didn't help Alyssa. - 40%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Video Link",
+      "text": "You erased the link to Kate's video. - 94%\nYou left the link to Kate's video. - 6%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Taylor",
+      "text": "You were friendly with Taylor. - 46%\nYou weren't friendly with Taylor. - 54%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Warren & The Movies",
+      "text": "You accepted Warren's invitation. - 76%\nYou rejected Warren's invitation. - 24%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Wall Message",
+      "text": "You wrote a message. - 55%\nYou didn't write a message. - 45%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Railtracks",
+      "text": "You tampered with the railtracks. - 32%\nYou didn't tamper with the railtracks. - 68%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Vortex Club Party",
+      "text": "You gained entry to the Vortex Club party. - 49%\nYou didn't gain entry to the Vortex Club party. - 51%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "Warren's Experiment",
+      "text": "You helped Warren. - 43%\nYou didn't help Warren. - 57%\n\n"
+    },
+    {
+      "episode": 2,
+      "major": "No",
+      "title": "David and Jefferson",
+      "text": "You told on David to Mr. Jefferson. - 76%\nYou didn't tell on David to Mr. Jefferson. - 24%\n\n"
+    }
+  ],
+  [
+    {
+      "episode": 3,
+      "major": "Yes",
+      "title": "Handicap Fund",
+      "text": "You stole the money. - 48%\nYou left the money. - 52%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "Yes",
+      "title": "Double Dare",
+      "text": "You kissed Chloe. - 78%\nYou didn't kiss Chloe. - 22%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "Yes",
+      "title": "David vs. Chloe",
+      "text": "You sided with David. - 22%\nYou sided with Chloe. - 78%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "Yes",
+      "title": "Frank's Dog",
+      "text": "You got Frank's dog hurt. - 5%\nYou kept Frank's dog from harm. - 95%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "Yes",
+      "title": "David's Gun",
+      "text": "Chloe has David's gun. - 66%\nFrank has David's gun. - 34%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Max's Plant",
+      "text": "Lisa is alive. - 42%\nLisa is dead. - 58%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Warren's Exam",
+      "text": "You 'helped' Warren with his exam. - 28%\nYou didn't 'help' Warren with his exam. - 72%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Vortex Club Party 1/2",
+      "text": "You are on the Vortex Club's party list. - 59%\nYou are not on the Vortex Club's party list. - 41%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Vortex Club Party 2/2",
+      "text": "You erased some names from the Vortex Club party list. - 21%\nYou didn't change the Vortex Club party list. - 79%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Phone Message",
+      "text": "You erased the cop's answerphone message. - 38%\nYou didn't erase the cop's message. - 62%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Alyssa",
+      "text": "You helped Alyssa. - 63%\nYou didn't help Alyssa. - 37%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Homeless Woman",
+      "text": "You warned the homeless woman. - 34%\nYou didn't warn the homeless woman. - 66%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Photo In The Past",
+      "text": "You took a photo in the past. - 52%\nYou didn't take a photo in the past. - 48%\n\n"
+    },
+    {
+      "episode": 3,
+      "major": "No",
+      "title": "Max's Mark",
+      "text": "You left a mark on the fireplace. - 36%\nYou didn't leave a mark on the fireplace. - 64%\n\n"
+    }
+  ],
+  [
+    {
+      "episode": 4,
+      "major": "Yes",
+      "title": "Chloe's Request",
+      "text": "You accepted Chloe's request. - 56%\nYou refused Chloe's request. - 44%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "Yes",
+      "title": "Nathan",
+      "text": "You let Warren beat up Nathan. - 40%\nYou stopped Warren from beating up Nathan. - 60%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "Yes",
+      "title": "Frank",
+      "text": "Chloe killed Frank. - 6%\nChloe wounded Frank. - 22%\nNo one got hurt. - 72%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "Yes",
+      "title": "Victoria",
+      "text": "Victoria believed your warning. - 72%\nVictoria didn't believe your warning. - 19%\nYou didn't warn Victoria. - 9%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Blue Jay",
+      "text": "You saved the blue jay. - 44%\nYou let the blue jay die. - 56%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Bird's Nest",
+      "text": "You disturbed the bird's nest. - 7%\nYou didn't disturb the bird's nest. - 93%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "David's Locker",
+      "text": "You found David's code. - 46%\nYou got David's files in another way. - 54%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Kate",
+      "text": "Kate helped you find Nathan's room. - 60%\nKate didn't help you. - 40%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Daniel",
+      "text": "You motivated Daniel to attend the Vortex Club party. - 31%\nYou didn't motivate Daniel to attend the Vortex Club party. - 69%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Warren's Slate",
+      "text": "You left a message on Warren's slate. - 20%\nYou didn't leave a message on Warren's slate. - 80%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Nathan's PIN Code",
+      "text": "You figured out Nathan's PIN code. - 37%\nYou didn't figure out Nathan's PIN code. - 63%\n\n"
+    },
+    {
+      "episode": 4,
+      "major": "No",
+      "title": "Alyssa",
+      "text": "You helped Alyssa. - 75%\nYou didn't help Alyssa. - 25%\n\n"
+    }
+  ],
+  [
+    {
+      "episode": 5,
+      "major": "Yes",
+      "title": "Final Choice",
+      "text": "You decided to sacrifice Arcadia Bay. - 48%\nYou decided to sacrifice Chloe. - 52%\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "David",
+      "text": "David got a scar during the fight. - 96%\nDavid didn't get a scar during the fight. - 4%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Mark Jefferson",
+      "text": "David killed Jefferson. - 45%\nDavid didn't kill Jefferson. - 55%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "The Trucker",
+      "text": "You saved the trucker. - 60%\nYou didn't save the trucker. - 40%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Evan",
+      "text": "You saved Evan. - 63%\nYou didn't save Evan. - 37%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Alyssa",
+      "text": "You saved Alyssa. - 64%\nYou didn't save Alyssa. - 36%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "The Fisherman",
+      "text": "You saved the fisherman. - 72%\nYou didn't save the fisherman. - 28%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Joyce",
+      "text": "You helped Joyce believe in David again. - 34%\nYou didn't change Joyce's mind about David. - 66%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Frank",
+      "text": "You told the truth about Rachel to Frank. - 64%\nYou didn't tell the truth about Rachel to Frank. - 36%\n\n"
+    },
+    {
+      "episode": 5,
+      "major": "No",
+      "title": "Warren",
+      "text": "You kissed Warren. - 67%\nYou didn't show Warren any affection. - 5%\nYou hugged Warren. - 28%\n\n"
+    }
+  ]
+]
