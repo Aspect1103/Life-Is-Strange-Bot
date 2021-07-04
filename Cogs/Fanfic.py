@@ -120,9 +120,9 @@ class Fanfic(commands.Cog):
                 except IndexError:
                     pass
 
-    # quote command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. It has a cooldown of {Utils.short} seconds", usage="quote", brief="Fanfic")
-    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    # quote command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. It has a cooldown of {Utils.medium} seconds", usage="quote", brief="Fanfic")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def quote(self, ctx):
         # Grab a random fic link
         randomLink = self.worksheetArray[random.randint(0, len(self.worksheetArray)-1)][10]
@@ -135,9 +135,9 @@ class Fanfic(commands.Cog):
         # Create embed and send it
         await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
-    # nextQuote command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["nq"], help=f"Finds the last quote posted and picks another quote from the same story. It has a cooldown of {Utils.short} seconds", usage="nextQuote|nq", brief="Fanfic")
-    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    # nextQuote command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(aliases=["nq"], help=f"Finds the last quote posted and picks another quote from the same story. It has a cooldown of {Utils.medium} seconds", usage="nextQuote|nq", brief="Fanfic")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def nextQuote(self, ctx):
         # Get the last quote posted then get a new one
         lastQuote = await self.findLastQuote(ctx)
@@ -154,15 +154,15 @@ class Fanfic(commands.Cog):
             # No more valid quotes found
             await ctx.channel.send("Cannot find any more quotes")
 
-    # Base function to initialise the searchQuote group commands with a cooldown of 10 seconds
+    # Base function to initialise the searchQuote group commands with a cooldown of 5 seconds
     @commands.group(invoke_without_command=True, aliases=["sq"], help=f"Group command for searching for specific fics. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="searchQuote|sq", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def searchQuote(self, ctx):
        await ctx.send_help(ctx.command)
 
-    # searchQuote start command with a cooldown of 1 use every 45 seconds per guild
-    @searchQuote.command(help=f"Starts the quote searcher to search for specific fics. It has a cooldown of {Utils.medium} seconds", usage="searchQuote|sq start", brief="Fanfic")
-    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
+    # searchQuote start command with a cooldown of 1 use every 60 seconds per guild
+    @searchQuote.command(help=f"Starts the quote searcher to search for specific fics. It has a cooldown of {Utils.long} seconds", usage="searchQuote|sq start", brief="Fanfic")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def start(self, ctx):
         # Function to check a user's reaction
         def checker(reaction, user):
@@ -208,17 +208,18 @@ class Fanfic(commands.Cog):
         # Reset the quote searcher object so it can be reused
         self.quoteSearcher = None
 
-    # searchQuote add command
-    @searchQuote.command(help="Add a filter to the quote searcher", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term. Use '>', '<', '>=', '<=', '==', '!=', '-' (for a range)\nChapters - Result matches this term", usage="searchQuote|sq (title/author/ship/series/status/smut/words/chapters) (term)", brief="Fanfic")
+    # searchQuote add command with a cooldown of 1 use every 5 seconds per guild
+    @searchQuote.command(help=f"Add a filter to the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nTitle - Result contains this term\nAuthor - Result contains this term\nShip - Result matches this term\nSeries - Result contains this term\nStatus - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\nSmut - Result matches this term. Can either be 'Yes', 'No' or '?'\nWords - Result matches this term. Use '>', '<', '>=', '<=', '==', '!=', '-' (for a range)\nChapters - Result matches this term", usage="searchQuote|sq (title/author/ship/series/status/smut/words/chapters) (term)", brief="Fanfic")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def add(self, ctx, *args):
         if self.quoteSearcher is None:
             await ctx.channel.send(f"Quote searcher not initialised. Run {ctx.prefix}searchQuote start to initialise it")
         else:
             await self.quoteSearcher.addFilter(ctx, args)
 
-    # outline command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(help=f"Finds the last quote posted and displays the metadata for that fic. It has a cooldown of {Utils.short} seconds", usage="outline", brief="Fanfic")
-    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    # outline command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(help=f"Finds the last quote posted and displays the metadata for that fic. It has a cooldown of {Utils.medium} seconds", usage="outline", brief="Fanfic")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def outline(self, ctx):
         # Get the last quote posted and store its url
         lastQuote = await self.findLastQuote(ctx)
@@ -253,9 +254,9 @@ class Fanfic(commands.Cog):
         # Display the embed
         await ctx.channel.send(embed=infoEmbed)
 
-    # works command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help=f"Finds the last quote posted and displays all works posted by that author. It has a cooldown of {Utils.medium} seconds", usage="works", brief="Fanfic")
-    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
+    # works command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(help=f"Finds the last quote posted and displays all works posted by that author. It has a cooldown of {Utils.long} seconds", usage="works", brief="Fanfic")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def works(self, ctx):
         # Get the last quote posted and create an AO3 User object
         lastQuote = await self.findLastQuote(ctx)

@@ -29,7 +29,7 @@ def gameActivity(lastActivity):
 
 # Script variables
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
-gameActivityTimeout = 10
+gameActivityTimeout = 300
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -48,8 +48,10 @@ commandGroups = {
 restrictor = Restrictor(IDs, commandGroups)
 
 # Cooldown variables
-superShort = 10
+superShort = 5
+extraShort = 10
 short = 20
 medium = 45
 long = 60
+extraLong = 120
 superLong = 300

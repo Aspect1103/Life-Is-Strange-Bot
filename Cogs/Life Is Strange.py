@@ -172,9 +172,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             await triviaMessage.edit(embed=resultEmbed)
         await triviaMessage.clear_reactions()
 
-    # choices command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
-    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
+    # choices command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def choices(self, ctx, *epNumber):
         if len(epNumber) == 0:
             # Display all choices with a paginator

@@ -65,20 +65,21 @@ class General(commands.Cog):
     async def connect4(self, ctx):
         await self.gameManager.runGame(ctx, 2)
 
-    # Base function to initialise the hangman group commands with a cooldown of 10 seconds
+    # Base function to initialise the hangman group commands with a cooldown of 5 seconds
     @commands.group(invoke_without_command=True, help=f"Group command for playing a hangman game using words from Life is Strange. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="hangman", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def hangman(self, ctx):
         await ctx.send_help(ctx.command)
 
-    # hangman start command with a cooldown of 1 use every 60 seconds per guild
-    @hangman.command(help=f"Starts a hangman game using a random word from Life is Strange. It has a cooldown of {Utils.long} seconds", usage="hangman start", brief="General")
-    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    # hangman start command with a cooldown of 1 use every 120 seconds per guild
+    @hangman.command(help=f"Starts a hangman game using a random word from Life is Strange. It has a cooldown of {Utils.extraLong} seconds", usage="hangman start", brief="General")
+    @commands.cooldown(1, Utils.extraLong, commands.BucketType.guild)
     async def start(self, ctx):
         await self.gameManager.runGame(ctx, 3)
 
-    # hangman guess command
-    @hangman.command(help="Guesses a character in a hangman game", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
+    # hangman guess command with a cooldown of 1 use every 5 seconds per guild
+    @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def guess(self, ctx, *args):
         await ctx.message.delete()
         if str(self.gameManager.gameObj) == "Hangman":
