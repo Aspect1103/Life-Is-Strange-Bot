@@ -80,6 +80,7 @@ class General(commands.Cog):
     # hangman guess command
     @hangman.command(help="Guesses a character in a hangman game", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
     async def guess(self, ctx, *args):
+        await ctx.message.delete()
         if str(self.gameManager.gameObj) == "Hangman":
             if ctx.author.id == self.gameManager.gameObj.user.id:
                 await self.gameManager.gameObj.guess(args)
