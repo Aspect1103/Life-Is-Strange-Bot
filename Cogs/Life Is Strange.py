@@ -36,7 +36,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Function to initialise life is strange variables
     def lifeIsStrangeInit(self):
         # Create trivia questions array
-        temp = [line for line in csv.reader(open(triviaPath, "r"), delimiter="/")]
+        temp = list(csv.reader(open(triviaPath, "r"), delimiter="/"))
         random.shuffle(temp)
         self.triviaQuestions = temp
 

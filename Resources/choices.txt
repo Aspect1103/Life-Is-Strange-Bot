@@ -235,13 +235,13 @@
     {
       "episode": 3,
       "major": "No",
-      "title": "Vortex Club Party 1/2",
+      "title": "Vortex Club Party 1",
       "text": "You are on the Vortex Club's party list. - 59%\nYou are not on the Vortex Club's party list. - 41%\n\n"
     },
     {
       "episode": 3,
       "major": "No",
-      "title": "Vortex Club Party 2/2",
+      "title": "Vortex Club Party 2",
       "text": "You erased some names from the Vortex Club party list. - 21%\nYou didn't change the Vortex Club party list. - 79%\n\n"
     },
     {
