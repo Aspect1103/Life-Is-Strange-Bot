@@ -20,8 +20,8 @@ class General(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.blue()
-        self.nextQuestion = 0
         self.gameManager = GameManager(self.client, self.colour)
+        self.nextQuestion = 0
         self.isNewGameAllowed = True
         self.questionArray = None
         self.generalInit()

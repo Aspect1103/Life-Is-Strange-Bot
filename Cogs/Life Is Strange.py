@@ -1,7 +1,6 @@
 # Builtin
 import os
 import random
-import csv
 import asyncio
 import json
 # Pip
@@ -9,6 +8,7 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 from discord import File
+import apsw
 # Custom
 from Utils.Paginator import Paginator
 from Utils import Utils
@@ -17,6 +17,7 @@ from Utils import Utils
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 triviaPath = os.path.join(rootDirectory, "Resources", "trivia.txt")
 choicesPath = os.path.join(rootDirectory, "Resources", "choices.txt")
+triviaScoresPath = os.path.join(rootDirectory, "Resources", "triviaScores.db")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 memoryPath = os.path.join(rootDirectory, "Screenshots")
 
@@ -27,6 +28,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.purple()
+        self.cursor = apsw.Connection(triviaScoresPath).cursor()
+        self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         self.nextTrivia = 0
         self.triviaQuestions = None
         self.choicesTable = None
@@ -36,9 +39,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Function to initialise life is strange variables
     def lifeIsStrangeInit(self):
         # Create trivia questions array
-        temp = list(csv.reader(open(triviaPath, "r"), delimiter="/"))
-        random.shuffle(temp)
-        self.triviaQuestions = temp
+        self.triviaQuestions = json.loads(open(triviaPath, "r").read())
+        random.shuffle(self.triviaQuestions)
 
         # Setup the choices table
         self.choicesTable = json.loads(open(choicesPath, "r").read())
@@ -55,35 +57,45 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         randomTrivia = self.triviaQuestions[self.nextTrivia]
         self.nextTrivia += 1
         triviaEmbed = Embed(colour=self.colour)
-        triviaEmbed.title = randomTrivia[0]
-        triviaEmbed.description = f"A. {randomTrivia[1]}\nB. {randomTrivia[2]}\nC. {randomTrivia[3]}\nD. {randomTrivia[4]}"
+        triviaEmbed.title = randomTrivia["question"]
+        triviaEmbed.description = f"""A. {randomTrivia["option 1"]}\nB. {randomTrivia["option 2"]}\nC. {randomTrivia["option 3"]}\nD. {randomTrivia["option 4"]}"""
         triviaEmbed.set_footer(text=f"{len(self.triviaQuestions)} questions")
-        return triviaEmbed, int(randomTrivia[5])
+        return triviaEmbed, int(randomTrivia["correct option"])
 
     # Function to create final trivia embed
     def finalTrivia(self, triviaEmbed, correctInd, guess):
         description = triviaEmbed.description.split("\n")
-        reactions = {
-            1: "🇦",
-            2: "🇧",
-            3: "🇨",
-            4: "🇩"
-        }
         newDescription = ""
-        for count, answer in enumerate(description):
+        for count, option in enumerate(description):
             if count+1 == correctInd:
-                temp = answer + " ✅"
+                temp = option + " ✅"
             else:
-                temp = answer + " ❌"
+                temp = option + " ❌"
             if guess != None:
-                if reactions[count+1] == str(guess[0]):
-                    temp += f" ⬅ {guess[1]} guessed"
+                if self.triviaReactions[str(guess[0])] == count+1:
+                    temp += f" ⬅ {str(guess[1])} guessed"
             newDescription += temp + "\n"
         finalObj = Embed(colour=self.colour)
         finalObj.title = triviaEmbed.title
         finalObj.description = newDescription
         finalObj.set_footer(text=f"{len(self.triviaQuestions)} questions")
         return finalObj
+
+    # Function to update a user's trivia score
+    def updateTriviaScores(self, correctIndex, guess):
+        try:
+            user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guess[1].guild.id} and userID == {guess[1].id}"))[0]
+        except IndexError:
+            # User not in database
+            user = (guess[1].guild.id, guess[1].id, 0)
+            self.cursor.execute(f"INSERT INTO triviaScores values{user}")
+        if self.triviaReactions[str(guess[0])] == correctIndex:
+            # User got the question correct
+            newScore = user[2] + 1
+        else:
+            # User got the question wrong
+            newScore = user[2] - 1
+        self.cursor.execute(f"UPDATE triviaScores SET score = {newScore} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
 
     # Function to create a choice embed page
     def choicePageMaker(self, count, episode):
@@ -102,22 +114,35 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         triviaObj, correctIndex = self.triviaMaker()
         triviaMessage = await ctx.channel.send(embed=triviaObj)
         # Add relations
-        await triviaMessage.add_reaction("🇦")
-        await triviaMessage.add_reaction("🇧")
-        await triviaMessage.add_reaction("🇨")
-        await triviaMessage.add_reaction("🇩")
-        # Wait for the user's reaction
-        # Make sure the bot's reactions aren't counted
+        for reaction in self.triviaReactions.keys():
+            await triviaMessage.add_reaction(reaction)
+        # Wait for the user's reaction and make sure the bot's reactions aren't counted
         await asyncio.sleep(1)
         try:
             reaction = await self.client.wait_for("reaction_add", timeout=15)
             # Edit the embed with the results
             resultEmbed = self.finalTrivia(triviaObj, correctIndex, reaction)
             await triviaMessage.edit(embed=resultEmbed)
+            # Update trivia scores
+            self.updateTriviaScores(correctIndex, reaction)
         except asyncio.TimeoutError:
+            # Noone reacted
             resultEmbed = self.finalTrivia(triviaObj, correctIndex, None)
             await triviaMessage.edit(embed=resultEmbed)
         await triviaMessage.clear_reactions()
+
+    # triviaLeaderboard command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    async def triviaLeaderboard(self, ctx):
+        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)
+        triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
+        leaderboardDescription = ""
+        for count, user in enumerate(guildUsers):
+            userName = await self.client.fetch_user(user[0])
+            leaderboardDescription += f"{count+1}. {userName}. Score: **{user[1]}**\n"
+        triviaLeaderboardEmbed.description = leaderboardDescription
+        await ctx.channel.send(embed=triviaLeaderboardEmbed)
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")

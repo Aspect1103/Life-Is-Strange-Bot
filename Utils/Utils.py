@@ -43,7 +43,7 @@ commandGroups = {
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe", "hangman"],
     "life is strange": ["choices", "memory"],
-    "trivia": ["trivia"]
+    "trivia": ["trivia", "triviaLeaderboard"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 
