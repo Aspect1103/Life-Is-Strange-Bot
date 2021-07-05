@@ -92,6 +92,7 @@ class Hangman:
 
     # Start the game
     async def start(self):
+        print(self.chosenWord)
         # Send initial message and then wait for a stop response
         self.gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         await self.gameMessage.add_reaction("🛑")
@@ -108,8 +109,9 @@ class Hangman:
                 except asyncio.TimeoutError:
                     continue
         # Game has either timed out or user has stopped it
-        self.result = False
-        await self.embedUpdate()
+        if self.result is None:
+            self.result = False
+            await self.embedUpdate()
 
     # Make a guess of one of the characters
     async def guess(self, args):
