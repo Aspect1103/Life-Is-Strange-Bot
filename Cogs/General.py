@@ -81,12 +81,11 @@ class General(commands.Cog):
     @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def guess(self, ctx, *args):
-        await ctx.message.delete()
         if str(self.gameManager.gameObj) == "Hangman":
             if ctx.author.id == self.gameManager.gameObj.user.id:
                 await self.gameManager.gameObj.guess(args)
             else:
-                await ctx.channel.send(f"Only {self.gameManager.gameObj.user.name} can guess characters")
+                await ctx.channel.send(f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess characters")
         else:
             await ctx.channel.send(f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 

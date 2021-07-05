@@ -135,7 +135,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx):
-        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)
+        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)[:10]
         triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
         leaderboardDescription = ""
         for count, user in enumerate(guildUsers):

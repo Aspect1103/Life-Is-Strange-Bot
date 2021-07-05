@@ -92,7 +92,6 @@ class Hangman:
 
     # Start the game
     async def start(self):
-        print(self.chosenWord)
         # Send initial message and then wait for a stop response
         self.gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         await self.gameMessage.add_reaction("🛑")
