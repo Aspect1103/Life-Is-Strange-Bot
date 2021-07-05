@@ -141,6 +141,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         for count, user in enumerate(guildUsers):
             userName = await self.client.fetch_user(user[0])
             leaderboardDescription += f"{count+1}. {userName}. Score: **{user[1]}**\n"
+        if leaderboardDescription == "":
+            leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
         await ctx.channel.send(embed=triviaLeaderboardEmbed)
 
