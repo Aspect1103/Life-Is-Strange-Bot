@@ -688,11 +688,11 @@
         "correct option": "2"
     },
     {
-        "question": "Which Life Is Strange Fanfiction Piece Currently Has (18th January 2021) The Most Kudos On Archive Of Our Own?",
+        "question": "Which Life Is Strange Fanfiction Piece Currently Has (6th July 2021) The Most Kudos On Archive Of Our Own?",
         "option 1": "Ouroboros",
-        "option 2": "Bloom",
+        "option 2": "The Sense Of Me",
         "option 3": "no grave can hold my body down",
-        "option 4": "Better Then",
+        "option 4": "we've only got this hundred years",
         "correct option": "3"
     },
     {
