@@ -1,4 +1,5 @@
 # Builtin
+from datetime import datetime, timedelta
 import os
 import random
 import asyncio
@@ -15,10 +16,10 @@ from Utils import Utils
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-triviaPath = os.path.join(rootDirectory, "Resources", "trivia.txt")
-choicesPath = os.path.join(rootDirectory, "Resources", "choices.txt")
+triviaPath = os.path.join(rootDirectory, "Resources", "trivia.json")
+choicesPath = os.path.join(rootDirectory, "Resources", "choices.json")
 triviaScoresPath = os.path.join(rootDirectory, "Resources", "triviaScores.db")
-errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
+historyEventsPath = os.path.join(rootDirectory, "Resources", "historyEvents.json")
 memoryPath = os.path.join(rootDirectory, "Screenshots")
 
 
@@ -34,6 +35,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.triviaQuestions = None
         self.choicesTable = None
         self.memoryImages = None
+        self.historyEventsTable = None
         self.lifeIsStrangeInit()
 
     # Function to initialise life is strange variables
@@ -47,6 +49,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
         # Setup memory images array
         self.memoryImages = os.listdir(memoryPath)
+
+        # Setup history events table
+        self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
 
     # Function to create trivia questions
     def triviaMaker(self):
@@ -105,6 +110,47 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         episodeEmbed.add_field(name="Major Choices", value=majorString)
         episodeEmbed.add_field(name="Minor Choices", value=minorString)
         return episodeEmbed
+
+    # Function to calculate how many seconds to wait
+    def secondsUntilMidnight(self, currentTime):
+        currentTimedelta = timedelta(hours=currentTime.hour, minutes=currentTime.minute, seconds=currentTime.second, microseconds=currentTime.microsecond)
+        midnightTime = timedelta(hours=24)
+        return (midnightTime-currentTimedelta).total_seconds()
+
+    # Get the suffix for a specific day
+    def getSuffix(self, day):
+        if 4 <= day <= 20 or 24 <= day <= 30:
+            return "th"
+        else:
+            return ["st", "nd", "rd"][day % 10 - 1]
+
+    # Get a worded date format for a specific day
+    def getWordedDate(self, dt):
+        return dt.strftime("{DAY} of %B %Y").replace("{DAY}", str(dt.day) + self.getSuffix(dt.day))
+
+    # Function which runs once the bot is setup and running
+    @commands.Cog.listener()
+    async def on_ready(self):
+        # Run the history function to display a LiS history event
+        await self.history()
+
+    async def history(self):
+        currentDate = datetime.now()
+        await asyncio.sleep(self.secondsUntilMidnight(currentDate))
+        formattedDate = currentDate.strftime("%d/%m")
+        currentEvent = [event for event in self.historyEventsTable if formattedDate in event[1]]
+        if len(currentEvent) == 1:
+            allowedGroup = Utils.restrictor.IDs["life is strange"]
+            wordedDate = self.getWordedDate(datetime.strptime(currentEvent[0][1], "%d/%m/%Y"))
+            for value in allowedGroup.values():
+                # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
+                try:
+                    await self.client.get_channel(value[0]).send(f"Today on the {wordedDate}, this happened:\n\n{currentEvent[0][0]}")
+                except AttributeError:
+                    # This is just for testing purposes
+                    # Normally this will never run since the bot will be in every guild in IDs
+                    # And if it isn't then the bot automatically removes those guilds from channelIDs.json
+                    continue
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", usage="trivia", brief="Trivia")
@@ -189,13 +235,13 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return result
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
-            result = await Utils.restrictor.grabAllowed(ctx)
-            await ctx.channel.send(result)
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        Utils.errorWrite(error)
+    # async def cog_command_error(self, ctx, error):
+    #     if isinstance(error, commands.CheckFailure):
+    #         result = await Utils.restrictor.grabAllowed(ctx)
+    #         await ctx.channel.send(result)
+    #     elif isinstance(error, commands.CommandOnCooldown):
+    #         await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+    #     Utils.errorWrite(error)
 
 
 # Function which initialises the life is strange cog

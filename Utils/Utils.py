@@ -12,7 +12,7 @@ def initIDs():
     return json.loads(open(idPath, "r").read())
 
 
-# Function to write changes to channelIDs.txt
+# Function to write changes to channelIDs.json
 def idWriter(newDict):
     open(idPath, "w").write(json.dumps(newDict, indent=4))
 
@@ -33,7 +33,7 @@ gameActivityTimeout = 300
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-idPath = os.path.join(rootDirectory, "Resources", "channelIDs.txt")
+idPath = os.path.join(rootDirectory, "Resources", "channelIDs.json")
 errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
 
 # Restrictor class initialisation

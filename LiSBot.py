@@ -21,7 +21,7 @@ logPath = os.path.join(rootDirectory, "BotFiles", "lisBot.log")
 # Run when discord bot has joined a guild
 @client.event
 async def on_guild_join(guild):
-    tempDict = Utils.allowedIDs
+    tempDict = Utils.IDs
     for key, value in tempDict.items():
         value[str(guild.id)] = [-1]
     Utils.idWriter(tempDict)
@@ -30,7 +30,7 @@ async def on_guild_join(guild):
 # Run when discord bot has left a guild
 @client.event
 async def on_guild_remove(guild):
-    tempDict = Utils.allowedIDs
+    tempDict = Utils.IDs
     for key, value in tempDict.items():
         del value[str(guild.id)]
     Utils.idWriter(tempDict)
