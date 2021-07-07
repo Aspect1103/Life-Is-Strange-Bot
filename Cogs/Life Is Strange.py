@@ -194,12 +194,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx):
-        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)[:10]
+        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score, correct, wrong FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)[:10]
         triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
         leaderboardDescription = ""
         for count, user in enumerate(guildUsers):
             userName = await self.client.fetch_user(user[0])
-            leaderboardDescription += f"{count+1}. {userName}. Score: **{user[1]}**\n"
+            leaderboardDescription += f"{count+1}. {userName}. (Score: **{user[1]}** | Correct: **{user[2]}** | Wrong: **{user[3]}**)\n"
         if leaderboardDescription == "":
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
