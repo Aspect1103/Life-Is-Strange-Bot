@@ -67,8 +67,7 @@ class Miscellaneous(commands.Cog):
 
     # Function to run channelCheck for Miscellaneous
     async def cog_check(self, ctx):
-        result = await Utils.restrictor.commandCheck(ctx)
-        return result
+        return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
@@ -100,12 +99,7 @@ class Help(commands.HelpCommand):
 
     # Function to check and determine the end channel for the help command
     async def channelCheck(self):
-        result = await Utils.restrictor.commandCheck(self.context)
-        if result:
-            return None
-        else:
-            result = await Utils.restrictor.grabAllowed(self.context)
-            return result
+        return None if await Utils.restrictor.commandCheck(self.context) else await Utils.restrictor.grabAllowed(self.context)
 
     # Function to display help on the entire bot
     async def send_bot_help(self, mapping):

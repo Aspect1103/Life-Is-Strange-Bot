@@ -114,8 +114,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Function to calculate how many seconds to wait
     def secondsUntilMidnight(self, currentTime):
         currentTimedelta = timedelta(hours=currentTime.hour, minutes=currentTime.minute, seconds=currentTime.second, microseconds=currentTime.microsecond)
-        midnightTime = timedelta(hours=24)
-        return (midnightTime-currentTimedelta).total_seconds()
+        midnightTime = timedelta(hours=23, minutes=59)
+        return (midnightTime-currentTimedelta).total_seconds() + 60
 
     # Get the suffix for a specific day
     def getSuffix(self, day):
@@ -128,29 +128,28 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     def getWordedDate(self, dt):
         return dt.strftime("{DAY} of %B %Y").replace("{DAY}", str(dt.day) + self.getSuffix(dt.day))
 
-    # Function which runs once the bot is setup and running
-    @commands.Cog.listener()
-    async def on_ready(self):
-        # Run the history function to display a LiS history event
-        await self.history()
-
-    async def history(self):
+    # Sends a message detailing a LiS event which happened on the same day
+    async def historyEvents(self):
         currentDate = datetime.now()
         await asyncio.sleep(self.secondsUntilMidnight(currentDate))
-        formattedDate = currentDate.strftime("%d/%m")
-        currentEvent = [event for event in self.historyEventsTable if formattedDate in event[1]]
+        currentEvent = [event for event in self.historyEventsTable if currentDate.strftime("%d/%m") in event[1]]
         if len(currentEvent) == 1:
-            allowedGroup = Utils.restrictor.IDs["life is strange"]
             wordedDate = self.getWordedDate(datetime.strptime(currentEvent[0][1], "%d/%m/%Y"))
-            for value in allowedGroup.values():
-                # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
+            for value in Utils.restrictor.IDs["life is strange"].values():
                 try:
+                    # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
                     await self.client.get_channel(value[0]).send(f"Today on the {wordedDate}, this happened:\n\n{currentEvent[0][0]}")
                 except AttributeError:
                     # This is just for testing purposes
                     # Normally this will never run since the bot will be in every guild in IDs
                     # And if it isn't then the bot automatically removes those guilds from channelIDs.json
                     continue
+
+    # Function which runs once the bot is setup and running
+    @commands.Cog.listener()
+    async def on_ready(self):
+        # Run the history function to display a LiS history event
+        await self.historyEvents()
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", usage="trivia", brief="Trivia")
@@ -231,8 +230,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
-        result = await Utils.restrictor.commandCheck(ctx)
-        return result
+        return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):

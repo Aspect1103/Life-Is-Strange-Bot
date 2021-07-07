@@ -162,8 +162,7 @@ class Admin(commands.Cog):
 
     # Function to run channelCheck for Admin
     async def cog_check(self, ctx):
-        result = await Utils.restrictor.commandCheck(ctx)
-        return result
+        return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
