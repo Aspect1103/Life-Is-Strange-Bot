@@ -96,19 +96,25 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guess[1].guild.id} and userID == {guess[1].id}"))[0]
         except IndexError:
             # User not in database
-            user = (guess[1].guild.id, guess[1].id, 0)
+            user = (guess[1].guild.id, guess[1].id, 0, 0, 0)
             self.cursor.execute(f"INSERT INTO triviaScores values{user}")
+        newScore = user[2]
+        correct = user[3]
+        wrong = user[4]
         try:
             if self.triviaReactions[str(guess[0])] == correctIndex:
                 # User got the question correct
-                newScore = user[2] + 1
+                newScore += 1
+                correct += 1
             else:
                 # User got the question wrong
-                newScore = user[2] - 1
+                newScore -= 1
+                wrong += 1
         except KeyError:
             # Unknown emoji
             newScore = user[2] - 1
-        self.cursor.execute(f"UPDATE triviaScores SET score = {newScore} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
+            wrong += 1
+        self.cursor.execute(f"UPDATE triviaScores SET score = {newScore}, correct = {correct}, wrong = {wrong} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
 
     # Function to create a choice embed page
     def choicePageMaker(self, count, episode):
