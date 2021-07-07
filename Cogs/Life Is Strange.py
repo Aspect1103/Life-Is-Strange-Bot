@@ -77,8 +77,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             else:
                 temp = option + " ❌"
             if guess != None:
-                if self.triviaReactions[str(guess[0])] == count+1:
-                    temp += f" ⬅ {str(guess[1])} guessed"
+                try:
+                    if self.triviaReactions[str(guess[0])] == count+1:
+                        temp += f" ⬅ {str(guess[1])} guessed"
+                except KeyError:
+                    # Unknown emoji
+                    pass
             newDescription += temp + "\n"
         finalObj = Embed(colour=self.colour)
         finalObj.title = triviaEmbed.title
@@ -94,11 +98,15 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             # User not in database
             user = (guess[1].guild.id, guess[1].id, 0)
             self.cursor.execute(f"INSERT INTO triviaScores values{user}")
-        if self.triviaReactions[str(guess[0])] == correctIndex:
-            # User got the question correct
-            newScore = user[2] + 1
-        else:
-            # User got the question wrong
+        try:
+            if self.triviaReactions[str(guess[0])] == correctIndex:
+                # User got the question correct
+                newScore = user[2] + 1
+            else:
+                # User got the question wrong
+                newScore = user[2] - 1
+        except KeyError:
+            # Unknown emoji
             newScore = user[2] - 1
         self.cursor.execute(f"UPDATE triviaScores SET score = {newScore} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
 
@@ -234,12 +242,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
-            result = await Utils.restrictor.grabAllowed(ctx)
-            await ctx.channel.send(result)
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        Utils.errorWrite(error)
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog

@@ -3,6 +3,9 @@ from datetime import datetime
 from datetime import timedelta
 import os
 import json
+# Pip
+from discord.ext import commands
+from AO3.utils import HTTPError
 # Custom
 from .Restrictor import Restrictor
 
@@ -25,6 +28,22 @@ def errorWrite(error):
 # Function to determine the time since last game activity
 def gameActivity(lastActivity):
     return datetime.now() > (lastActivity + timedelta(seconds=gameActivityTimeout))
+
+
+# Handle errors
+async def errorHandler(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        result = await restrictor.grabAllowed(ctx)
+        await ctx.channel.send(result)
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.channel.send("You do not have sufficient permission to run this command")
+    elif isinstance(error, commands.NotOwner):
+        await ctx.channel.send("You are not owner")
+    elif isinstance(error, commands.CommandOnCooldown):
+        await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+    elif isinstance(error.original, HTTPError):
+        await ctx.channel.send(error.original)
+    errorWrite(error)
 
 
 # Script variables

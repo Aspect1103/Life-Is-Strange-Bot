@@ -166,16 +166,7 @@ class Admin(commands.Cog):
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.channel.send("You do not have sufficient permission to run this command")
-        elif isinstance(error, commands.NotOwner):
-            await ctx.channel.send("You are not owner")
-        elif isinstance(error, commands.CheckFailure):
-            result = await Utils.restrictor.grabAllowed(ctx)
-            await ctx.channel.send(result)
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        Utils.errorWrite(error)
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Admin cog

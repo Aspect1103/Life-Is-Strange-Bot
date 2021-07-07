@@ -71,12 +71,7 @@ class Miscellaneous(commands.Cog):
 
     # Catch any cog errors
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CheckFailure):
-            result = await Utils.restrictor.grabAllowed(ctx)
-            await ctx.channel.send(result)
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-        Utils.errorWrite(error)
+        await Utils.errorHandler(ctx, error)
 
 
 # Cog to manage the help command
@@ -192,8 +187,7 @@ class Help(commands.HelpCommand):
     # Function to handle help error messages
     async def send_error_message(self, error):
         # Send error message (since error is a string)
-        channel = self.get_destination()
-        await channel.send(error)
+        await self.get_destination().send(error)
         Utils.errorWrite(error)
 
 
