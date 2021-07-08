@@ -144,9 +144,10 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Sends a message detailing a LiS event which happened on the same day
     async def historyEvents(self):
-        currentDate = datetime.now()
-        await asyncio.sleep(self.secondsUntilMidnight(currentDate))
-        currentEvent = [event for event in self.historyEventsTable if currentDate.strftime("%d/%m") in event[1]]
+        # We need to get tomorrow's date as when we wait until midnight it becomes tomorrow so we need to check for events for tomorrow
+        tomorrowDate = datetime.now() + timedelta(days=1)
+        await asyncio.sleep(self.secondsUntilMidnight(tomorrowDate))
+        currentEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
         if len(currentEvent) == 1:
             wordedDate = self.getWordedDate(datetime.strptime(currentEvent[0][1], "%d/%m/%Y"))
             for value in Utils.restrictor.IDs["life is strange"].values():
