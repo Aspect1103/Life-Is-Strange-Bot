@@ -18,7 +18,7 @@ from Utils import Utils
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 triviaPath = os.path.join(rootDirectory, "Resources", "trivia.json")
 choicesPath = os.path.join(rootDirectory, "Resources", "choices.json")
-triviaScoresPath = os.path.join(rootDirectory, "Resources", "triviaScores.db")
+triviaScoresPath = os.path.join(rootDirectory, "Resources", "lisBot.db")
 historyEventsPath = os.path.join(rootDirectory, "Resources", "historyEvents.json")
 memoryPath = os.path.join(rootDirectory, "Screenshots")
 
@@ -96,7 +96,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guess[1].guild.id} and userID == {guess[1].id}"))[0]
         except IndexError:
             # User not in database
-            user = (guess[1].guild.id, guess[1].id, 0, 0, 0)
+            user = (guess[1].guild.id, guess[1].id, 0, 0, 0, 0)
             self.cursor.execute(f"INSERT INTO triviaScores values{user}")
         newScore = user[2]
         correct = user[3]
@@ -115,6 +115,19 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             newScore = user[2] - 1
             wrong += 1
         self.cursor.execute(f"UPDATE triviaScores SET score = {newScore}, correct = {correct}, wrong = {wrong} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
+        # Update ranks
+        self.updateRanks(guess[1].guild.id)
+
+    # Function to update the ranks for a specific guild
+    def updateRanks(self, guildID):
+        sortedGuildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")))
+        sortedRanks = [(row[0], row[1], row[2], row[3], row[4], row[5]+count+1) for count, row in enumerate(sortedGuildUsers)]
+        for rank in sortedRanks:
+            self.cursor.execute(f"UPDATE triviaScores SET rank = {rank[5]} WHERE guildID == {rank[0]} AND userID == {rank[1]}")
+
+    # Function to sort a list of trivia scores based on the ranks
+    def rankSort(self, arr):
+        return sorted(arr, key=lambda x: x[2], reverse=True)
 
     # Function to create a choice embed page
     def choicePageMaker(self, count, episode):
@@ -144,7 +157,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Sends a message detailing a LiS event which happened on the same day
     async def historyEvents(self):
-        # We need to get tomorrow's date as when we wait until midnight it becomes tomorrow so we need to check for events for tomorrow
+        # Get tomorrow's date so once midnight hits, the correct date can be checked
         tomorrowDate = datetime.now() + timedelta(days=1)
         await asyncio.sleep(self.secondsUntilMidnight(tomorrowDate))
         currentEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
@@ -191,16 +204,27 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             await triviaMessage.edit(embed=resultEmbed)
         await triviaMessage.clear_reactions()
 
+    # triviaScore command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.long} seconds", usage="triviaScore|ts", brief="Trivia")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    async def triviaScore(self, ctx):
+        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}"))[0]
+        totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+        triviaScoreEmbed = Embed(title=f"{ctx.author.name}'s Trivia Score", colour=self.colour)
+        triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nCorrect Questions: **{user[3]}**\nIncorrect Questions: **{user[4]}**"
+        triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
+        await ctx.channel.send(embed=triviaScoreEmbed)
+
     # triviaLeaderboard command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx):
-        guildUsers = sorted(list(self.cursor.execute(f"SELECT userID, score, correct, wrong FROM triviaScores WHERE guildID == {ctx.guild.id}")), key=lambda x: x[1], reverse=True)[:10]
+        guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))[:10]
         triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
         leaderboardDescription = ""
-        for count, user in enumerate(guildUsers):
-            userName = await self.client.fetch_user(user[0])
-            leaderboardDescription += f"{count+1}. {userName}. (Score: **{user[1]}** | Correct: **{user[2]}** | Wrong: **{user[3]}**)\n"
+        for user in guildUsers:
+            userName = await self.client.fetch_user(user[1])
+            leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Correct: **{user[3]}** | Wrong: **{user[4]}**)\n"
         if leaderboardDescription == "":
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
@@ -248,8 +272,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx, error):
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
