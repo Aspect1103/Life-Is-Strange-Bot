@@ -121,7 +121,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Function to update the ranks for a specific guild
     def updateRanks(self, guildID):
         sortedGuildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")))
-        sortedRanks = [(row[0], row[1], row[2], row[3], row[4], row[5]+count+1) for count, row in enumerate(sortedGuildUsers)]
+        sortedRanks = [(row[0], row[1], row[2], row[3], row[4], count+1) for count, row in enumerate(sortedGuildUsers)]
         for rank in sortedRanks:
             self.cursor.execute(f"UPDATE triviaScores SET rank = {rank[5]} WHERE guildID == {rank[0]} AND userID == {rank[1]}")
 
