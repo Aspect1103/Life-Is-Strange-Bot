@@ -255,7 +255,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             user = user[0]
             totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
             triviaScoreEmbed = Embed(title=f"{ctx.author.name}'s Trivia Score", colour=self.colour)
-            triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nCorrect Questions: **{user[3]}**\nIncorrect Questions: **{user[4]}**"
+            triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nPoints Gained: **{user[3]}**\nPoints Lost: **{user[4]}**"
             triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
@@ -268,7 +268,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         leaderboardDescription = ""
         for user in guildUsers:
             userName = await self.client.fetch_user(user[1])
-            leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Correct: **{user[3]}** | Wrong: **{user[4]}**)\n"
+            leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
         if leaderboardDescription == "":
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
