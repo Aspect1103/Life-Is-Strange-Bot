@@ -68,11 +68,11 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return triviaEmbed, int(randomTrivia["correct option"])
 
     # Function to create final trivia embed
-    def finalTrivia(self, triviaEmbed, correctInd, guess):
+    def finalTrivia(self, triviaEmbed, correctOption, guess):
         description = triviaEmbed.description.split("\n")
         newDescription = ""
         for count, option in enumerate(description):
-            if count+1 == correctInd:
+            if count+1 == correctOption:
                 temp = option + " ✅"
             else:
                 temp = option + " ❌"
@@ -91,32 +91,69 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return finalObj
 
     # Function to update a user's trivia score
-    def updateTriviaScores(self, correctIndex, guess):
+    def updateTriviaScores(self, ctx, correctOption, guess):
         try:
-            user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guess[1].guild.id} and userID == {guess[1].id}"))[0]
+            orgUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {ctx.author.id}"))[0]
         except IndexError:
             # User not in database
-            user = (guess[1].guild.id, guess[1].id, 0, 0, 0, 0)
-            self.cursor.execute(f"INSERT INTO triviaScores values{user}")
-        newScore = user[2]
-        correct = user[3]
-        wrong = user[4]
-        try:
-            if self.triviaReactions[str(guess[0])] == correctIndex:
-                # User got the question correct
-                newScore += 1
-                correct += 1
-            else:
-                # User got the question wrong
-                newScore -= 1
-                wrong += 1
-        except KeyError:
-            # Unknown emoji
-            newScore = user[2] - 1
-            wrong += 1
-        self.cursor.execute(f"UPDATE triviaScores SET score = {newScore}, correct = {correct}, wrong = {wrong} WHERE guildID == {guess[1].guild.id} AND userID == {guess[1].id}")
+            orgUser = (ctx.guild.id, ctx.author.id, 0, 0, 0, 0)
+            self.cursor.execute(f"INSERT INTO triviaScores values{orgUser}")
+        orgUser = list(orgUser)
+        if guess is None:
+            # No answer
+            orgUser[2] -= 2
+            orgUser[4] += 2
+        else:
+            try:
+                guessUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {guess[1].id}"))[0]
+            except IndexError:
+                # User not in database
+                guessUser = (ctx.guild.id, guess[1].id, 0, 0, 0, 0)
+                self.cursor.execute(f"INSERT INTO triviaScores values{guessUser}")
+            guessUser = list(guessUser)
+            originalAuthor = ctx.author.id
+            guessAuthor = guess[1].id
+            try:
+                if self.triviaReactions[str(guess[0])] == correctOption:
+                    # Question correct
+                    if originalAuthor == guessAuthor:
+                        # No steal
+                        orgUser[2] += 2
+                        orgUser[3] += 2
+                    else:
+                        # Steal
+                        orgUser[2] += 1
+                        orgUser[3] += 1
+                        guessUser[2] += 1
+                        guessUser[3] += 1
+                else:
+                    # Question incorrect
+                    if originalAuthor == guessAuthor:
+                        # No steal
+                        orgUser[2] -= 2
+                        orgUser[4] += 2
+                    else:
+                        # Steal
+                        orgUser[2] -= 1
+                        orgUser[4] += 1
+                        guessUser[2] -= 1
+                        guessUser[4] += 1
+            except KeyError:
+                # Unknown emoji
+                if originalAuthor == guessAuthor:
+                    # No steal
+                    orgUser[2] -= 2
+                    orgUser[4] += 2
+                else:
+                    # Steal
+                    orgUser[2] -= 1
+                    orgUser[4] += 1
+                    guessUser[2] -= 1
+                    guessUser[4] += 1
+            self.cursor.execute(f"UPDATE triviaScores SET score = {guessUser[2]}, pointsGained = {guessUser[3]}, pointsLost = {guessUser[4]} WHERE guildID == {ctx.guild.id} AND userID == {guessAuthor}")
+        self.cursor.execute(f"UPDATE triviaScores SET score = {orgUser[2]}, pointsGained = {orgUser[3]}, pointsLost = {orgUser[4]} WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}")
         # Update ranks
-        self.updateRanks(guess[1].guild.id)
+        self.updateRanks(ctx.guild.id)
 
     # Function to update the ranks for a specific guild
     def updateRanks(self, guildID):
@@ -180,11 +217,11 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await self.historyEvents()
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", usage="trivia", brief="Trivia")
+    @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def trivia(self, ctx):
         # Grab random trivia
-        triviaObj, correctIndex = self.triviaMaker()
+        triviaObj, correctOption = self.triviaMaker()
         triviaMessage = await ctx.channel.send(embed=triviaObj)
         # Add relations
         for reaction in self.triviaReactions.keys():
@@ -194,26 +231,33 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         try:
             reaction = await self.client.wait_for("reaction_add", timeout=15)
             # Edit the embed with the results
-            resultEmbed = self.finalTrivia(triviaObj, correctIndex, reaction)
+            resultEmbed = self.finalTrivia(triviaObj, correctOption, reaction)
             await triviaMessage.edit(embed=resultEmbed)
-            # Update trivia scores
-            self.updateTriviaScores(correctIndex, reaction)
         except asyncio.TimeoutError:
             # Noone reacted
-            resultEmbed = self.finalTrivia(triviaObj, correctIndex, None)
+            reaction = None
+            resultEmbed = self.finalTrivia(triviaObj, correctOption, None)
             await triviaMessage.edit(embed=resultEmbed)
+        # Update trivia scores
+        self.updateTriviaScores(ctx, correctOption, reaction)
         await triviaMessage.clear_reactions()
 
     # triviaScore command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.long} seconds", usage="triviaScore|ts", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def triviaScore(self, ctx):
-        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}"))[0]
-        totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
-        triviaScoreEmbed = Embed(title=f"{ctx.author.name}'s Trivia Score", colour=self.colour)
-        triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nCorrect Questions: **{user[3]}**\nIncorrect Questions: **{user[4]}**"
-        triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
-        await ctx.channel.send(embed=triviaScoreEmbed)
+        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}"))
+        if len(user) == 0:
+            # User not in database
+            await ctx.channel.send(f"You haven't answered any questions. Run {ctx.prefix}trivia to answer some")
+        else:
+            # User in database
+            user = user[0]
+            totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+            triviaScoreEmbed = Embed(title=f"{ctx.author.name}'s Trivia Score", colour=self.colour)
+            triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nCorrect Questions: **{user[3]}**\nIncorrect Questions: **{user[4]}**"
+            triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
+            await ctx.channel.send(embed=triviaScoreEmbed)
 
     # triviaLeaderboard command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
