@@ -242,9 +242,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.updateTriviaScores(ctx, correctOption, reaction)
         await triviaMessage.clear_reactions()
 
-    # triviaScore command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.long} seconds", usage="triviaScore|ts", brief="Trivia")
-    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    # triviaScore command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", usage="triviaScore|ts", brief="Trivia")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def triviaScore(self, ctx):
         user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}"))
         if len(user) == 0:
@@ -259,9 +259,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
-    # triviaLeaderboard command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
-    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx):
         guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))[:10]
         triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
