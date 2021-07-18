@@ -1,5 +1,6 @@
-Config.py
-BotFiles/
-__pycache__/
-Screenshots/
 *.pyc
+Config.py
+Resources/lisBot.db
+BotFiles/
+Screenshots/
+__pycache__/
