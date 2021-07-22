@@ -220,6 +220,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def trivia(self, ctx):
+        def answerCheck(reaction, user):
+            return user.id != self.client.user.id
         # Grab random trivia
         triviaObj, correctOption = self.triviaMaker()
         triviaMessage = await ctx.channel.send(embed=triviaObj)
@@ -227,17 +229,18 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         for reaction in self.triviaReactions.keys():
             await triviaMessage.add_reaction(reaction)
         # Wait for the user's reaction and make sure the bot's reactions aren't counted
-        await asyncio.sleep(1)
-        try:
-            reaction = await self.client.wait_for("reaction_add", timeout=15)
-            # Edit the embed with the results
-            resultEmbed = self.finalTrivia(triviaObj, correctOption, reaction)
-            await triviaMessage.edit(embed=resultEmbed)
-        except asyncio.TimeoutError:
-            # Noone reacted
-            reaction = None
-            resultEmbed = self.finalTrivia(triviaObj, correctOption, None)
-            await triviaMessage.edit(embed=resultEmbed)
+        reaction = None
+        while True:
+            try:
+                reaction = await self.client.wait_for("reaction_add", timeout=15, check=answerCheck)
+                # Edit the embed with the results
+                resultEmbed = self.finalTrivia(triviaObj, correctOption, reaction)
+                await triviaMessage.edit(embed=resultEmbed)
+            except asyncio.TimeoutError:
+                # Noone reacted
+                resultEmbed = self.finalTrivia(triviaObj, correctOption, None)
+                await triviaMessage.edit(embed=resultEmbed)
+            break
         # Update trivia scores
         self.updateTriviaScores(ctx, correctOption, reaction)
         await triviaMessage.clear_reactions()
