@@ -341,9 +341,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     async def chatbot(self, ctx, *args):
         async with ctx.channel.typing():
             req = self.chatbotQuery(" ".join(args))
-            self.pastInputs.append(req["conversation"]["past_user_inputs"].pop(-1))
-            self.pastResponses.append(req["conversation"]["generated_responses"].pop(-1))
-        await ctx.channel.send(req["generated_text"])
+            try:
+                rounded = round(req["estimated_time"], 2)
+                messageToSend = f"AI is starting up, try again in {round(rounded)} seconds"
+            except KeyError:
+                messageToSend = req["generated_text"]
+                self.pastInputs.append(req["conversation"]["past_user_inputs"].pop(-1))
+                self.pastResponses.append(req["conversation"]["generated_responses"].pop(-1))
+        await ctx.channel.send(messageToSend)
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
