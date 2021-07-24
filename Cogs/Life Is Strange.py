@@ -4,6 +4,7 @@ import os
 import random
 import asyncio
 import json
+import requests
 # Pip
 from discord.ext import commands
 from discord import Embed
@@ -13,6 +14,7 @@ import apsw
 # Custom
 from Utils.Paginator import Paginator
 from Utils import Utils
+import Config
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -32,6 +34,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.cursor = apsw.Connection(triviaScoresPath).cursor()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         self.nextTrivia = 0
+        self.pastInputs = []
+        self.pastResponses = []
         self.triviaQuestions = None
         self.choicesTable = None
         self.memoryImages = None
@@ -192,6 +196,23 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     def getWordedDate(self, dt):
         return dt.strftime("{DAY} of %B %Y").replace("{DAY}", str(dt.day) + self.getSuffix(dt.day))
 
+    # Make a request to the huggingface model
+    def chatbotQuery(self, message):
+        payload = {
+            "inputs": {
+                "past_user_inputs": self.pastInputs,
+                "generated_responses": self.pastResponses,
+                "text": message
+            }, "parameters": {
+                "max_length": 200,
+                "temperature": 0.5,
+                "top_k": 100,
+                "top_p": 0.7
+            }}
+        return requests.post("https://api-inference.huggingface.co/models/Aspect11/DialoGPT-Medium-LiSBot",
+                             headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
+                             json=payload).json()
+
     # Sends a message detailing a LiS event which happened on the same day
     async def historyEvents(self):
         # Get tomorrow's date so once midnight hits, the correct date can be checked
@@ -313,6 +334,16 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     async def memory(self, ctx):
         randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
         await ctx.channel.send(file=File(randomImagePath))
+
+    # chatbot command with a cooldown of 1 use every 5 seconds per guild
+    @commands.command(help=f"Interacts with the LiS AI chatbot. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nMessage - The message to send to the AI chatbot", usage="chatbot (message)", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    async def chatbot(self, ctx, *args):
+        async with ctx.channel.typing():
+            req = self.chatbotQuery(" ".join(args))
+            self.pastInputs.append(req["conversation"]["past_user_inputs"].pop(-1))
+            self.pastResponses.append(req["conversation"]["generated_responses"].pop(-1))
+        await ctx.channel.send(req["generated_text"])
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):

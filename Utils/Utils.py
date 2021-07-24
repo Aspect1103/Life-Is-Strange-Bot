@@ -61,7 +61,7 @@ commandGroups = {
     "bot stuff": ["stop", "channel", "botRefresh", "channelRefresh", "about"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe", "hangman"],
-    "life is strange": ["choices", "memory"],
+    "life is strange": ["choices", "memory", "chatbot"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"]
 }
 restrictor = Restrictor(IDs, commandGroups)
