@@ -15,7 +15,7 @@ client = commands.Bot(command_prefix="$", description="A LiS Discord Bot")
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__))
-logPath = os.path.join(rootDirectory, "BotFiles", "lisBot.log")
+logPath = os.path.join(rootDirectory, "DebugFiles", "lisBot.log")
 
 
 # Run when discord bot has joined a guild
@@ -39,14 +39,12 @@ async def on_guild_remove(guild):
 # Run when discord bot has started
 @client.event
 async def on_ready():
-    # Get channel ID for test channel
-    channel = client.get_channel(817807544482922496)
     # Setup the client variable for the restrictor class
     Utils.restrictor.setClient(client)
     # Change the presence to show the help command
     await client.change_presence(status=Status.online, activity=Game(name=f"{client.command_prefix}help"))
-    # Send message to user signalling that the bot is ready
-    await channel.send("Running")
+    # Send message to the debug channel signalling that the bot is ready
+    await client.get_channel(817807544482922496).send("Running")
 
 
 # Setup automatic logging for debugging

@@ -53,7 +53,7 @@ gameActivityTimeout = 300
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
 idPath = os.path.join(rootDirectory, "Resources", "channelIDs.json")
-errorPath = os.path.join(rootDirectory, "BotFiles", "error.txt")
+errorPath = os.path.join(rootDirectory, "DebugFiles", "error.txt")
 
 # Restrictor class initialisation
 IDs = initIDs()

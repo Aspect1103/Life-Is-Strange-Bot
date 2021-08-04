@@ -1,12 +1,12 @@
 # Builtin
-import asyncio
 import os
 import random
+import asyncio
 import math
 # Pip
 from discord.ext import commands
-from discord import Embed
 from discord import Colour
+from discord import Embed
 import gspread
 import AO3
 # Custom
@@ -35,11 +35,8 @@ class Fanfic(commands.Cog):
     # Function to initialise fanfic variables
     def fanficInit(self):
         # Creates the formatted 2D array for the google spreadsheet
-        serviceAccountPath = os.path.join(rootDirectory, "BotFiles", "service_account_secret.json")
-        serviceAccount = gspread.service_account(filename=serviceAccountPath)
-        worksheet = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet(
-            "Life Is Strange Read Fanfictions").get_all_values()
-        worksheet = worksheet[2:]
+        serviceAccount = gspread.service_account_from_dict(Config.serviceAccount)
+        worksheet = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
         emptyRow = 0
         for row in range(len(worksheet)):
             if worksheet[row][10] == "":
@@ -50,36 +47,27 @@ class Fanfic(commands.Cog):
         # Assign the IDs which are to be ignored to the ignore list
         self.ignore = [line for line in open(ignorePath, "r").readlines()]
 
-    # Function to make random quotes
-    def quoteMaker(self, link):
-        # Create work object
-        work = AO3.Work(AO3.utils.workid_from_url(link), self.session)
-        if str(work.id) in self.ignore:
-            # Work is ignored
+    # Function to create quotes
+    def quoteMaker(self, ficLink):
+        work = AO3.Work(AO3.utils.workid_from_url(ficLink), self.session)
+        if work.title == "":
+            # Work is secret
             return "", None, None, None
-        # Repeat until a good quote is found
         quote = ""
-        retries = 10
-        # Set to 170 because embed description limit is 1024 (1024/6)=170.66666 words max
-        while (len(quote.split()) < 10 or len(quote.split()) > 170) and retries > 0:
-            retries -= 1
-            # Get a random chapter's text
-            randomChapter = work.chapters[random.randint(0, work.nchapters)-1]
-            randomChapterText = randomChapter.text
-            # Format the text
-            textList = list(filter(None, randomChapterText.split("\n")))
+        quoteTries = 0
+        while (len(quote.split()) < 10 or len(quote.split()) > 170) and quoteTries < 5:
+            quoteTries += 1
+            randomChapter = work.chapters[random.randint(0, work.nchapters) - 1]
+            textList = list(filter(None, randomChapter.text.split("\n")))
             if len(textList) == 0:
                 # Work has no words
                 return "", None, None, None
-            # Create the quote
-            quote = textList[random.randint(0, len(textList)-1)]
-            # Grab the authors
-            authors = self.listConverter(work.authors, True)
-        if retries == 0:
-            # No quote can be found
+            quote = random.choice(textList)
+        if quote != "":
+            return quote, work, ", ".join([author.username for author in work.authors]), randomChapter.title
+        else:
+            # No quotes found
             return "", None, None, None
-        # Return final values
-        return quote, work, authors, randomChapter.title
 
     # Function to create embeds
     def quoteEmbedCreater(self, quote, work, authors, chapterName):
@@ -89,19 +77,6 @@ class Fanfic(commands.Cog):
         quoteEmbed.add_field(name=chapterName, value=quote)
         quoteEmbed.set_author(name=authors)
         return quoteEmbed
-
-    # Function to convert a list of objects into a string
-    def listConverter(self, arr, author=False):
-        if len(arr) == 0:
-            return None
-        elif len(arr) == 1:
-            if author:
-                return arr[0].username
-            return arr[0]
-        else:
-            if author:
-                return ", ".join([element.username for element in arr])
-            return ", ".join(arr)
 
     # Function to split a list with a set amount of items in each
     def listSplit(self, arr, perListSize, listAmmount):
@@ -125,41 +100,41 @@ class Fanfic(commands.Cog):
         return None if repeats == 5 else await self.findLastQuote(ctx, lastMessage.created_at, repeats)
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. It has a cooldown of {Utils.medium} seconds", usage="quote", brief="Fanfic")
+    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised)", usage="quote (includeNSFW)", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def quote(self, ctx):
-        # Grab a random fic link
-        randomLink = self.worksheetArray[random.randint(0, len(self.worksheetArray)-1)][10]
-        # Get quote
-        quote, work, authors, chapterName = self.quoteMaker(randomLink)
-        while quote == "":
-            # Redo the grab
-            randomLink = self.worksheetArray[random.randint(0, len(self.worksheetArray) - 1)][10]
-            quote, work, authors, chapterName = self.quoteMaker(randomLink)
-        # Create embed and send it
-        await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+    async def quote(self, ctx, includeNsfw="No"):
+        if includeNsfw.capitalize() == "Yes":
+            tempArr = [item for item in self.worksheetArray if item[7] == "Yes" or item[7] == "?"]
+        else:
+            tempArr = [item for item in self.worksheetArray if item[7] == "No"]
+        quote = ""
+        ficCount = 0
+        while quote == "" and ficCount < 5:
+            ficCount += 1
+            quote, work, authors, chapterName = self.quoteMaker(tempArr.pop(random.randrange(len(tempArr)))[10])
+        if quote == "":
+            await ctx.channel.send("No valid quotes found")
+        else:
+            await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
     # nextQuote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["nq"], help=f"Finds the last quote posted and picks another quote from the same story. It has a cooldown of {Utils.medium} seconds", usage="nextQuote|nq", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def nextQuote(self, ctx):
-        # Get the last quote posted then get a new one
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
             await ctx.channel.send(f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
-            lastUrl = lastQuote.url
-            quote, work, authors, chapterName = self.quoteMaker(lastUrl)
+            quote, work, authors, chapterName = self.quoteMaker(lastQuote.url)
             # Make sure the quote isn't the same
-            retries = 3
-            while quote == lastQuote.fields[0].value and retries > 0:
-                retries -= 1
-                quote, work, authors, chapterName = self.quoteMaker(lastUrl)
-            if retries != 0:
-                await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
-            else:
-                # No more valid quotes found
+            tries = 0
+            while quote == lastQuote.fields[0].value and tries < 5:
+                tries += 1
+                quote, work, authors, chapterName = self.quoteMaker(lastQuote.url)
+            if quote == lastQuote.fields[0].value:
                 await ctx.channel.send("Cannot find any more quotes")
+            else:
+                await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
     # Base function to initialise the searchQuote group commands with a cooldown of 5 seconds
     @commands.group(invoke_without_command=True, aliases=["sq"], help=f"Group command for searching for specific fics. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="searchQuote|sq", brief="Fanfic")
@@ -168,7 +143,7 @@ class Fanfic(commands.Cog):
        await ctx.send_help(ctx.command)
 
     # searchQuote start command with a cooldown of 1 use every 60 seconds per guild
-    @searchQuote.command(help=f"Starts the quote searcher to search for specific fics. It has a cooldown of {Utils.long} seconds", usage="searchQuote|sq start", brief="Fanfic")
+    @searchQuote.command(help=f"Starts the quote searcher to search for specific fics. If no filter is added for the 'smut' field, all NSFW fics will be excluded. It has a cooldown of {Utils.long} seconds", usage="searchQuote|sq start", brief="Fanfic")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def start(self, ctx):
         # Function to check a user's reaction
@@ -186,32 +161,28 @@ class Fanfic(commands.Cog):
                 pass
             await message.clear_reactions()
             break
+        # Remove nsfw works if no smut filter is added
+        if self.quoteSearcher.categories["smut"][1] == "No filters added":
+            self.quoteSearcher.smutFilter("No")
         # Pick a row
         tempArray = self.quoteSearcher.array
         if len(tempArray) == 0:
-            # No matches found
-            await ctx.channel.send("No matches found")
+            await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
         elif len(tempArray) == 1:
-            # Create quote for single match
             quote, work, authors, chapterName = self.quoteMaker(tempArray[0][10])
-            if quote != "":
-                # Valid quote found
-                await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+            if quote == "":
+                await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
             else:
-                # No valid quotes found
-                await ctx.channel.send("No valid quotes found")
+                await message.edit(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
         else:
-            # Multiple matches
             quote = ""
             while quote == "" and len(tempArray) > 0:
-                quote, work, authors, chapterName = self.quoteMaker(tempArray.pop(random.randint(0, len(tempArray)-1))[10])
+                quote, work, authors, chapterName = self.quoteMaker(tempArray.pop(random.randrange(len(tempArray)))[10])
                 if quote != "":
-                    # Valid quote found
-                    await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
+                    await message.edit(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
                     break
             else:
-                # No valid quotes found
-                await ctx.channel.send("No valid quotes found")
+                await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
         # Reset the quote searcher object so it can be reused
         self.quoteSearcher = None
 
