@@ -11,7 +11,7 @@ import Config
 
 # Initialise discord variables
 token = Config.token
-client = commands.Bot(command_prefix="$", description="A LiS Discord Bot")
+client = commands.Bot(command_prefix="$")
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__))
