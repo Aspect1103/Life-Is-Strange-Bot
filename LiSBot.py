@@ -9,8 +9,7 @@ from discord import Status
 from Utils import Utils
 import Config
 
-# Initialise discord variables
-token = Config.token
+# Script variables
 client = commands.Bot(command_prefix="$")
 
 # Path variables
@@ -59,4 +58,4 @@ for extension in Utils.extensions:
     client.load_extension(extension)
 
 # Start discord bot
-client.run(token)
+client.run(Config.token)

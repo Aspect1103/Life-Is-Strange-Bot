@@ -64,10 +64,14 @@ class Fanfic(commands.Cog):
                 return "", None, None, None
             quote = random.choice(textList)
         if quote != "":
-            return quote, work, ", ".join([author.username for author in work.authors]), randomChapter.title
+            return quote, work, self.listConverter(work.authors, True), randomChapter.title
         else:
             # No quotes found
             return "", None, None, None
+
+    # Function to convert a list
+    def listConverter(self, lst, author=False):
+        return ", ".join([item for item in lst]) if not author else ", ".join([author.username for author in lst])
 
     # Function to create embeds
     def quoteEmbedCreater(self, quote, work, authors, chapterName):
