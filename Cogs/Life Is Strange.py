@@ -335,20 +335,20 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
         await ctx.channel.send(file=File(randomImagePath))
 
-    # chatbot command with a cooldown of 1 use every 5 seconds per guild
-    @commands.command(help=f"Interacts with the LiS AI chatbot. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nMessage - The message to send to the AI chatbot", usage="chatbot (message)", brief="Life Is Strange")
-    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def chatbot(self, ctx, *args):
-        async with ctx.channel.typing():
-            req = self.chatbotQuery(" ".join(args))
-            try:
-                rounded = round(req["estimated_time"], 2)
-                messageToSend = f"AI is starting up, try again in {round(rounded)} seconds"
-            except KeyError:
-                messageToSend = req["generated_text"]
-                self.pastInputs.append(req["conversation"]["past_user_inputs"].pop(-1))
-                self.pastResponses.append(req["conversation"]["generated_responses"].pop(-1))
-        await ctx.channel.send(messageToSend)
+    # # chatbot command with a cooldown of 1 use every 5 seconds per guild
+    # @commands.command(help=f"Interacts with the LiS AI chatbot. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nMessage - The message to send to the AI chatbot", usage="chatbot (message)", brief="Life Is Strange")
+    # @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    # async def chatbot(self, ctx, *args):
+    #     async with ctx.channel.typing():
+    #         req = self.chatbotQuery(" ".join(args))
+    #         try:
+    #             rounded = round(req["estimated_time"], 2)
+    #             messageToSend = f"AI is starting up, try again in {round(rounded)} seconds"
+    #         except KeyError:
+    #             messageToSend = req["generated_text"]
+    #             self.pastInputs.append(req["conversation"]["past_user_inputs"].pop(-1))
+    #             self.pastResponses.append(req["conversation"]["generated_responses"].pop(-1))
+    #     await ctx.channel.send(messageToSend)
 
     # Function to run channelCheck for Life Is Strange
     async def cog_check(self, ctx):
