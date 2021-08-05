@@ -6,6 +6,7 @@ import asyncio
 import json
 import requests
 # Pip
+from discord.errors import NotFound
 from discord.ext import commands
 from discord import Embed
 from discord import Colour
@@ -269,8 +270,22 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", usage="triviaScore|ts", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def triviaScore(self, ctx):
-        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}"))
+    async def triviaScore(self, ctx, target=None):
+        if target is not None:
+            try:
+                # Check if mentioned user is in the current guild
+                targetID = int(target.replace("<@!", "").replace(">", ""))
+                guild = await self.client.fetch_guild(ctx.guild.id)
+                guildMember = await guild.fetch_member(targetID)
+            except ValueError:
+                # Argument is invalid
+                targetID = ctx.author.id
+            except NotFound:
+                # Mentioned user not in current guild
+                targetID = ctx.author.id
+        else:
+            targetID = ctx.author.id
+        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
         if len(user) == 0:
             # User not in database
             await ctx.channel.send(f"You haven't answered any questions. Run {ctx.prefix}trivia to answer some")
@@ -287,15 +302,17 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx):
-        guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))[:10]
+        guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
         triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
         leaderboardDescription = ""
-        for user in guildUsers:
+        for user in guildUsers[:10]:
             userName = await self.client.fetch_user(user[1])
             leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
         if leaderboardDescription == "":
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
+        scoreList = [item[2] for item in guildUsers]
+        triviaLeaderboardEmbed.set_footer(text=f"Average Score: {round(sum(scoreList)/len(scoreList))}")
         await ctx.channel.send(embed=triviaLeaderboardEmbed)
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
@@ -355,8 +372,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx, error):
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
