@@ -3,8 +3,9 @@ import logging
 import os
 # Pip
 from discord.ext import commands
-from discord import Game
 from discord import Status
+from discord import Activity
+from discord import ActivityType
 # Custom
 from Utils import Utils
 import Config
@@ -41,7 +42,7 @@ async def on_ready():
     # Setup the client variable for the restrictor class
     Utils.restrictor.setClient(client)
     # Change the presence to show the help command
-    await client.change_presence(status=Status.online, activity=Game(name=f"{client.command_prefix}help"))
+    await client.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{client.command_prefix}help"))
     # Send message to the debug channel signalling that the bot is ready
     await client.get_channel(817807544482922496).send("Running")
 

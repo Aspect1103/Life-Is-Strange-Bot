@@ -283,12 +283,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 # Argument is invalid or mentioned user not in current guild
                 pass
         user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
+        userObj = await self.client.fetch_user(targetID)
         if len(user) == 0:
             # User not in database
-            await ctx.channel.send(f"You haven't answered any questions. Run {ctx.prefix}trivia to answer some")
+            await ctx.channel.send(f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
-            userObj = await self.client.fetch_user(targetID)
             totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
             triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
             triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
