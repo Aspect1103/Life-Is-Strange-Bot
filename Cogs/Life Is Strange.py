@@ -292,10 +292,11 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         else:
             # User in database
             user = user[0]
+            userObj = await self.client.fetch_user(targetID)
             totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
-            triviaScoreEmbed = Embed(title=f"{ctx.author.name}'s Trivia Score", colour=self.colour)
+            triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
             triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nPoints Gained: **{user[3]}**\nPoints Lost: **{user[4]}**"
-            triviaScoreEmbed.set_thumbnail(url=ctx.author.avatar_url)
+            triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
@@ -372,8 +373,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx, error):
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
