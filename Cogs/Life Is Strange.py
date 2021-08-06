@@ -271,31 +271,27 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", usage="triviaScore|ts", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def triviaScore(self, ctx, target=None):
+        targetID = ctx.author.id
         if target is not None:
             try:
                 # Check if mentioned user is in the current guild
-                targetID = int(target.replace("<@!", "").replace(">", ""))
+                tempTarget = int(target.replace("<@!", "").replace(">", ""))
                 guild = await self.client.fetch_guild(ctx.guild.id)
-                guildMember = await guild.fetch_member(targetID)
-            except ValueError:
-                # Argument is invalid
-                targetID = ctx.author.id
-            except NotFound:
-                # Mentioned user not in current guild
-                targetID = ctx.author.id
-        else:
-            targetID = ctx.author.id
+                guildMember = await guild.fetch_member(tempTarget)
+                targetID = tempTarget
+            except ValueError or NotFound:
+                # Argument is invalid or mentioned user not in current guild
+                pass
         user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
         if len(user) == 0:
             # User not in database
             await ctx.channel.send(f"You haven't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
-            user = user[0]
             userObj = await self.client.fetch_user(targetID)
             totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
             triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
-            triviaScoreEmbed.description = f"Rank: **{user[5]}/{totalUserCount}**\nScore: **{user[2]}**\nPoints Gained: **{user[3]}**\nPoints Lost: **{user[4]}**"
+            triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
@@ -313,7 +309,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
         scoreList = [item[2] for item in guildUsers]
-        triviaLeaderboardEmbed.set_footer(text=f"Average Score: {round(sum(scoreList)/len(scoreList))}")
+        triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10])/len(scoreList[:10]))} | Average Score: {round(sum(scoreList)/len(scoreList))} | Total User Count: {len(guildUsers)}")
         await ctx.channel.send(embed=triviaLeaderboardEmbed)
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
