@@ -6,7 +6,6 @@ import asyncio
 import json
 import requests
 # Pip
-from discord.errors import NotFound
 from discord.ext import commands
 from discord import Embed
 from discord import Colour
@@ -268,32 +267,38 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await triviaMessage.clear_reactions()
 
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", usage="triviaScore|ts", brief="Trivia")
+    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - The user who's trivia score you want. This has to be a mention", usage="triviaScore|ts (target)", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def triviaScore(self, ctx, target=None):
-        targetID = ctx.author.id
-        if target is not None:
-            try:
-                # Check if mentioned user is in the current guild
-                tempTarget = int(target.replace("<@!", "").replace(">", ""))
-                guild = await self.client.fetch_guild(ctx.guild.id)
-                guildMember = await guild.fetch_member(tempTarget)
-                targetID = tempTarget
-            except ValueError or NotFound:
-                # Argument is invalid or mentioned user not in current guild
-                pass
-        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
-        userObj = await self.client.fetch_user(targetID)
-        if len(user) == 0:
-            # User not in database
-            await ctx.channel.send(f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
+    async def triviaScore(self, ctx, *args):
+        if len(args) < 2:
+            if len(args) == 0:
+                # No argument so use ctx.author.id
+                targetID = ctx.author.id
+            else:
+                # Argument so check if mention is valid and get id
+                try:
+                    member = await commands.MemberConverter().convert(ctx, args[0])
+                    # Valid member
+                    targetID = member.id
+                except commands.MemberNotFound:
+                    # User not in guild
+                    await ctx.channel.send("User not found")
+                    targetID = ctx.author.id
+            user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
+            userObj = await self.client.fetch_user(targetID)
+            if len(user) == 0:
+                # User not in database
+                await ctx.channel.send(f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
+            else:
+                # User in database
+                totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+                triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
+                triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
+                triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
+                await ctx.channel.send(embed=triviaScoreEmbed)
         else:
-            # User in database
-            totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
-            triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
-            triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
-            triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
-            await ctx.channel.send(embed=triviaScoreEmbed)
+            # Too many arguments
+            await ctx.channel.send("Too many arguments")
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
@@ -309,7 +314,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
         triviaLeaderboardEmbed.description = leaderboardDescription
         scoreList = [item[2] for item in guildUsers]
-        triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10])/len(scoreList[:10]))} | Average Score: {round(sum(scoreList)/len(scoreList))} | Total User Count: {len(guildUsers)}")
+        triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10])/len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList)/len(scoreList))} | Total User Count: {len(guildUsers)}")
         await ctx.channel.send(embed=triviaLeaderboardEmbed)
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
@@ -369,8 +374,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx, error):
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
