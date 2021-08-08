@@ -50,7 +50,6 @@ class Fanfic(commands.Cog):
     # Function to create quotes
     def quoteMaker(self, ficLink):
         work = AO3.Work(AO3.utils.workid_from_url(ficLink), self.session)
-        work = AO3.Work(AO3.utils.workid_from_url("https://archiveofourown.org/works/19390969"), self.session)
         if work.title == "":
             # Work is secret
             return "", None, None, None
