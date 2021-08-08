@@ -24,28 +24,26 @@ class Admin(commands.Cog):
         self.colour = Colour.orange()
 
     # Function to verify a channel command
-    def channelVerify(self, ctx, args):
-        if len(args) < 2:
+    def channelVerify(self, ctx, sect, chnlMent):
+        if sect is None and chnlMent is None:
             # Too little arguments
-            return "Missing arguments", None
-        if len(args) > 2:
-            # Too many arguments
-            return "Too many arguments", None
+            return "Missing arguments", None, None
         else:
             # Correct amount of arguments
-            if args[0].lower() in Utils.IDs:
+            print(sect.lower())
+            if sect.lower() in Utils.IDs:
                 # Section exists
-                channelID = int("".join([str(num) for num in args[1] if num.isdigit()]))
+                channelID = int("".join([str(num) for num in chnlMent if num.isdigit()]))
                 if self.client.get_channel(channelID).guild.id == ctx.guild.id:
                     # Valid channel
-                    return True, channelID
+                    return True, sect.lower(), channelID
                 else:
                     # Not a valid channel
-                    return "Invalid channel for guild", None
+                    return "Invalid channel for guild", None, None
             else:
                 # Section doesn't exist
                 validSections = "/".join(Utils.IDs.keys())
-                return f"Section not found. Try {validSections}", None
+                return f"Section not found. Try {validSections}", None, None
 
     # stop command to stop the bot
     @commands.command(help="Stops the bot", usage="stop", brief="Bot Stuff")
@@ -65,22 +63,22 @@ class Admin(commands.Cog):
     @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
-    async def add(self, ctx, *args):
+    async def add(self, ctx, section=None, channelMent=None):
         # Run verifier
-        result, ID = self.channelVerify(ctx, args)
+        result, sect, ID = self.channelVerify(ctx, section, channelMent)
         if result is True:
             # Arguments are valid
             tempDict = Utils.IDs
-            if ID in tempDict[args[0]][str(ctx.guild.id)]:
+            if ID in tempDict[sect][str(ctx.guild.id)]:
                 # Channel already added
                 await ctx.channel.send("Channel is already added")
             else:
                 # Channel not added
-                newRow = tempDict[args[0]][str(ctx.guild.id)]
+                newRow = tempDict[sect][str(ctx.guild.id)]
                 if newRow[0] == -1:
                     del newRow[0]
                 newRow.append(ID)
-                tempDict[args[0]][str(ctx.guild.id)] = newRow
+                tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
                 await ctx.channel.send("Changes applied")
@@ -92,22 +90,22 @@ class Admin(commands.Cog):
     @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Stuff")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
-    async def remove(self, ctx, *args):
+    async def remove(self, ctx, section=None, channelMent=None):
         # Run verifier
-        result, ID = self.channelVerify(ctx, args)
+        result, sect, ID = self.channelVerify(ctx, section, channelMent)
         if result is True:
             # Arguments are valid
             tempDict = Utils.IDs
-            if ID not in tempDict[args[0]][str(ctx.guild.id)]:
+            if ID not in tempDict[sect][str(ctx.guild.id)]:
                 # Channel not added
                 await ctx.channel.send("Channel is not added")
             else:
                 # Channel added
-                newRow = tempDict[args[0]][str(ctx.guild.id)]
+                newRow = tempDict[sect][str(ctx.guild.id)]
                 newRow.remove(ID)
                 if len(newRow) == 0:
                     newRow.append(-1)
-                tempDict[args[0]][str(ctx.guild.id)] = newRow
+                tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
                 await ctx.channel.send("Changes applied")

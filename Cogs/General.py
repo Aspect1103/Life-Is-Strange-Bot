@@ -80,10 +80,10 @@ class General(commands.Cog):
     # hangman guess command with a cooldown of 1 use every 5 seconds per guild
     @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def guess(self, ctx, *args):
+    async def guess(self, ctx, character=None):
         if str(self.gameManager.gameObj) == "Hangman":
             if ctx.author.id == self.gameManager.gameObj.user.id:
-                await self.gameManager.gameObj.guess(args)
+                await self.gameManager.gameObj.guess(character)
             else:
                 await ctx.channel.send(f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess characters")
         else:

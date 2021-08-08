@@ -113,12 +113,12 @@ class Hangman:
             await self.embedUpdate()
 
     # Make a guess of one of the characters
-    async def guess(self, args):
-        self.lastGuess = datetime.now()
-        if len(args) == 0 or len(args) > 1:
-            await self.ctx.channel.send("Make sure there is only one character being guessed")
+    async def guess(self, guessCharacter):
+        if guessCharacter is None:
+            await self.ctx.channel.send("Make sure a character is being guessed")
         else:
-            userGuess = args[0].lower()
+            self.lastGuess = datetime.now()
+            userGuess = guessCharacter.lower()
             self.guesses += 1
             self.guessedLetters.append(userGuess)
             correct = 0

@@ -10,6 +10,7 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 from discord import File
+from discord import Member
 import apsw
 # Custom
 from Utils.Paginator import Paginator
@@ -267,38 +268,28 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await triviaMessage.clear_reactions()
 
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - The user who's trivia score you want. This has to be a mention", usage="triviaScore|ts (target)", brief="Trivia")
+    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - A mention of the person who's trivia score you want", usage="triviaScore|ts (target)", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def triviaScore(self, ctx, *args):
-        if len(args) < 2:
-            if len(args) == 0:
-                # No argument so use ctx.author.id
-                targetID = ctx.author.id
-            else:
-                # Argument so check if mention is valid and get id
-                try:
-                    member = await commands.MemberConverter().convert(ctx, args[0])
-                    # Valid member
-                    targetID = member.id
-                except commands.MemberNotFound:
-                    # User not in guild
-                    await ctx.channel.send("User not found")
-                    targetID = ctx.author.id
-            user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetID}"))
-            userObj = await self.client.fetch_user(targetID)
-            if len(user) == 0:
-                # User not in database
-                await ctx.channel.send(f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
-            else:
-                # User in database
-                totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
-                triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
-                triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
-                triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
-                await ctx.channel.send(embed=triviaScoreEmbed)
+    async def triviaScore(self, ctx, target=None):
+        if target is None:
+            targetUser = ctx.author
         else:
-            # Too many arguments
-            await ctx.channel.send("Too many arguments")
+            try:
+                targetUser = await commands.MemberConverter().convert(ctx, target)
+            except commands.MemberNotFound:
+                targetUser = ctx.author
+        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetUser.id}"))
+        userObj = await self.client.fetch_user(targetUser.id)
+        if len(user) == 0:
+            # User not in database
+            await ctx.channel.send(f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
+        else:
+            # User in database
+            totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+            triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
+            triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
+            triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
+            await ctx.channel.send(embed=triviaScoreEmbed)
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", usage="triviaLeaderboard|tl", brief="Trivia")
@@ -320,8 +311,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # choices command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def choices(self, ctx, *epNumber):
-        if len(epNumber) == 0:
+    async def choices(self, ctx, epNumber=None):
+        if epNumber is None:
             # Display all choices with a paginator
             pages = []
             for count, episode in enumerate(self.choicesTable):
@@ -330,7 +321,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             paginator = Paginator(ctx, self.client)
             paginator.addPages(pages)
             await paginator.start()
-        elif len(epNumber) == 1:
+        else:
             # Only display specific episode number
             episodeNum = epNumber[0]
             # Run checks to make sure argument is correct
@@ -343,9 +334,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                     await ctx.channel.send("Not a valid episode number")
             else:
                 await ctx.channel.send("Episode number is not a number")
-        else:
-            # Too many arguments
-            await ctx.channel.send("Too many arguments")
 
     # memory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
