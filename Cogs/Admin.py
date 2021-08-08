@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
-from Utils import Utils
+from Helpers.Utils import Utils
 
 # Custom check for administrator permissions or owner
 def adminOrOwner():
@@ -120,6 +120,7 @@ class Admin(commands.Cog):
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
         for key, value in Utils.IDs.items():
+            print(key)
             if value[str(ctx.guild.id)][0] == -1:
                 # Command/category allowed everywhere not restricted
                 listEmbed.add_field(name=f"{key.title()}", value="This command is allowed everywhere. Enjoy!", inline=False)

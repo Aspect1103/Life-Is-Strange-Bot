@@ -51,18 +51,18 @@ extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Misce
 gameActivityTimeout = 300
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
+rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
 idPath = os.path.join(rootDirectory, "Resources", "channelIDs.json")
 errorPath = os.path.join(rootDirectory, "DebugFiles", "error.txt")
 
 # Restrictor class initialisation
 IDs = initIDs()
 commandGroups = {
-    "bot stuff": ["stop", "channel", "botRefresh", "channelRefresh", "about"],
+    "life is strange": ["choices", "memory", "chatbot"],
+    "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe", "hangman"],
-    "life is strange": ["choices", "memory", "chatbot"],
-    "trivia": ["trivia", "triviaLeaderboard", "triviaScore"]
+    "bot stuff": ["stop", "channel", "botRefresh", "channelRefresh", "about"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 

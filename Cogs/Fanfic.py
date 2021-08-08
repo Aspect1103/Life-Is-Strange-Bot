@@ -10,9 +10,9 @@ from discord import Embed
 import gspread
 import AO3
 # Custom
-from Utils.SearchQuoteManager import SearchQuoteManager
-from Utils.Paginator import Paginator
-from Utils import Utils
+from Helpers.Managers.SearchQuoteManager import SearchQuoteManager
+from Helpers.Utils.Paginator import Paginator
+from Helpers.Utils import Utils
 import Config
 
 # Path variables

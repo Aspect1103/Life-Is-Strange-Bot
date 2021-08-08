@@ -10,11 +10,10 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 from discord import File
-from discord import Member
 import apsw
 # Custom
-from Utils.Paginator import Paginator
-from Utils import Utils
+from Helpers.Utils.Paginator import Paginator
+from Helpers.Utils import Utils
 import Config
 
 # Path variables

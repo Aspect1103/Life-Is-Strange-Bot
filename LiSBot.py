@@ -7,7 +7,7 @@ from discord import Status
 from discord import Activity
 from discord import ActivityType
 # Custom
-from Utils import Utils
+from Helpers.Utils import Utils
 import Config
 
 # Script variables

@@ -3,8 +3,8 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
-from Utils.Paginator import Paginator
-from Utils import Utils
+from Helpers.Utils.Paginator import Paginator
+from Helpers.Utils import Utils
 
 # Attributes for the help command
 attributes = {

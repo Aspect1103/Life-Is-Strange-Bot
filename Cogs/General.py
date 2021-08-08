@@ -6,8 +6,8 @@ from discord.ext import commands
 from discord import Embed
 from discord import Colour
 # Custom
-from Utils.GameManager import GameManager
-from Utils import Utils
+from Helpers.Managers.GameManager import GameManager
+from Helpers.Utils import Utils
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)

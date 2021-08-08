@@ -5,9 +5,9 @@ from discord import Colour
 from discord import Client
 from discord import Embed
 # Custom
-from .TicTacToe import TicTacToe
-from .Connect4 import Connect4
-from .Hangman import Hangman
+from Helpers.Games.TicTacToe import TicTacToe
+from Helpers.Games.Connect4 import Connect4
+from Helpers.Games.Hangman import Hangman
 
 
 # GameManager class to streamline executing games

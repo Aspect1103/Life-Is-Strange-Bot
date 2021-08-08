@@ -9,7 +9,7 @@ from discord import Client
 from discord import Colour
 from discord import Embed
 # Custom
-from .Utils import gameActivity
+from Helpers.Utils.Utils import gameActivity
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
