@@ -1,7 +1,7 @@
 # Builtin
 from datetime import datetime
 from datetime import timedelta
-import os
+from pathlib import Path
 import json
 # Pip
 from discord.ext import commands
@@ -51,9 +51,9 @@ extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Misce
 gameActivityTimeout = 300
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-idPath = os.path.join(rootDirectory, "Resources", "channelIDs.json")
-errorPath = os.path.join(rootDirectory, "DebugFiles", "error.txt")
+rootDirectory = Path(__file__).parent.parent.parent
+idPath = rootDirectory.joinpath("Resources").joinpath("channelIDs.json")
+errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
 
 # Restrictor class initialisation
 IDs = initIDs()

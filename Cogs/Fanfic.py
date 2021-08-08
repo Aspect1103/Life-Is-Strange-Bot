@@ -1,5 +1,5 @@
 # Builtin
-import os
+from pathlib import Path
 import random
 import asyncio
 import math
@@ -16,8 +16,8 @@ from Helpers.Utils import Utils
 import Config
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-ignorePath = os.path.join(rootDirectory, "Resources", "ignoreFics.txt")
+rootDirectory = Path(__file__).parent.parent
+ignorePath = rootDirectory.joinpath("Resources").joinpath("ignoreFics.txt")
 
 
 # Cog to manage fanfic commands
@@ -50,24 +50,23 @@ class Fanfic(commands.Cog):
     # Function to create quotes
     def quoteMaker(self, ficLink):
         work = AO3.Work(AO3.utils.workid_from_url(ficLink), self.session)
+        work = AO3.Work(AO3.utils.workid_from_url("https://archiveofourown.org/works/19390969"), self.session)
         if work.title == "":
             # Work is secret
             return "", None, None, None
-        quote = ""
         quoteTries = 0
-        while (len(quote.split()) < 10 or len(quote.split()) > 170) and quoteTries < 5:
+        while quoteTries < 5:
             quoteTries += 1
-            randomChapter = work.chapters[random.randint(0, work.nchapters) - 1]
+            randomChapter = work.chapters[random.randrange(work.nchapters)]
             textList = list(filter(None, randomChapter.text.split("\n")))
             if len(textList) == 0:
                 # Work has no words
                 return "", None, None, None
             quote = random.choice(textList)
-        if quote != "":
-            return quote, work, self.listConverter(work.authors, True), randomChapter.title
-        else:
-            # No quotes found
-            return "", None, None, None
+            if len(quote.split()) >= 10 and len(quote.split()) <= 170:
+                return quote, work, self.listConverter(work.authors, True), randomChapter.title
+        # No quotes found
+        return "", None, None, None
 
     # Function to convert a list
     def listConverter(self, lst, author=False):

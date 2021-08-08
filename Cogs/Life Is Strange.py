@@ -1,6 +1,6 @@
 # Builtin
 from datetime import datetime, timedelta
-import os
+from pathlib import Path
 import random
 import asyncio
 import json
@@ -17,12 +17,12 @@ from Helpers.Utils import Utils
 import Config
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-triviaPath = os.path.join(rootDirectory, "Resources", "trivia.json")
-choicesPath = os.path.join(rootDirectory, "Resources", "choices.json")
-triviaScoresPath = os.path.join(rootDirectory, "Resources", "lisBot.db")
-historyEventsPath = os.path.join(rootDirectory, "Resources", "historyEvents.json")
-memoryPath = os.path.join(rootDirectory, "Screenshots")
+rootDirectory = Path(__file__).parent.parent
+triviaPath = rootDirectory.joinpath("Resources").joinpath("trivia.json")
+choicesPath = rootDirectory.joinpath("Resources").joinpath("choices.json")
+lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("lisBot.db")
+historyEventsPath = rootDirectory.joinpath("Resources").joinpath("historyEvents.json")
+memoryPath = rootDirectory.joinpath("Screenshots")
 
 
 # Cog to manage life is strange commands
@@ -31,7 +31,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.purple()
-        self.cursor = apsw.Connection(triviaScoresPath).cursor()
+        self.cursor = apsw.Connection(str(lisDatabasePath)).cursor()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         self.nextTrivia = 0
         self.pastInputs = []
@@ -52,7 +52,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.choicesTable = json.loads(open(choicesPath, "r").read())
 
         # Setup memory images array
-        self.memoryImages = os.listdir(memoryPath)
+        self.memoryImages = list(memoryPath.glob("*"))
 
         # Setup history events table
         self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
@@ -338,8 +338,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def memory(self, ctx):
-        randomImagePath = os.path.join(memoryPath, self.memoryImages[random.randint(0, len(self.memoryImages)-1)])
-        await ctx.channel.send(file=File(randomImagePath))
+        await ctx.channel.send(file=File(random.choice(self.memoryImages)))
 
     # # chatbot command with a cooldown of 1 use every 5 seconds per guild
     # @commands.command(help=f"Interacts with the LiS AI chatbot. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nMessage - The message to send to the AI chatbot", usage="chatbot (message)", brief="Life Is Strange")

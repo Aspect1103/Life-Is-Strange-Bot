@@ -1,11 +1,11 @@
 # Builtin
-import os
+from pathlib import Path
 # Pip
 from discord import Client
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-idPath = os.path.join(rootDirectory, "Resources", "IDs.txt")
+rootDirectory = Path(__file__).parent.parent
+idPath = rootDirectory.joinpath("Resources").joinpath("IDs.txt")
 
 
 # Restrictor class to switch between different embeds

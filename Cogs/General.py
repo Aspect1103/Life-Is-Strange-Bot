@@ -1,6 +1,6 @@
 # Builtin
+from pathlib import Path
 import random
-import os
 # Pip
 from discord.ext import commands
 from discord import Embed
@@ -10,8 +10,8 @@ from Helpers.Managers.GameManager import GameManager
 from Helpers.Utils import Utils
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-questionPath = os.path.join(rootDirectory, "Resources", "questions.txt")
+rootDirectory = Path(__file__).parent.parent
+questionPath = rootDirectory.joinpath("Resources").joinpath("questions.txt")
 
 
 # Cog to manage general commands

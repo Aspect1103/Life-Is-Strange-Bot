@@ -1,7 +1,7 @@
 # Builtin
 from datetime import datetime
+from pathlib import Path
 import asyncio
-import os
 import random
 # Pip
 from discord.ext.commands import Context
@@ -12,8 +12,8 @@ from discord import Embed
 from Helpers.Utils.Utils import gameActivity
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__), os.pardir)
-hangmanWordsPath = os.path.join(rootDirectory, "Resources", "hangman.txt")
+rootDirectory = Path(__file__).parent.parent.parent
+hangmanWordsPath = rootDirectory.joinpath("Resources").joinpath("hangman.txt")
 
 
 # Hangman class to play LiS hangman in a discord channel
