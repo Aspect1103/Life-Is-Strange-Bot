@@ -9,135 +9,131 @@ from discord import Message
 # SearchQuoteManager class to switch between different embeds
 class SearchQuoteManager:
     # Initialise variables
-    def __init__(self, client: Client, ctx: Context, message: Message, colour: Colour, array: list):
+    def __init__(self, client: Client, ctx: Context, message: Message, colour: Colour, worksheet: list):
         self.client = client
         self.ctx = ctx
         self.message = message
         self.colour = colour
-        self.array = array
-        self.categories = {
-            "title": [self.titleFilter, "No filters added"],
-            "author": [self.authorFilter, "No filters added"],
-            "ship": [self.shipFilter, "No filters added"],
-            "series": [self.seriesFilter, "No filters added"],
-            "status": [self.statusFilter, "No filters added"],
-            "smut": [self.smutFilter, "No filters added"],
-            "words": [self.wordsFilter, "No filters added"],
-            "chapters": [self.chaptersFilter, "No filters added"]
+        self.orgArray = worksheet
+        self.finalArray = worksheet
+        self.filters = {
+            "title": [self.titleFilter, None],
+            "author": [self.authorFilter, None],
+            "ship": [self.shipFilter, None],
+            "series": [self.seriesFilter, None],
+            "status": [self.statusFilter, None],
+            "smut": [self.smutFilter, None],
+            "words": [self.wordsFilter, None],
+            "chapters": [self.chaptersFilter, None]
         }
 
-    # Function to filter for title
+    # Filter for a title arguments
     def titleFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg in row[1]:
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg in item[1]]
 
-    # Function to filter for author
+    # Filter for a author arguments
     def authorFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg in row[2]:
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg in item[2]]
 
-    # Function to filter for ship
+    # Filter for a ship arguments
     def shipFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg in row[3].split("/"):
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg in item[3].split("/")]
 
-    # Function to filter for series
+    # Filter for a series arguments
     def seriesFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg in row[5]:
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg in item[5]]
 
-    # Function to filter for status
+    # Filter for a status arguments
     def statusFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg == row[6]:
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg.capitalize() == item[6]]
 
-    # Function to filter for smut
+    # Filter for a smut arguments
     def smutFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if arg == row[7]:
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if arg.capitalize() == item[7]]
 
-    # Function to filter for words
+    # Filter for a words arguments
     def wordsFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if self.intSearch(row[8], arg):
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if self.intSearch(item[8], arg)]
 
-    # Function to filter for chapters
+    # Filter for a chapters arguments
     def chaptersFilter(self, arg):
-        temp = []
-        for row in self.array:
-            if self.intSearch(row[9], arg):
-                temp.append(row)
-        self.array = temp
+        return [item for item in self.finalArray if self.intSearch(item[9], arg)]
 
-    # Function to search for possible matches for words: and chapters:
-    def intSearch(self, rowElement, search):
-        searchNumber = int("".join([str(num) for num in search if num.isdigit()]))
-        if "==" in search:
+    # Search for possible matches for words and chapters
+    def intSearch(self, rowElement, arg):
+        # If the searchNumber is only letters, then None is returned which causes the if statement to be False
+        searchNumber = int("".join([str(num) for num in arg if num.isdigit()]))
+        if "==" in arg:
             return rowElement == searchNumber
-        elif "!=" in search:
+        elif "!=" in arg:
             return not rowElement == searchNumber
-        elif ">" in search:
+        elif ">" in arg:
             return int(rowElement) > searchNumber
-        elif ">=" in search:
+        elif ">=" in arg:
             return int(rowElement) >= searchNumber
-        elif "<" in search:
+        elif "<" in arg:
             return int(rowElement) < searchNumber
-        elif "<=" in search:
+        elif "<=" in arg:
             return int(rowElement) <= searchNumber
-        elif "-" in search:
-            splitted = search.split("-")
+        elif "-" in arg:
+            splitted = arg.split("-")
             num1 = int("".join([str(num) for num in splitted[0] if num.isdigit()]))
             num2 = int("".join([str(num) for num in splitted[1] if num.isdigit()]))
             return num1 < int(rowElement) < num2
 
-    # Function to add a filter
-    async def addFilter(self, ctx, args):
-        if ctx.author.id != self.ctx.author.id:
-            # Incorrect user ID
-            await ctx.channel.send(f"Only {self.ctx.author.mention} can add filters")
-        else:
-            if len(args) != 2:
-                # Wrong format
-                await ctx.channel.send("Invalid format. Make sure the command format is correct")
-            else:
-                if args[0].lower() not in self.categories.keys():
-                    # Wrong category
-                    await ctx.channel.send("Invalid filter. Make sure the category is correct")
-                else:
-                    if self.categories[args[0]][1] != "No filters added":
-                        # Filters added
-                        await ctx.channel.send("Filter already added")
-                    else:
-                        # Filter the worksheet array based on the new terms
-                        self.categories[args[0]][0](args[1])
-                        self.categories[args[0]][1] = args[1]
-                        await self.updateEmbed()
+    # Remove NSFW items
+    def removeNSFW(self):
+        self.finalArray = self.filters["smut"][0]("No")
 
-    # Function to update the embed with the filters
+    # Add a filter to the array
+    async def addFilter(self, category, term):
+        if category is None:
+            await self.ctx.channel.send("Invalid category")
+        elif term is None:
+            await self.ctx.channel.send("Invalid term")
+        else:
+            lowerCase = category.lower()
+            if lowerCase not in self.filters.keys():
+                await self.ctx.channel.send("Unknown category")
+            elif self.filters[lowerCase][1] is not None:
+                await self.ctx.channel.send(f"Filter already added. Use $searchQuote remove to remove the filter")
+            else:
+                # Filter the array and store the term
+                self.finalArray = self.filters[lowerCase][0](term)
+                if lowerCase == "status":
+                    self.filters["status"][1] = term.capitalize()
+                elif lowerCase == "smut":
+                    self.filters["smut"][1] = term.capitalize()
+                else:
+                    self.filters[lowerCase][1] = term
+                await self.updateEmbed()
+
+    # Remove a filter from the array
+    async def removeFilter(self, category):
+        if category is None:
+            await self.ctx.channel.send("Invalid category")
+        else:
+            lowerCase = category.lower()
+            if lowerCase not in self.filters.keys():
+                await self.ctx.channel.send("Unknown category")
+            elif self.filters[lowerCase][1] is None:
+                await self.ctx.channel.send(f"Filter not applied. Use $searchQuote add to add the filter")
+            else:
+                # Remove the term and re-filter the array from the start
+                self.filters[lowerCase][1] = None
+                self.finalArray = self.orgArray
+                for key, value in self.filters.items():
+                    if value[1] is not None:
+                        self.finalArray = self.filters[key][0](value[1])
+                await self.updateEmbed()
+
+    # Update the embed with the filters
     async def updateEmbed(self):
         tempEmbed = Embed(title="Quote Searcher", colour=self.colour)
-        tempEmbed.set_footer(text=f"Total Results: {len(self.array)}")
-        for key, value in self.categories.items():
-            tempEmbed.add_field(name=key.capitalize(), value=value[1])
+        tempEmbed.set_footer(text=f"Total Results: {len(self.finalArray)}")
+        for key, value in self.filters.items():
+            if value[1] is None:
+                tempEmbed.add_field(name=key.capitalize(), value="No filters added")
+            else:
+                tempEmbed.add_field(name=key.capitalize(), value=value[1])
         await self.message.edit(embed=tempEmbed)
