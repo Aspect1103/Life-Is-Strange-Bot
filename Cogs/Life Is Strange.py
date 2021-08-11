@@ -1,5 +1,4 @@
 # Builtin
-from datetime import datetime, timedelta
 from pathlib import Path
 import random
 import asyncio
@@ -11,6 +10,7 @@ from discord import Embed
 from discord import Colour
 from discord import File
 import apsw
+import pendulum
 # Custom
 from Helpers.Utils.Paginator import Paginator
 from Helpers.Utils import Utils
@@ -179,23 +179,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         episodeEmbed.add_field(name="Minor Choices", value=minorString)
         return episodeEmbed
 
-    # Function to calculate how many seconds to wait
-    def secondsUntilMidnight(self, currentTime):
-        currentTimedelta = timedelta(hours=currentTime.hour, minutes=currentTime.minute, seconds=currentTime.second, microseconds=currentTime.microsecond)
-        midnightTime = timedelta(hours=23, minutes=59)
-        return (midnightTime-currentTimedelta).total_seconds() + 60
-
-    # Get the suffix for a specific day
-    def getSuffix(self, day):
-        if 4 <= day <= 20 or 24 <= day <= 30:
-            return "th"
-        else:
-            return ["st", "nd", "rd"][day % 10 - 1]
-
-    # Get a worded date format for a specific day
-    def getWordedDate(self, dt):
-        return dt.strftime("{DAY} of %B %Y").replace("{DAY}", str(dt.day) + self.getSuffix(dt.day))
-
     # Make a request to the huggingface model
     def chatbotQuery(self, message):
         payload = {
@@ -216,15 +199,17 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Sends a message detailing a LiS event which happened on the same day
     async def historyEvents(self):
         # Get tomorrow's date so once midnight hits, the correct date can be checked
-        tomorrowDate = datetime.now() + timedelta(days=1)
-        await asyncio.sleep(self.secondsUntilMidnight(tomorrowDate))
-        currentEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
-        if len(currentEvent) == 1:
-            wordedDate = self.getWordedDate(datetime.strptime(currentEvent[0][1], "%d/%m/%Y"))
+        tomorrowDate = pendulum.now().add(days=1)
+        midnight = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)
+        await asyncio.sleep(tomorrowDate.diff(midnight).in_seconds()+60)
+        tomorrowEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
+        if len(tomorrowEvent) == 1:
+            tomorrowDateString = pendulum.from_format(tomorrowEvent[0][1], "D/MM/YYYY").format("Do of MMMM YYYY")
+            historyMessage = f"Today on the {tomorrowDateString}, this happened:\n\n{tomorrowEvent[0][0]}"
             for value in Utils.restrictor.IDs["life is strange"].values():
                 try:
                     # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
-                    await self.client.get_channel(value[0]).send(f"Today on the {wordedDate}, this happened:\n\n{currentEvent[0][0]}")
+                    await self.client.get_channel(value[0]).send(historyMessage)
                 except AttributeError:
                     # This is just for testing purposes
                     # Normally this will never run since the bot will be in every guild in IDs
@@ -360,8 +345,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx, error):
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
