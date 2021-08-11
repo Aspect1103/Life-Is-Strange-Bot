@@ -30,6 +30,14 @@ def gameActivity(lastActivity):
     return datetime.now() > (lastActivity + timedelta(seconds=gameActivityTimeout))
 
 
+# Function to split a list with a set amount of items in each
+def listSplit(arr, perListSize, listAmount):
+    result = []
+    for i in range(listAmount):
+        result.append(arr[i * perListSize:i * perListSize + perListSize])
+    return result
+
+
 # Handle errors
 async def errorHandler(ctx, error):
     if isinstance(error, commands.CheckFailure):
@@ -41,6 +49,8 @@ async def errorHandler(ctx, error):
         await ctx.channel.send("You are not owner")
     elif isinstance(error, commands.CommandOnCooldown):
         await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+    elif isinstance(error, commands.BadBoolArgument):
+        await ctx.channel.send(f"Argument must be true or false")
     elif isinstance(error.original, HTTPError):
         await ctx.channel.send(error.original)
     errorWrite(error)

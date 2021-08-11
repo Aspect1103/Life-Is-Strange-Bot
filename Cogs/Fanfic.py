@@ -80,13 +80,6 @@ class Fanfic(commands.Cog):
         quoteEmbed.set_author(name=authors)
         return quoteEmbed
 
-    # Function to split a list with a set amount of items in each
-    def listSplit(self, arr, perListSize, listAmmount):
-        result = []
-        for i in range(listAmmount):
-            result.append(arr[i * perListSize:i * perListSize + perListSize])
-        return result
-
     # Function to find the last quote posted
     async def findLastQuote(self, ctx, before=None, repeats=0):
         lastMessage = None
@@ -273,7 +266,7 @@ class Fanfic(commands.Cog):
                 if len(works) > workLimit:
                     # Split the list into set chunks
                     maxPage = math.ceil(len(works)/workLimit)
-                    splitList = self.listSplit(works, workLimit, maxPage)
+                    splitList = Utils.listSplit(works, workLimit, maxPage)
                     # Create embed objects for each page
                     pages = []
                     for count, arr in enumerate(splitList):
