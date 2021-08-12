@@ -95,7 +95,7 @@ class Fanfic(commands.Cog):
         return None if repeats == 5 else await self.findLastQuote(ctx, lastMessage.created_at, repeats)
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised)", usage="quote (includeNSFW)", brief="Fanfic")
+    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote (includeNSFW)", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def quote(self, ctx, includeNsfw="No"):
         if includeNsfw.capitalize() == "Yes":

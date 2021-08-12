@@ -276,46 +276,34 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
-    # triviaLeaderboard command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nAll Users - True to display every user's trivia score or false to display the top 10 only. Depending on how many people are in the database, it may take a long time. This argument is optional as not including it will display the top 10", usage="triviaLeaderboard|tl (all users)", brief="Trivia")
-    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def triviaLeaderboard(self, ctx, allUsers=False):
+    # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nPage Number - The page of the leaderboard that you want to see. This argument is optional as not including it will display the 1st page (top 10)", usage="triviaLeaderboard|tl (page number)", brief="Trivia")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
+    async def triviaLeaderboard(self, ctx, pageNo="1"):
         guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
         scoreList = [item[2] for item in guildUsers]
-        if not allUsers:
-            # Display only top 10
-            triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
-            leaderboardDescription = ""
-            for user in guildUsers[:10]:
-                userName = await self.client.fetch_user(user[1])
-                leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
-            if leaderboardDescription == "":
-                leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
-            triviaLeaderboardEmbed.description = leaderboardDescription
-            triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10])/len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList)/len(scoreList))} | Total User Count: {len(guildUsers)}")
-            await ctx.channel.send(embed=triviaLeaderboardEmbed)
+        maxPage = math.ceil(len(guildUsers)/10)
+        splittedList = Utils.listSplit(guildUsers, 10, maxPage)
+        if pageNo.isdigit():
+            pageNo = int(pageNo)
+            if 1 <= pageNo <= maxPage:
+                # Valid page number so display embed
+                triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
+                leaderboardDescription = ""
+                for user in splittedList[pageNo-1]:
+                    userName = await self.client.fetch_user(user[1])
+                    leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
+                if leaderboardDescription == "":
+                    leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
+                triviaLeaderboardEmbed.description = leaderboardDescription
+                triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10]) / len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList) / len(scoreList))} | Total User Count: {len(guildUsers)} | Page {pageNo} of {maxPage}")
+                await ctx.channel.send(embed=triviaLeaderboardEmbed)
+            else:
+                # Number not in range
+                await ctx.channel.send(f"Invalid page number. Pick a number between 1 and {maxPage}")
         else:
-            # Display all users in a paginated view
-            maxPage = math.ceil(len(guildUsers)/10)
-            splittedList = Utils.listSplit(guildUsers, 10, maxPage)
-            pages = []
-            for count, page in enumerate(splittedList):
-                if len(page) == 0:
-                    await ctx.channel.send(embed=Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", description=f"No users added. Run {ctx.prefix}trivia to add some", colour=self.colour))
-                    break
-                else:
-                    tempPage = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
-                    tempPage.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10])/len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList)/len(scoreList))} | Total User Count: {len(guildUsers)} | Page {count+1} of {maxPage}")
-                    descriptionString = ""
-                    for user in page:
-                        userName = await self.client.fetch_user(user[1])
-                        descriptionString += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
-                    tempPage.description = descriptionString
-                    pages.append(tempPage)
-            # Create paginator
-            paginator = Paginator(ctx, self.client)
-            paginator.addPages(pages)
-            await paginator.start()
+            # Argument is not a number
+            await ctx.channel.send(f"Invalid argument. Pick a number between 1 and {maxPage}")
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
@@ -336,7 +324,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             # Run checks to make sure argument is correct
             if episodeNum.isdigit():
                 episodeNum = int(episodeNum)
-                if episodeNum >= 1 and episodeNum <= 5:
+                if 1 <= episodeNum <= 5:
                     # Create embed page
                     await ctx.channel.send(embed=self.choicePageMaker(episodeNum, self.choicesTable[episodeNum-1]))
                 else:
