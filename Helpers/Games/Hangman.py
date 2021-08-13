@@ -13,7 +13,8 @@ from Helpers.Utils.Utils import gameActivity
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
-hangmanWordsPath = rootDirectory.joinpath("Resources").joinpath("hangman.txt")
+hangmanWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("hangman.txt")
+imagePath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Hangman")
 
 
 # Hangman class to play LiS hangman in a discord channel
@@ -27,13 +28,13 @@ class Hangman:
         else:
             raise TypeError("Invalid parameters")
         self.images = [
-            "https://imgur.com/Lb0LwVY.png",
-            "https://imgur.com/JrIiOGl.png",
-            "https://imgur.com/88PPAod.png",
-            "https://imgur.com/6SgiO13.png",
-            "https://imgur.com/zBAK9xm.png",
-            "https://imgur.com/3TYqwNV.png",
-            "https://imgur.com/lNLX9GR.png"
+            imagePath.joinpath("1.png"),
+            imagePath.joinpath("2.png"),
+            imagePath.joinpath("3.png"),
+            imagePath.joinpath("4.png"),
+            imagePath.joinpath("5.png"),
+            imagePath.joinpath("6.png"),
+            imagePath.joinpath("7.png")
         ]
         self.words = [word.replace("\n", "") for word in open(hangmanWordsPath, "r").readlines()]
         self.guessedLetters = []

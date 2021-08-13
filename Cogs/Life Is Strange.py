@@ -19,11 +19,11 @@ import Config
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
-triviaPath = rootDirectory.joinpath("Resources").joinpath("trivia.json")
-choicesPath = rootDirectory.joinpath("Resources").joinpath("choices.json")
-lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("lisBot.db")
-historyEventsPath = rootDirectory.joinpath("Resources").joinpath("historyEvents.json")
-memoryPath = rootDirectory.joinpath("Screenshots")
+triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("trivia.json")
+choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
+lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
+historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("historyEvents.json")
+memoryPath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Screenshots")
 
 
 # Cog to manage life is strange commands

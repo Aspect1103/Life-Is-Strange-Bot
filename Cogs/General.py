@@ -11,7 +11,7 @@ from Helpers.Utils import Utils
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
-questionPath = rootDirectory.joinpath("Resources").joinpath("questions.txt")
+questionPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("questions.txt")
 
 
 # Cog to manage general commands

@@ -17,7 +17,7 @@ import Config
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
-ignorePath = rootDirectory.joinpath("Resources").joinpath("ignoreFics.txt")
+ignorePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("ignoreFics.txt")
 
 
 # Cog to manage fanfic commands

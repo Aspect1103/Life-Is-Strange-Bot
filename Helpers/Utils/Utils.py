@@ -62,7 +62,7 @@ gameActivityTimeout = 300
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
-idPath = rootDirectory.joinpath("Resources").joinpath("channelIDs.json")
+idPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("channelIDs.json")
 errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
 
 # Restrictor class initialisation
