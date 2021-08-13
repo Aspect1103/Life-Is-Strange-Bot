@@ -70,5 +70,6 @@ class GameManager:
             await self.gameObj.ctx.channel.send(f"Let's play {self.gameObj}! {self.gameObj.player1.mention} vs {self.gameObj.player2.mention}")
             await self.gameObj.gameMessage.clear_reactions()
             await self.gameObj.updateBoard()
-            await self.gameObj.sendEmojis()
+            for emoji in self.gameObj.gameEmojis:
+                await self.gameObj.gameMessage.add_reaction(emoji)
             await self.gameObj.start()

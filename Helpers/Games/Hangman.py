@@ -88,7 +88,7 @@ class Hangman:
             hangmanEmbed.add_field(name="Guessed Letters", value=",".join(self.guessedLetters))
         hangmanEmbed.add_field(name="Incorrect Guesses", value=str(self.incorrectGuesses))
         hangmanEmbed.add_field(name="Total Guesses", value=str(self.guesses))
-        hangmanEmbed.set_image(url=self.images[self.incorrectGuesses])
+        hangmanEmbed.set_image(url=str(self.images[self.incorrectGuesses]))
         await self.gameMessage.edit(embed=hangmanEmbed)
 
     # Start the game

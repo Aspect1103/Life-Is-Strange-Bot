@@ -133,11 +133,6 @@ class Connect4:
         else:
             self.nextPlayer = self.player1
 
-    # Function to setup ini send game reaction emojis
-    async def sendEmojis(self):
-        for emoji in self.gameEmojis:
-            await self.gameMessage.add_reaction(emoji)
-
     # Function to update the board
     async def updateBoard(self):
         board = ""
@@ -160,6 +155,8 @@ class Connect4:
                 gameEmbed.title = f"Game Over! {self.result[1]} Won"
             elif self.result[0] == "Draw":
                 gameEmbed.title = f"Game Over! It's A Draw"
+            else:
+                gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
 
     # Start the game
@@ -169,7 +166,7 @@ class Connect4:
             if gameActivity(self.lastActivity):
                 self.isPlaying = False
                 await self.ctx.channel.send("Game has timed out")
-                self.result = "Timeout"
+                self.result = ("Timeout", None)
             else:
                 try:
                     reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
