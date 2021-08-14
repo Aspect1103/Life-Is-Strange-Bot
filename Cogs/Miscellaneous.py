@@ -12,7 +12,7 @@ attributes = {
     "help": f"Displays the help command. It has a cooldown of {Utils.superShort} seconds",
     "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
     "usage": "help (cog/group/command name)",
-    "brief": "Bot Stuff"
+    "brief": "Bot Bidness"
 }
 
 
