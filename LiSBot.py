@@ -39,12 +39,15 @@ async def on_guild_remove(guild):
 # Run when discord bot has started
 @client.event
 async def on_ready():
-    # Setup the client variable for the restrictor class
+    # Setup the client variable for the restrictor and listener class
     Utils.restrictor.setClient(client)
+    Utils.listener.setClient(client)
     # Change the presence to show the help command
     await client.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{client.command_prefix}help"))
     # Send message to the debug channel signalling that the bot is ready
     await client.get_channel(817807544482922496).send("Running")
+    # Start the listener
+    await Utils.listener.start()
 
 
 # Setup automatic logging for debugging

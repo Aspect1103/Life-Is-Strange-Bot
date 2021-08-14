@@ -10,6 +10,7 @@ from discord import Embed
 from discord import Colour
 # Custom
 from .Restrictor import Restrictor
+from .Listener import Listener
 
 
 # Function to create allowedIDs
@@ -67,6 +68,7 @@ async def errorHandler(ctx, error):
 # Script variables
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
 gameActivityTimeout = 300
+listener = Listener()
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent

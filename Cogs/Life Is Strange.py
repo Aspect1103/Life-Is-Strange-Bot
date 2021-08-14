@@ -11,7 +11,6 @@ from discord import Embed
 from discord import Colour
 from discord import File
 import apsw
-import pendulum
 # Custom
 from Helpers.Utils.Paginator import Paginator
 from Helpers.Utils import Utils
@@ -22,7 +21,6 @@ rootDirectory = Path(__file__).parent.parent
 triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("trivia.json")
 choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
 lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
-historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("historyEvents.json")
 memoryPath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Screenshots")
 
 
@@ -40,7 +38,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.triviaQuestions = None
         self.choicesTable = None
         self.memoryImages = None
-        self.historyEventsTable = None
         self.lifeIsStrangeInit()
 
     # Function to initialise life is strange variables
@@ -54,9 +51,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
         # Setup memory images array
         self.memoryImages = list(memoryPath.glob("*"))
-
-        # Setup history events table
-        self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
 
     # Function to create trivia questions
     def triviaMaker(self):
@@ -196,32 +190,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return requests.post("https://api-inference.huggingface.co/models/Aspect11/DialoGPT-Medium-LiSBot",
                              headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
                              json=payload).json()
-
-    # Sends a message detailing a LiS event which happened on the same day
-    async def historyEvents(self):
-        # Get tomorrow's date so once midnight hits, the correct date can be checked
-        tomorrowDate = pendulum.now().add(days=1)
-        midnight = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)
-        await asyncio.sleep(tomorrowDate.diff(midnight).in_seconds()+60)
-        tomorrowEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
-        if len(tomorrowEvent) == 1:
-            tomorrowDateString = pendulum.from_format(tomorrowEvent[0][1], "D/MM/YYYY").format("Do of MMMM YYYY")
-            historyMessage = f"Today on the {tomorrowDateString}, this happened:\n\n{tomorrowEvent[0][0]}"
-            for value in Utils.restrictor.IDs["life is strange"].values():
-                try:
-                    # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
-                    await self.client.get_channel(value[0]).send(historyMessage)
-                except AttributeError:
-                    # This is just for testing purposes
-                    # Normally this will never run since the bot will be in every guild in IDs
-                    # And if it isn't then the bot automatically removes those guilds from channelIDs.json
-                    continue
-
-    # Function which runs once the bot is setup and running
-    @commands.Cog.listener()
-    async def on_ready(self):
-        # Run the history function to display a LiS history event
-        await self.historyEvents()
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
