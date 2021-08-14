@@ -162,7 +162,7 @@ class Connect4:
             # Test if the game has been idle for 5 minutes
             if Utils.gameActivity(self.lastActivity):
                 self.isPlaying = False
-                await Utils.commandDebugEmbed(self.ctx.channel, False, "Game has timed out")
+                await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
                 self.result = ("Timeout", None)
             else:
                 try:

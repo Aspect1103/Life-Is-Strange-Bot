@@ -42,26 +42,23 @@ def listSplit(arr, perListSize, listAmount):
 
 
 # Function to create an embed displaying the command error
-async def commandDebugEmbed(channel, error, message):
-    if error:
-        await channel.send(embed=Embed(title="Command Error", description=message, colour=Colour.from_rgb(0, 0, 0)))
-    else:
-        await channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
+async def commandDebugEmbed(channel, message):
+    await channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(255, 192, 203)))
 
 
 # Handle errors
 async def errorHandler(ctx, error):
-    if isinstance(error, commands.CheckFailure):
+    if isinstance(error, commands.errors.MissingPermissions):
+        await commandDebugEmbed(ctx.channel, "You do not have sufficient permission to run this command")
+    elif isinstance(error, commands.errors.NotOwner):
+        await commandDebugEmbed(ctx.channel, "You are not owner")
+    elif isinstance(error, commands.errors.CommandOnCooldown):
+        await commandDebugEmbed(ctx.channel, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+    elif isinstance(error, commands.errors.CheckFailure):
         result = await restrictor.grabAllowed(ctx)
-        await commandDebugEmbed(ctx.channel, True, result)
-    elif isinstance(error, commands.MissingPermissions):
-        await commandDebugEmbed(ctx.channel, True, "You do not have sufficient permission to run this command")
-    elif isinstance(error, commands.NotOwner):
-        await commandDebugEmbed(ctx.channel, True, "You are not owner")
-    elif isinstance(error, commands.CommandOnCooldown):
-        await commandDebugEmbed(ctx.channel, True, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+        await commandDebugEmbed(ctx.channel, result)
     elif isinstance(error.original, HTTPError):
-        await commandDebugEmbed(ctx.channel, True, error.original)
+        await commandDebugEmbed(ctx.channel, error.original)
     errorWrite(error)
 
 

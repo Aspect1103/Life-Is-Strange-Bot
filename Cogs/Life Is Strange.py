@@ -235,7 +235,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         userObj = await self.client.fetch_user(targetUser.id)
         if len(user) == 0:
             # User not in database
-            await Utils.commandDebugEmbed(ctx.channel, False, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
+            await Utils.commandDebugEmbed(ctx.channel, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
             totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
@@ -268,10 +268,10 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 await ctx.channel.send(embed=triviaLeaderboardEmbed)
             else:
                 # Number not in range
-                await Utils.commandDebugEmbed(ctx.channel, True, f"Invalid page number. Pick a number between 1 and {maxPage}")
+                await Utils.commandDebugEmbed(ctx.channel, f"Invalid page number. Pick a number between 1 and {maxPage}")
         else:
             # Argument is not a number
-            await Utils.commandDebugEmbed(ctx.channel, True, f"Invalid argument. Pick a number between 1 and {maxPage}")
+            await Utils.commandDebugEmbed(ctx.channel, f"Invalid argument. Pick a number between 1 and {maxPage}")
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
@@ -296,9 +296,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                     # Create embed page
                     await ctx.channel.send(embed=self.choicePageMaker(episodeNum, self.choicesTable[episodeNum-1]))
                 else:
-                    await Utils.commandDebugEmbed(ctx.channel, True, "Not a valid episode number")
+                    await Utils.commandDebugEmbed(ctx.channel, "Not a valid episode number")
             else:
-                await Utils.commandDebugEmbed(ctx.channel, True, "Episode number is not a number")
+                await Utils.commandDebugEmbed(ctx.channel, "Episode number is not a number")
 
     # memory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")

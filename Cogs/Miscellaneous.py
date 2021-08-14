@@ -187,7 +187,7 @@ class Help(commands.HelpCommand):
     # Function to handle help error messages
     async def send_error_message(self, error):
         # Send error message (since error is a string)
-        await Utils.commandDebugEmbed(self.get_destination(), True, error)
+        await Utils.commandDebugEmbed(self.get_destination(), error)
         Utils.errorWrite(error)
 
 
