@@ -5,17 +5,16 @@ import asyncio
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
+# Custom
+from Helpers.Utils import Utils
 
 
 # Paginator class to switch between different embeds
 class Paginator:
     # Initialise variables
     def __init__(self, ctx: Context, client: Client, timeout: float = 300):
-        if isinstance(ctx, Context) and isinstance(client, Client):
-            self.ctx = ctx
-            self.client = client
-        else:
-            raise TypeError("Invalid parameters")
+        self.ctx = ctx
+        self.client = client
         self.pages = []
         self.reactions = ["⏪", "⬅️", "⏹️", "➡️", "⏩"]
         self.timeout = timeout
@@ -25,15 +24,15 @@ class Paginator:
         self.maxIndex = -1
 
     # Function to add pages to the class
-    def addPages(self, pages: List[Embed]):
+    def addPages(self, pages):
         if isinstance(pages, List) and all([isinstance(page, Embed) for page in pages]):
             if len(pages) > 0:
                 self.pages = pages
                 self.maxIndex = len(self.pages)-1
             else:
-                raise RuntimeError("Can't paginate an empty list")
+                Utils.commandDebugEmbed(self.ctx, True, "Can't paginate an empty list")
         else:
-            raise TypeError("Invalid pages parameter")
+            Utils.commandDebugEmbed(self.ctx, True, "Invalid pages parameter")
 
     # Function to check a reaction
     def checker(self, reaction, user):

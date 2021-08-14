@@ -46,21 +46,21 @@ class Admin(commands.Cog):
                 return f"Section not found. Try {validSections}", None, None
 
     # stop command to stop the bot
-    @commands.command(help="Stops the bot", usage="stop", brief="Bot Stuff")
+    @commands.command(help="Stops the bot", usage="stop", brief="Bot Bidness")
     @commands.is_owner()
     async def stop(self, ctx):
         await ctx.channel.send("Stopping bot")
         await self.client.close()
 
     # Base function to initialise the channel group commands with a cooldown of 6 seconds
-    @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Stuff")
+    @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Bidness")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     @adminOrOwner()
     async def channel(self, ctx):
         await ctx.send_help(ctx.command)
 
     # channel add command with a cooldown of 1 use every 20 seconds per guild
-    @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Stuff")
+    @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def add(self, ctx, section=None, channelMent=None):
@@ -71,7 +71,7 @@ class Admin(commands.Cog):
             tempDict = Utils.IDs
             if ID in tempDict[sect][str(ctx.guild.id)]:
                 # Channel already added
-                await ctx.channel.send("Channel is already added")
+                await Utils.commandDebugEmbed(ctx, False, "Channel is already added")
             else:
                 # Channel not added
                 newRow = tempDict[sect][str(ctx.guild.id)]
@@ -81,13 +81,13 @@ class Admin(commands.Cog):
                 tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await ctx.channel.send("Changes applied")
+                await Utils.commandDebugEmbed(ctx, False, "Changes applied")
         else:
             # Arguments are invalid
-            await ctx.channel.send(result)
+            await Utils.commandDebugEmbed(ctx, True, result)
 
     # channel remove command with a cooldown of 1 use every 20 seconds per guild
-    @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either bot stuff/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Stuff")
+    @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def remove(self, ctx, section=None, channelMent=None):
@@ -98,7 +98,7 @@ class Admin(commands.Cog):
             tempDict = Utils.IDs
             if ID not in tempDict[sect][str(ctx.guild.id)]:
                 # Channel not added
-                await ctx.channel.send("Channel is not added")
+                await Utils.commandDebugEmbed(ctx, False, "Channel is not added")
             else:
                 # Channel added
                 newRow = tempDict[sect][str(ctx.guild.id)]
@@ -108,38 +108,35 @@ class Admin(commands.Cog):
                 tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await ctx.channel.send("Changes applied")
+                await Utils.commandDebugEmbed(ctx, False, "Changes applied")
         else:
             # Arguments are invalid
-            await ctx.channel.send(result)
+            await Utils.commandDebugEmbed(ctx, True, result)
 
     # channel list command with a cooldown of 1 use every 20 seconds per guild
-    @channel.command(help=f"Lists all the channels a section is allowed in. It has a cooldown of {Utils.short} seconds", usage="channel list", brief="Bot Stuff")
+    @channel.command(help=f"Lists all the channels a section is allowed in. It has a cooldown of {Utils.short} seconds", usage="channel list", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def list(self, ctx):
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
         for key, value in Utils.IDs.items():
-            print(key)
             if value[str(ctx.guild.id)][0] == -1:
                 # Command/category allowed everywhere not restricted
                 listEmbed.add_field(name=f"{key.title()}", value="This command is allowed everywhere. Enjoy!", inline=False)
             else:
+                print(key, value)
                 # Command/category restricted
                 textChannelAllowed = [self.client.get_channel(channel) for channel in value[str(ctx.guild.id)]]
-                if len([element for element in filter(None, textChannelAllowed)]) == 0:
-                    listEmbed.add_field(name=f"{key.title()}", value=f"Not setup yet. Use {ctx.prefix}channel to add some", inline=False)
-                else:
-                    guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
-                    listEmbed.add_field(name=f"{key.title()}", value=guildAllowed, inline=False)
+                guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
+                listEmbed.add_field(name=f"{key.title()}", value=guildAllowed, inline=False)
         # Send embed
         await ctx.channel.send(embed=listEmbed)
 
     # botRefresh command
-    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Stuff")
+    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Bidness")
     @commands.is_owner()
     async def botRefresh(self, ctx):
-        await ctx.channel.send("Refreshing extensions")
+        await Utils.commandDebugEmbed(ctx, False, "Refreshing extensions")
         # List to store extension names
         extensions = Utils.extensions
         # Unload all extensions
@@ -148,16 +145,16 @@ class Admin(commands.Cog):
         # Load all extensions
         for extension in extensions:
             self.client.load_extension(extension)
-        await ctx.channel.send("Finished refreshing extensions")
+        await Utils.commandDebugEmbed(ctx, False, "Finished refreshing extensions")
 
     # channelRefresh command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Stuff")
+    @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def channelRefresh(self, ctx):
-        await ctx.channel.send("Refreshing channel IDs")
+        await Utils.commandDebugEmbed(ctx, False, "Refreshing channel IDs")
         Utils.restrictor.IDs = Utils.initIDs()
-        await ctx.channel.send("Finished channel IDs")
+        await Utils.commandDebugEmbed(ctx, False, "Finished channel IDs")
 
     # Function to run channelCheck for Admin
     async def cog_check(self, ctx):

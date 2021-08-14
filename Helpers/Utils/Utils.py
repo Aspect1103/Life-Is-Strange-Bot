@@ -6,6 +6,8 @@ import json
 # Pip
 from discord.ext import commands
 from AO3.utils import HTTPError
+from discord import Embed
+from discord import Colour
 # Custom
 from .Restrictor import Restrictor
 
@@ -38,21 +40,27 @@ def listSplit(arr, perListSize, listAmount):
     return result
 
 
+# Function to create an embed displaying the command error
+async def commandDebugEmbed(ctx, error, message):
+    if error:
+        await ctx.channel.send(embed=Embed(title="Command Error", description=message, colour=Colour.from_rgb(0, 0, 0)))
+    else:
+        await ctx.channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
+
+
 # Handle errors
 async def errorHandler(ctx, error):
     if isinstance(error, commands.CheckFailure):
         result = await restrictor.grabAllowed(ctx)
-        await ctx.channel.send(result)
+        await commandDebugEmbed(ctx, True, result)
     elif isinstance(error, commands.MissingPermissions):
-        await ctx.channel.send("You do not have sufficient permission to run this command")
+        await commandDebugEmbed(ctx, True, "You do not have sufficient permission to run this command")
     elif isinstance(error, commands.NotOwner):
-        await ctx.channel.send("You are not owner")
+        await commandDebugEmbed(ctx, True, "You are not owner")
     elif isinstance(error, commands.CommandOnCooldown):
-        await ctx.channel.send(f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
-    elif isinstance(error, commands.BadBoolArgument):
-        await ctx.channel.send(f"Argument must be true or false")
+        await commandDebugEmbed(ctx, True, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
     elif isinstance(error.original, HTTPError):
-        await ctx.channel.send(error.original)
+        await commandDebugEmbed(ctx, True, error.original)
     errorWrite(error)
 
 
@@ -72,7 +80,7 @@ commandGroups = {
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "general": ["question", "connect4", "tictactoe", "hangman"],
-    "bot stuff": ["stop", "channel", "botRefresh", "channelRefresh", "about"]
+    "bot bidness": ["stop", "channel", "botRefresh", "channelRefresh", "about"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 

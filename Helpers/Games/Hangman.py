@@ -9,7 +9,7 @@ from discord import Client
 from discord import Colour
 from discord import Embed
 # Custom
-from Helpers.Utils.Utils import gameActivity
+from Helpers.Utils import Utils
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
@@ -21,12 +21,9 @@ imagePath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Han
 class Hangman:
     # Initialise variables
     def __init__(self, ctx: Context, client: Client, color: Colour):
-        if isinstance(ctx, Context) and isinstance(client, Client) and isinstance(color, Colour):
-            self.ctx = ctx
-            self.client = client
-            self.colour = color
-        else:
-            raise TypeError("Invalid parameters")
+        self.ctx = ctx
+        self.client = client
+        self.colour = color
         self.images = [
             imagePath.joinpath("1.png"),
             imagePath.joinpath("2.png"),
@@ -99,9 +96,9 @@ class Hangman:
         await self.embedUpdate()
         while self.isPlaying:
             # Test if the game has been idle for 5 minutes
-            if gameActivity(self.lastGuess):
+            if Utils.gameActivity(self.lastGuess):
                 self.isPlaying = False
-                await self.ctx.channel.send("Game has timed out")
+                await Utils.commandDebugEmbed(self.ctx, False, "Game has timed out")
             else:
                 try:
                     reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)

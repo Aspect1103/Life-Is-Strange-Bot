@@ -85,9 +85,9 @@ class General(commands.Cog):
             if ctx.author.id == self.gameManager.gameObj.user.id:
                 await self.gameManager.gameObj.guess(character)
             else:
-                await ctx.channel.send(f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess characters")
+                await Utils.commandDebugEmbed(ctx, True, f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess characters")
         else:
-            await ctx.channel.send(f"Game is not currently running. Start it with {ctx.prefix}hangman start")
+            await Utils.commandDebugEmbed(ctx, True, f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
     # Function to run channelCheck for General
     async def cog_check(self, ctx):

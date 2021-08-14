@@ -4,6 +4,8 @@ from discord import Embed
 from discord import Colour
 from discord import Client
 from discord import Message
+# Custom
+from Helpers.Utils import Utils
 
 
 # SearchQuoteManager class to switch between different embeds
@@ -88,15 +90,15 @@ class SearchQuoteManager:
     # Add a filter to the array
     async def addFilter(self, category, term):
         if category is None:
-            await self.ctx.channel.send("Invalid category")
+            await Utils.commandDebugEmbed(self.ctx, True, "Invalid category")
         elif term is None:
-            await self.ctx.channel.send("Invalid term")
+            await Utils.commandDebugEmbed(self.ctx, True, "Invalid term")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await self.ctx.channel.send("Unknown category")
+                await Utils.commandDebugEmbed(self.ctx, True, "Unknown category")
             elif self.filters[lowerCase][1] is not None:
-                await self.ctx.channel.send(f"Filter already added. Use $searchQuote remove to remove the filter")
+                await Utils.commandDebugEmbed(self.ctx, False, f"Filter already added. Use {self.ctx.prefix}searchQuote remove to remove the filter")
             else:
                 # Filter the array and store the term
                 self.finalArray = self.filters[lowerCase][0](term)
@@ -111,13 +113,13 @@ class SearchQuoteManager:
     # Remove a filter from the array
     async def removeFilter(self, category):
         if category is None:
-            await self.ctx.channel.send("Invalid category")
+            await Utils.commandDebugEmbed(self.ctx, True, "Invalid category")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await self.ctx.channel.send("Unknown category")
+                await Utils.commandDebugEmbed(self.ctx, True, "Unknown category")
             elif self.filters[lowerCase][1] is None:
-                await self.ctx.channel.send(f"Filter not applied. Use $searchQuote add to add the filter")
+                await Utils.commandDebugEmbed(self.ctx, False, f"Filter already added. Use {self.ctx.prefix}searchQuote remove to remove the filter")
             else:
                 # Remove the term and re-filter the array from the start
                 self.filters[lowerCase][1] = None
