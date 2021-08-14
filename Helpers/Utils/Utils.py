@@ -41,11 +41,11 @@ def listSplit(arr, perListSize, listAmount):
 
 
 # Function to create an embed displaying the command error
-async def commandDebugEmbed(ctx, error, message):
+async def commandDebugEmbed(channel, error, message):
     if error:
-        await ctx.channel.send(embed=Embed(title="Command Error", description=message, colour=Colour.from_rgb(0, 0, 0)))
+        await channel.send(embed=Embed(title="Command Error", description=message, colour=Colour.from_rgb(0, 0, 0)))
     else:
-        await ctx.channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
+        await channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
 
 
 # Handle errors
