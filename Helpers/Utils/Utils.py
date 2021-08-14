@@ -52,15 +52,15 @@ async def commandDebugEmbed(ctx, error, message):
 async def errorHandler(ctx, error):
     if isinstance(error, commands.CheckFailure):
         result = await restrictor.grabAllowed(ctx)
-        await commandDebugEmbed(ctx, True, result)
+        await commandDebugEmbed(ctx.channel, True, result)
     elif isinstance(error, commands.MissingPermissions):
-        await commandDebugEmbed(ctx, True, "You do not have sufficient permission to run this command")
+        await commandDebugEmbed(ctx.channel, True, "You do not have sufficient permission to run this command")
     elif isinstance(error, commands.NotOwner):
-        await commandDebugEmbed(ctx, True, "You are not owner")
+        await commandDebugEmbed(ctx.channel, True, "You are not owner")
     elif isinstance(error, commands.CommandOnCooldown):
-        await commandDebugEmbed(ctx, True, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+        await commandDebugEmbed(ctx.channel, True, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
     elif isinstance(error.original, HTTPError):
-        await commandDebugEmbed(ctx, True, error.original)
+        await commandDebugEmbed(ctx.channel, True, error.original)
     errorWrite(error)
 
 

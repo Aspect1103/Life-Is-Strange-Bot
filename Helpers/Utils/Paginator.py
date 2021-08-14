@@ -30,9 +30,9 @@ class Paginator:
                 self.pages = pages
                 self.maxIndex = len(self.pages)-1
             else:
-                Utils.commandDebugEmbed(self.ctx, True, "Can't paginate an empty list")
+                Utils.commandDebugEmbed(self.ctx.channel, True, "Can't paginate an empty list")
         else:
-            Utils.commandDebugEmbed(self.ctx, True, "Invalid pages parameter")
+            Utils.commandDebugEmbed(self.ctx.channel, True, "Invalid pages parameter")
 
     # Function to check a reaction
     def checker(self, reaction, user):

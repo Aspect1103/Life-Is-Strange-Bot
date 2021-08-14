@@ -47,7 +47,7 @@ class GameManager:
             self.gameObj = None
             self.gameAllowed[self.ctx.guild.id] = True
         else:
-            await Utils.commandDebugEmbed(self.ctx, True, "New game not allowed. Finish any currently running games")
+            await Utils.commandDebugEmbed(self.ctx.channel, True, "New game not allowed. Finish any currently running games")
 
     # Manage singleplayer games
     async def singleplayer(self):
@@ -65,7 +65,7 @@ class GameManager:
                 reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameInitTimeout, check=gameReactChecker)
                 self.gameObj.player2 = user
             except asyncio.TimeoutError:
-                await Utils.commandDebugEmbed(self.ctx, False, "Game has timed out")
+                await Utils.commandDebugEmbed(self.ctx.channel, False, "Game has timed out")
             break
         if self.gameObj.player2 is not None:
             await self.gameObj.ctx.channel.send(f"Let's play {self.gameObj}! {self.gameObj.player1.mention} vs {self.gameObj.player2.mention}")

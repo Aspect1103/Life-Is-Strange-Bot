@@ -108,7 +108,7 @@ class Fanfic(commands.Cog):
             ficCount += 1
             quote, work, authors, chapterName = self.quoteMaker(tempArr.pop(random.randrange(len(tempArr)))[10])
         if quote == "":
-            await Utils.commandDebugEmbed(ctx, False, "No valid quotes found")
+            await Utils.commandDebugEmbed(ctx.channel, False, "No valid quotes found")
         else:
             await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
@@ -118,7 +118,7 @@ class Fanfic(commands.Cog):
     async def nextQuote(self, ctx):
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
-            await Utils.commandDebugEmbed(ctx, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
+            await Utils.commandDebugEmbed(ctx.channel, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
             quote, work, authors, chapterName = self.quoteMaker(lastQuote.url)
             # Make sure the quote isn't the same
@@ -127,7 +127,7 @@ class Fanfic(commands.Cog):
                 tries += 1
                 quote, work, authors, chapterName = self.quoteMaker(lastQuote.url)
             if quote == lastQuote.fields[0].value:
-                await Utils.commandDebugEmbed(ctx, False, "Cannot find any more quotes")
+                await Utils.commandDebugEmbed(ctx.channel, False, "Cannot find any more quotes")
             else:
                 await ctx.channel.send(embed=self.quoteEmbedCreater(quote, work, authors, chapterName))
 
@@ -186,10 +186,10 @@ class Fanfic(commands.Cog):
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def add(self, ctx, category=None, term=None):
         if self.quoteSearcher is None:
-            await Utils.commandDebugEmbed(ctx, True, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
+            await Utils.commandDebugEmbed(ctx.channel, True, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
             if self.quoteSearcher.ctx.author.id != ctx.author.id:
-                await Utils.commandDebugEmbed(ctx, True, f"Only {self.quoteSearcher.ctx.author.mention} can add filters")
+                await Utils.commandDebugEmbed(ctx.channel, True, f"Only {self.quoteSearcher.ctx.author.mention} can add filters")
             else:
                 await self.quoteSearcher.addFilter(category, term)
 
@@ -198,10 +198,10 @@ class Fanfic(commands.Cog):
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def remove(self, ctx, category=None):
         if self.quoteSearcher is None:
-            await Utils.commandDebugEmbed(ctx, True, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
+            await Utils.commandDebugEmbed(ctx.channel, True, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
             if self.quoteSearcher.ctx.author.id != ctx.author.id:
-                await Utils.commandDebugEmbed(ctx, True, f"Only {self.quoteSearcher.ctx.author.mention} can remove filters")
+                await Utils.commandDebugEmbed(ctx.channel, True, f"Only {self.quoteSearcher.ctx.author.mention} can remove filters")
             else:
                 await self.quoteSearcher.removeFilter(category)
 
@@ -212,7 +212,7 @@ class Fanfic(commands.Cog):
         # Get the last quote posted and store its url
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
-            await Utils.commandDebugEmbed(ctx, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
+            await Utils.commandDebugEmbed(ctx.channel, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
             lastUrl = lastQuote.url
             # Create AO3 object then use it to create an info embed
@@ -252,7 +252,7 @@ class Fanfic(commands.Cog):
         # Get the last quote posted and create an AO3 User object
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
-            await Utils.commandDebugEmbed(ctx, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
+            await Utils.commandDebugEmbed(ctx.channel, False, f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
             authorName = lastQuote.author.name
             user = AO3.User(authorName, self.session)
@@ -290,7 +290,7 @@ class Fanfic(commands.Cog):
                         pageEmbed.add_field(name=work.title, value=work.url)
                     await ctx.channel.send(embed=pageEmbed)
             else:
-                await Utils.commandDebugEmbed(ctx, False, f"{authorName} has {user.works} works which is over the limit of {pageLimit * 20}")
+                await Utils.commandDebugEmbed(ctx.channel, False, f"{authorName} has {user.works} works which is over the limit of {pageLimit * 20}")
 
     # Function to run channelCheck for Fanfic
     async def cog_check(self, ctx):

@@ -98,7 +98,7 @@ class Hangman:
             # Test if the game has been idle for 5 minutes
             if Utils.gameActivity(self.lastGuess):
                 self.isPlaying = False
-                await Utils.commandDebugEmbed(self.ctx, False, "Game has timed out")
+                await Utils.commandDebugEmbed(self.ctx.channel, False, "Game has timed out")
             else:
                 try:
                     reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)

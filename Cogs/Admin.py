@@ -71,7 +71,7 @@ class Admin(commands.Cog):
             tempDict = Utils.IDs
             if ID in tempDict[sect][str(ctx.guild.id)]:
                 # Channel already added
-                await Utils.commandDebugEmbed(ctx, False, "Channel is already added")
+                await Utils.commandDebugEmbed(ctx.channel, False, "Channel is already added")
             else:
                 # Channel not added
                 newRow = tempDict[sect][str(ctx.guild.id)]
@@ -81,10 +81,10 @@ class Admin(commands.Cog):
                 tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await Utils.commandDebugEmbed(ctx, False, "Changes applied")
+                await Utils.commandDebugEmbed(ctx.channel, False, "Changes applied")
         else:
             # Arguments are invalid
-            await Utils.commandDebugEmbed(ctx, True, result)
+            await Utils.commandDebugEmbed(ctx.channel, True, result)
 
     # channel remove command with a cooldown of 1 use every 20 seconds per guild
     @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Bidness")
@@ -98,7 +98,7 @@ class Admin(commands.Cog):
             tempDict = Utils.IDs
             if ID not in tempDict[sect][str(ctx.guild.id)]:
                 # Channel not added
-                await Utils.commandDebugEmbed(ctx, False, "Channel is not added")
+                await Utils.commandDebugEmbed(ctx.channel, False, "Channel is not added")
             else:
                 # Channel added
                 newRow = tempDict[sect][str(ctx.guild.id)]
@@ -108,10 +108,10 @@ class Admin(commands.Cog):
                 tempDict[sect][str(ctx.guild.id)] = newRow
                 # Write changes
                 Utils.idWriter(tempDict)
-                await Utils.commandDebugEmbed(ctx, False, "Changes applied")
+                await Utils.commandDebugEmbed(ctx.channel, False, "Changes applied")
         else:
             # Arguments are invalid
-            await Utils.commandDebugEmbed(ctx, True, result)
+            await Utils.commandDebugEmbed(ctx.channel, True, result)
 
     # channel list command with a cooldown of 1 use every 20 seconds per guild
     @channel.command(help=f"Lists all the channels a section is allowed in. It has a cooldown of {Utils.short} seconds", usage="channel list", brief="Bot Bidness")
@@ -136,7 +136,7 @@ class Admin(commands.Cog):
     @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Bidness")
     @commands.is_owner()
     async def botRefresh(self, ctx):
-        await Utils.commandDebugEmbed(ctx, False, "Refreshing extensions")
+        await Utils.commandDebugEmbed(ctx.channel, False, "Refreshing extensions")
         # List to store extension names
         extensions = Utils.extensions
         # Unload all extensions
@@ -145,16 +145,16 @@ class Admin(commands.Cog):
         # Load all extensions
         for extension in extensions:
             self.client.load_extension(extension)
-        await Utils.commandDebugEmbed(ctx, False, "Finished refreshing extensions")
+        await Utils.commandDebugEmbed(ctx.channel, False, "Finished refreshing extensions")
 
     # channelRefresh command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def channelRefresh(self, ctx):
-        await Utils.commandDebugEmbed(ctx, False, "Refreshing channel IDs")
+        await Utils.commandDebugEmbed(ctx.channel, False, "Refreshing channel IDs")
         Utils.restrictor.IDs = Utils.initIDs()
-        await Utils.commandDebugEmbed(ctx, False, "Finished channel IDs")
+        await Utils.commandDebugEmbed(ctx.channel, False, "Finished channel IDs")
 
     # Function to run channelCheck for Admin
     async def cog_check(self, ctx):
