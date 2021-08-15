@@ -91,25 +91,27 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to update a user's trivia score
     def updateTriviaScores(self, ctx, correctOption, guess):
+        # Get author's data
         try:
             orgUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {ctx.author.id}"))[0]
         except IndexError:
             # User not in database
             orgUser = (ctx.guild.id, ctx.author.id, 0, 0, 0, 0)
             self.cursor.execute(f"INSERT INTO triviaScores values{orgUser}")
-        orgUser = list(orgUser)
+            orgUser = list(orgUser)
         if guess is None:
             # No answer
             orgUser[2] -= 2
             orgUser[4] += 2
         else:
+            # Get guess user's data
             try:
                 guessUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {guess[1].id}"))[0]
             except IndexError:
                 # User not in database
                 guessUser = (ctx.guild.id, guess[1].id, 0, 0, 0, 0)
                 self.cursor.execute(f"INSERT INTO triviaScores values{guessUser}")
-            guessUser = list(guessUser)
+                guessUser = list(guessUser)
             originalAuthor = ctx.author.id
             guessAuthor = guess[1].id
             try:
@@ -174,22 +176,22 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         episodeEmbed.add_field(name="Minor Choices", value=minorString)
         return episodeEmbed
 
-    # Make a request to the huggingface model
-    def chatbotQuery(self, message):
-        payload = {
-            "inputs": {
-                "past_user_inputs": self.pastInputs,
-                "generated_responses": self.pastResponses,
-                "text": message
-            }, "parameters": {
-                "max_length": 200,
-                "temperature": 0.5,
-                "top_k": 100,
-                "top_p": 0.7
-            }}
-        return requests.post("https://api-inference.huggingface.co/models/Aspect11/DialoGPT-Medium-LiSBot",
-                             headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
-                             json=payload).json()
+    # # Make a request to the huggingface model
+    # def chatbotQuery(self, message):
+    #     payload = {
+    #         "inputs": {
+    #             "past_user_inputs": self.pastInputs,
+    #             "generated_responses": self.pastResponses,
+    #             "text": message
+    #         }, "parameters": {
+    #             "max_length": 200,
+    #             "temperature": 0.5,
+    #             "top_k": 100,
+    #             "top_p": 0.7
+    #         }}
+    #     return requests.post("https://api-inference.huggingface.co/models/Aspect11/DialoGPT-Medium-LiSBot",
+    #                          headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
+    #                          json=payload).json()
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
@@ -326,8 +328,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx, error):
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
