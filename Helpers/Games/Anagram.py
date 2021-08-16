@@ -71,7 +71,7 @@ class Anagram:
         anagramEmbed.add_field(name="Total Guesses", value=str(self.totalGuesses))
         if not self.isPlaying:
             totalTime = datetime.now()-self.startTime
-            anagramEmbed.add_field(name="Total Time", value=str(round((totalTime).total_seconds(), 2)))
+            anagramEmbed.add_field(name="Total Time", value=str(round(totalTime.total_seconds(), 2)))
         await self.gameMessage.edit(embed=anagramEmbed)
 
     # Make a guess of the anagram

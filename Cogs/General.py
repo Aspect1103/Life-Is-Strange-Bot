@@ -118,8 +118,8 @@ class General(commands.Cog):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx, error):
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the General cog
