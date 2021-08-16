@@ -78,7 +78,7 @@ class General(commands.Cog):
         await self.gameManager.runGame(ctx, 3)
 
     # hangman guess command with a cooldown of 1 use every 5 seconds per guild
-    @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character", usage="hangman guess (character)", brief="General")
+    @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character to be guessed", usage="hangman guess (character)", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def guess(self, ctx, character=None):
         if str(self.gameManager.gameObj) == "Hangman":
@@ -89,13 +89,37 @@ class General(commands.Cog):
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
+    # Base function to initialise the anagram group commands with a cooldown of 5 seconds
+    @commands.group(invoke_without_command=True, help=f"Group command for playing a LiS anagram puzzle game. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="anagram", brief="General")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    async def anagram(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    # anagram start command with a cooldown of 1 use every 60 seconds per guild
+    @anagram.command(help=f"Starts a LiS anagram puzzle game. It has a cooldown of {Utils.extraLong} seconds", usage="anagram start", brief="General")
+    @commands.cooldown(1, Utils.extraLong, commands.BucketType.guild)
+    async def start(self, ctx):
+        await self.gameManager.runGame(ctx, 4)
+
+    # anagram guess command with a cooldown of 1 use every 5 seconds per guild
+    @anagram.command(help=f"Guesses a word in an anagram game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nWord - An alphabetic word to be guessed", usage="anagram guess (word)", brief="General")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    async def guess(self, ctx, word=None):
+        if str(self.gameManager.gameObj) == "Anagram":
+            if ctx.author.id == self.gameManager.gameObj.user.id:
+                await self.gameManager.gameObj.guess(word)
+            else:
+                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess words")
+        else:
+            await Utils.commandDebugEmbed(ctx.channel, f"Game is not currently running. Start it with {ctx.prefix}anagram start")
+
     # Function to run channelCheck for General
     async def cog_check(self, ctx):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx, error):
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the General cog

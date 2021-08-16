@@ -1,7 +1,6 @@
 # Builtin
 from datetime import datetime
 from pathlib import Path
-import asyncio
 import random
 # Pip
 from discord.ext.commands import Context
@@ -13,8 +12,7 @@ from Helpers.Utils import Utils
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
-hangmanWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("hangman.txt")
-imagePath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Hangman")
+lisWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisWords.txt")
 
 
 # Hangman class to play LiS hangman in a discord channel
@@ -25,26 +23,26 @@ class Hangman:
         self.client = client
         self.colour = color
         self.images = [
-            imagePath.joinpath("1.png"),
-            imagePath.joinpath("2.png"),
-            imagePath.joinpath("3.png"),
-            imagePath.joinpath("4.png"),
-            imagePath.joinpath("5.png"),
-            imagePath.joinpath("6.png"),
-            imagePath.joinpath("7.png")
+            "https://i.imgur.com/Lb0LwVY",
+            "https://i.imgur.com/JrIiOGl",
+            "https://i.imgur.com/88PPAod",
+            "https://i.imgur.com/6SgiO13",
+            "https://i.imgur.com/zBAK9xm",
+            "https://i.imgur.com/3TYqwNV",
+            "https://i.imgur.com/lNLX9GR"
         ]
-        self.words = [word.replace("\n", "") for word in open(hangmanWordsPath, "r").readlines()]
+        self.words = [word.replace("\n", "") for word in open(lisWordsPath, "r").readlines()]
         self.guessedLetters = []
         self.chosenWord = random.choice(self.words).lower()
         self.title = ["-"]*len(self.chosenWord)
+        self.gameEmojis = ["🛑"]
         self.user = self.ctx.author
-        self.lastGuess = datetime.now()
+        self.lastActivity = datetime.now()
         self.totalTries = 6
         self.incorrectGuesses = 0
         self.correctGuesses = 0
         self.guesses = 0
         self.isPlaying = True
-        self.timeout = None
         self.gameMessage = None
         self.result = None
 
@@ -52,16 +50,13 @@ class Hangman:
     def __repr__(self):
         return "Hangman"
 
-    # Check a reaction
-    def checkMove(self, reaction, user):
-        return reaction.message.id == self.gameMessage.id and self.user.id == user.id and str(reaction) == "🛑"
-
     # Create the title for the embed
     def createTitle(self):
         if self.isPlaying:
-            return "".join(self.title).capitalize()
+            temp = "".join(self.title).capitalize()
+            return f"Connect 4 - {temp}"
         else:
-            if self.result:
+            if self.result == "Win":
                 return f"You Win. The Correct Word Was {self.chosenWord.capitalize()}"
             else:
                 return f"You Lose. The Correct Word Was {self.chosenWord.capitalize()}"
@@ -70,14 +65,19 @@ class Hangman:
     def winCheck(self):
         if "".join(self.title) == self.chosenWord:
             self.isPlaying = False
-            self.result = True
+            self.result = "Win"
         elif self.incorrectGuesses == self.totalTries:
             self.isPlaying = False
-            self.result = False
+            self.result = "Lose"
+
+    # Function to process a reaction from the gameManager
+    def processReaction(self, _):
+        self.isPlaying = False
+        self.result = "Lose"
 
     # Update the embed
     async def embedUpdate(self):
-        # Update the message with guessed letter, try count and the new image
+        # Update the message with the guessed letter, try count and the new image
         hangmanEmbed = Embed(title=self.createTitle(), colour=self.colour)
         if len(self.guessedLetters) == 0:
             hangmanEmbed.add_field(name="Guessed Letters", value="None Yet")
@@ -85,37 +85,15 @@ class Hangman:
             hangmanEmbed.add_field(name="Guessed Letters", value=",".join(self.guessedLetters))
         hangmanEmbed.add_field(name="Incorrect Guesses", value=str(self.incorrectGuesses))
         hangmanEmbed.add_field(name="Total Guesses", value=str(self.guesses))
-        hangmanEmbed.set_image(url=str(self.images[self.incorrectGuesses]))
+        hangmanEmbed.set_image(url=self.images[self.incorrectGuesses])
         await self.gameMessage.edit(embed=hangmanEmbed)
-
-    # Start the game
-    async def start(self):
-        # Send initial message and then wait for a stop response
-        self.gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
-        await self.gameMessage.add_reaction("🛑")
-        await self.embedUpdate()
-        while self.isPlaying:
-            # Test if the game has been idle for 5 minutes
-            if Utils.gameActivity(self.lastGuess):
-                self.isPlaying = False
-                await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
-            else:
-                try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
-                    self.isPlaying = False
-                except asyncio.TimeoutError:
-                    continue
-        # Game has either timed out or user has stopped it
-        if self.result is None:
-            self.result = False
-            await self.embedUpdate()
 
     # Make a guess of one of the characters
     async def guess(self, guessCharacter):
         if guessCharacter is None:
-            await self.ctx.channel.send("Make sure a character is being guessed")
+            await Utils.commandDebugEmbed(self.ctx.channel, "Make sure a character is being guessed")
         else:
-            self.lastGuess = datetime.now()
+            self.lastActivity = datetime.now()
             userGuess = guessCharacter.lower()
             self.guesses += 1
             self.guessedLetters.append(userGuess)

@@ -1,13 +1,10 @@
 # Builtin
 from datetime import datetime
-import asyncio
 # Pip
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
 from discord import Colour
-# Custom
-from Helpers.Utils import Utils
 
 
 # TicTacToe class to play tic tac toe in a discord channel
@@ -33,10 +30,6 @@ class TicTacToe:
     def __repr__(self):
         return "TicTacToe"
 
-    # Function to check a reaction
-    def checkMove(self, reaction, user):
-        return reaction.message.id == self.gameMessage.id and user.id == self.nextPlayer.id and str(reaction) in self.gameEmojis
-
     # Function to manage moves made by the player
     def moveManager(self, reaction):
         if reaction == self.gameEmojis[0]:
@@ -59,7 +52,7 @@ class TicTacToe:
             self.addMove([2, 2])
         elif reaction == self.gameEmojis[9]:
             self.isPlaying = False
-            self.result = ("Surrender", self.nextPlayer)
+            self.result = ["Surrender", self.nextPlayer]
 
     # Function to update the 2D array with new moves
     def addMove(self, index):
@@ -69,15 +62,13 @@ class TicTacToe:
                 self.grid[index[0]][index[1]] = 1
             else:
                 self.grid[index[0]][index[1]] = 2
-        else:
-            pass
 
     # Function to test for a draw
     def drawCheck(self):
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
-            self.result = ("Draw", self.nextPlayer)
+            self.result = ["Draw", self.nextPlayer]
 
     # Function to check for wins
     def winChecker(self):
@@ -96,7 +87,7 @@ class TicTacToe:
         ]
         if any([check for check in checks]):
             self.isPlaying = False
-            self.result = ("Win", self.nextPlayer)
+            self.result = ["Win", self.nextPlayer]
 
     # Function to determine who goes next
     def switchPlayer(self):
@@ -105,8 +96,19 @@ class TicTacToe:
         else:
             self.nextPlayer = self.player1
 
+    # Function to process a reaction from the gameManager
+    def processReaction(self, reaction):
+        self.lastActivity = datetime.now()
+        self.moveManager(str(reaction))
+        if self.isPlaying:
+            if self.changeMade:
+                self.changeMade = False
+                self.drawCheck()
+                self.winChecker()
+                self.switchPlayer()
+
     # Function to update the board
-    async def updateBoard(self):
+    async def embedUpdate(self):
         board = ""
         for row in self.grid:
             for item in row:
@@ -130,27 +132,3 @@ class TicTacToe:
             else:
                 gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
-
-    # Start the game
-    async def start(self):
-        while self.isPlaying:
-            # Test if the game has been idle for 5 minutes
-            if Utils.gameActivity(self.lastActivity):
-                self.isPlaying = False
-                await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
-                self.result = ("Timeout", None)
-            else:
-                try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
-                    await self.gameMessage.remove_reaction(reaction, user)
-                    self.lastActivity = datetime.now()
-                    self.moveManager(str(reaction))
-                    if self.isPlaying:
-                        if self.changeMade:
-                            self.changeMade = False
-                            self.drawCheck()
-                            self.winChecker()
-                            self.switchPlayer()
-                except asyncio.TimeoutError:
-                    continue
-            await self.updateBoard()

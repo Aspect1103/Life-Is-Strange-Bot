@@ -1,14 +1,11 @@
 # Builtin
 from datetime import datetime
-import asyncio
 # Pip
 from discord.ext.commands import Context
 from discord import Client
 from discord import Embed
 from discord import Colour
 import numpy
-# Custom
-from Helpers.Utils import Utils
 
 
 # Connect4 class to play connect 4 in a discord channel
@@ -35,10 +32,6 @@ class Connect4:
     def __repr__(self):
         return "Connect 4"
 
-    # Function to check a reaction
-    def checkMove(self, reaction, user):
-        return reaction.message.id == self.gameMessage.id and user.id == self.nextPlayer.id and str(reaction) in self.gameEmojis
-
     # Function to manage moves made by the player
     def moveManager(self, reaction):
         if reaction == self.gameEmojis[0]:
@@ -57,7 +50,7 @@ class Connect4:
             self.addMove(6)
         elif reaction == self.gameEmojis[7]:
             self.isPlaying = False
-            self.result = ("Surrender", self.nextPlayer)
+            self.result = ["Surrender", self.nextPlayer]
 
     # Function to update the 2D array with new moves
     def addMove(self, columnNumber):
@@ -75,7 +68,7 @@ class Connect4:
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
-            self.result = ("Draw", self.nextPlayer)
+            self.result = ["Draw", self.nextPlayer]
 
     # Function to check for wins
     def winChecker(self):
@@ -112,7 +105,7 @@ class Connect4:
             return any(result)
         if verticalCheck() or horizontalCheck() or diagonalCheck():
             self.isPlaying = False
-            self.result = ("Win", self.nextPlayer)
+            self.result = ["Win", self.nextPlayer]
 
     # Function to get the diagonals
     def getDiagonals(self):
@@ -130,8 +123,19 @@ class Connect4:
         else:
             self.nextPlayer = self.player1
 
+    # Function to process a reaction from the gameManager
+    def processReaction(self, reaction):
+        self.lastActivity = datetime.now()
+        self.moveManager(str(reaction))
+        if self.isPlaying:
+            if self.changeMade:
+                self.changeMade = False
+                self.drawCheck()
+                self.winChecker()
+                self.switchPlayer()
+
     # Function to update the board
-    async def updateBoard(self):
+    async def embedUpdate(self):
         board = ""
         for row in self.grid:
             for item in row:
@@ -155,27 +159,3 @@ class Connect4:
             else:
                 gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
-
-    # Start the game
-    async def start(self):
-        while self.isPlaying:
-            # Test if the game has been idle for 5 minutes
-            if Utils.gameActivity(self.lastActivity):
-                self.isPlaying = False
-                await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
-                self.result = ("Timeout", None)
-            else:
-                try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
-                    await self.gameMessage.remove_reaction(reaction, user)
-                    self.lastActivity = datetime.now()
-                    self.moveManager(str(reaction))
-                    if self.isPlaying:
-                        if self.changeMade:
-                            self.changeMade = False
-                            self.drawCheck()
-                            self.winChecker()
-                            self.switchPlayer()
-                except asyncio.TimeoutError:
-                    continue
-            await self.updateBoard()

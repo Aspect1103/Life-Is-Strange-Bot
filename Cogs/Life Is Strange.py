@@ -3,7 +3,6 @@ from pathlib import Path
 import random
 import asyncio
 import json
-import requests
 import math
 # Pip
 from discord.ext import commands
@@ -14,7 +13,6 @@ import apsw
 # Custom
 from Helpers.Utils.Paginator import Paginator
 from Helpers.Utils import Utils
-import Config
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
@@ -98,7 +96,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             # User not in database
             orgUser = (ctx.guild.id, ctx.author.id, 0, 0, 0, 0)
             self.cursor.execute(f"INSERT INTO triviaScores values{orgUser}")
-            orgUser = list(orgUser)
+        orgUser = list(orgUser)
         if guess is None:
             # No answer
             orgUser[2] -= 2
@@ -111,7 +109,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 # User not in database
                 guessUser = (ctx.guild.id, guess[1].id, 0, 0, 0, 0)
                 self.cursor.execute(f"INSERT INTO triviaScores values{guessUser}")
-                guessUser = list(guessUser)
+            guessUser = list(guessUser)
             originalAuthor = ctx.author.id
             guessAuthor = guess[1].id
             try:
@@ -328,13 +326,10 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx, error):
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
 def setup(client):
     client.add_cog(lifeIsStrange(client))
-
-
-# https://notes.io/ZBGc
