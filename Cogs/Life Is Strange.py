@@ -19,7 +19,7 @@ rootDirectory = Path(__file__).parent.parent
 triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("trivia.json")
 choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
 lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
-memoryPath = rootDirectory.joinpath("Resources").joinpath("Images").joinpath("Screenshots")
+memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 
 
 # Cog to manage life is strange commands
