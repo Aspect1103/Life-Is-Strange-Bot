@@ -191,6 +191,11 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     #                          headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
     #                          json=payload).json()
 
+    # Function to remove a user from the triviaScores database when they leave
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        self.cursor.execute(f"DELETE FROM triviaScores WHERE guildID == {member.guild.id} and userID == {member.id}")
+
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)

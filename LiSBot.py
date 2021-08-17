@@ -6,12 +6,15 @@ from discord.ext import commands
 from discord import Status
 from discord import Activity
 from discord import ActivityType
+from discord import Intents
 # Custom
 from Helpers.Utils import Utils
 import Config
 
-# Script variables
-client = commands.Bot(command_prefix="$")
+# Discord variables
+intents = Intents.default()
+intents.members = True
+client = commands.Bot(command_prefix="$", intents=intents)
 
 # Path variables
 rootDirectory = os.path.join(os.path.dirname(__file__))
