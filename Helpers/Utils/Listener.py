@@ -36,7 +36,7 @@ class Listener:
         # Get tomorrow's date so once midnight hits, the correct date can be checked
         tomorrowDate = pendulum.now().add(days=1)
         midnight = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)
-        await asyncio.sleep(tomorrowDate.diff(midnight).in_seconds()+60)
+        await asyncio.sleep(tomorrowDate.diff(midnight).in_seconds()+120)
         tomorrowEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
         if len(tomorrowEvent) == 1:
             tomorrowDateString = pendulum.from_format(tomorrowEvent[0][1], "D/MM/YYYY").format("Do of MMMM YYYY")

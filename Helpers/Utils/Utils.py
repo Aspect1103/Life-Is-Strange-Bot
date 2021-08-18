@@ -63,7 +63,7 @@ async def errorHandler(ctx, error):
 
 
 # Script variables
-extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
+extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
 gameActivityTimeout = 300
 listener = Listener()
 
@@ -78,6 +78,7 @@ commandGroups = {
     "life is strange": ["choices", "memory", "chatbot"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
+    "radio": [],
     "general": ["question", "connect4", "tictactoe", "hangman"],
     "bot bidness": ["stop", "channel", "botRefresh", "channelRefresh", "about"]
 }
