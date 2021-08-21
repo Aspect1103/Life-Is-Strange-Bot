@@ -902,5 +902,13 @@
         "option 3": "In The Water",
         "option 4": "Obstacles",
         "correct option": "3"
+    },
+    {
+        "question": "Where did Chloe find the blue beanie that she's known to wear?",
+        "option 1": "In William's used clothing box",
+        "option 2": "In someones school locker",
+        "option 3": "A truck's glovebox",
+        "option 4": "In Blackwell's drama room",
+        "correct option": "3"
     }
 ]

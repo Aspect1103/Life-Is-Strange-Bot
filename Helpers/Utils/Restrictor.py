@@ -25,7 +25,7 @@ class Restrictor:
         for key, value in self.commandGroups.items():
             if str(ctx.command) in value:
                 allowedChannels = self.IDs[key][str(ctx.guild.id)]
-                if allowedChannels != -1:
+                if allowedChannels[0] != -1:
                     return allowedChannels
         return None
 
