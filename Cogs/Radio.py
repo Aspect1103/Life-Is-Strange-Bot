@@ -1,5 +1,5 @@
 # Pip
-import discord.channel
+from discord.channel import TextChannel, VoiceChannel
 from discord.ext import commands
 from discord import VoiceRegion
 from wavelink.ext import spotify
@@ -38,7 +38,8 @@ class Radio(commands.Cog):
             channel = self.client.get_channel(channelID)
             if type(channel) not in [type(temp) for temp in radioChannels]:
                 radioChannels.append(channel)
-        if discord.channel.TextChannel in [type(temp) for temp in radioChannels] and discord.channel.VoiceChannel in [type(temp) for temp in radioChannels]:
+        radioChannelTypes = [type(temp) for temp in radioChannels]
+        if TextChannel in radioChannelTypes and VoiceChannel in radioChannelTypes:
             # Start radio
             print("radio")
         else:
