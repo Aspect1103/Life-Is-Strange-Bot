@@ -10,6 +10,7 @@ from discord import Colour
 from discord import Embed
 from wavelink.ext import spotify
 import wavelink
+import pendulum
 # Custom
 from Helpers.Utils import Utils
 import Config
@@ -27,7 +28,7 @@ class Radio(commands.Cog):
         self.tracks = wavelink.Queue()
         self.trackCounter = None
         self.nextTrack = None
-        self.textChannels = None
+        self.textChannel = None
         self.infoMessage = None
         self.radioLines = None
         self.client.loop.create_task(self.wavelinkInit())
@@ -56,7 +57,7 @@ class Radio(commands.Cog):
         # Create dictionary for each guild to store variables
         self.trackCounter = {guild.id: 0 for guild in self.client.guilds}
         self.nextTrack = {guild.id: 0 for guild in self.client.guilds}
-        self.textChannels = {guild.id: None for guild in self.client.guilds}
+        self.textChannel = {guild.id: None for guild in self.client.guilds}
         self.infoMessage = {guild.id: None for guild in self.client.guilds}
 
         # Setup radio lines array
@@ -64,7 +65,7 @@ class Radio(commands.Cog):
 
     # Function to send a radio line to the text channel
     async def sendRadioLine(self, guildID):
-        await self.textChannels[guildID].send(embed=Embed(title="Today's Announcement From 104.3 KRCT's Steph Gingrich:", description=random.choice(self.radioLines), colour=self.colour))
+        await self.textChannel[guildID].send(embed=Embed(title="Today's Announcement From 104.3 KRCT's Steph Gingrich:", description=random.choice(self.radioLines), colour=self.colour))
 
     # Runs when a track starts playing
     @commands.Cog.listener()
@@ -72,8 +73,13 @@ class Radio(commands.Cog):
         # Increment the guild counters
         self.trackCounter[player.guild.id] += 1
         self.nextTrack[player.guild.id] += 1
-        # Display currently running song
-        await self.infoMessage[player.guild.id].edit(embed=Embed(title="bum", colour=self.colour))
+        # Display details on the currently running song
+        titleAuthor = self.tracks[self.nextTrack[player.guild.id]-1].query.split(" - ")
+        infoEmbed = Embed(title=f"Now Playing: {titleAuthor[0]} by {titleAuthor[1]}", colour=self.colour)
+        infoEmbed.add_field(name="Duration", value=str(pendulum.duration(seconds=track.duration)), inline=True)
+        infoEmbed.add_field(name="Link", value=track.uri, inline=True)
+        infoEmbed.set_image(url=f"https://i.ytimg.com/vi/{track.identifier}/0.jpg")
+        await self.infoMessage[player.guild.id].edit(embed=infoEmbed)
 
     # Runs when a track stops playing
     @commands.Cog.listener()
@@ -82,6 +88,7 @@ class Radio(commands.Cog):
         if self.trackCounter[player.guild.id] == 5:
             self.trackCounter[player.guild.id] = 0
             await self.sendRadioLine(player.guild.id)
+            self.infoMessage[player.guild.id] = await self.textChannel[player.guild.id].send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         # Play the next song
         await player.play(self.tracks[self.nextTrack[player.guild.id]])
 
@@ -102,7 +109,7 @@ class Radio(commands.Cog):
                 # Grab text and voice channels
                 voiceChannel = radioChannels[0] if type(radioChannels[0]) == VoiceChannel else radioChannels[1]
                 textChannel = radioChannels[0] if type(radioChannels[0]) == TextChannel else radioChannels[1]
-                self.textChannels[ctx.guild.id] = textChannel
+                self.textChannel[ctx.guild.id] = textChannel
                 # Connect the bot to the voice channel then send a starting radio line and info embed
                 player = await voiceChannel.connect(cls=wavelink.Player)
                 await self.sendRadioLine(ctx.guild.id)
@@ -128,7 +135,7 @@ class Radio(commands.Cog):
             # Reset the variables
             self.trackCounter[ctx.guild.id] = 0
             self.nextTrack[ctx.guild.id] = 0
-            self.textChannels[ctx.guild.id] = None
+            self.textChannel[ctx.guild.id] = None
             self.infoMessage[ctx.guild.id] = None
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
