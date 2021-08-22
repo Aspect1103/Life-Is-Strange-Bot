@@ -2,13 +2,13 @@
 from pathlib import Path
 import random
 # Pip
-import discord.utils
 from discord.channel import TextChannel, VoiceChannel
+from wavelink.ext import spotify
 from discord.ext import commands
 from discord import VoiceRegion
 from discord import Colour
 from discord import Embed
-from wavelink.ext import spotify
+import discord.utils
 import wavelink
 import pendulum
 # Custom
@@ -33,10 +33,13 @@ class Radio(commands.Cog):
         self.radioLines = None
         self.client.loop.create_task(self.wavelinkInit())
 
+    # Function to get a voiceClient
+    def getVoiceClient(self, guild):
+        return discord.utils.get(self.client.voice_clients, guild=guild)
+
     # Function to determine if the bot is connected to a voice channel
-    def isConnected(self, ctx):
-        voiceClient = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
-        return voiceClient is not None
+    def isConnected(self, guild):
+        return self.getVoiceClient(guild) is not None
 
     # Initialise the wavelink client
     async def wavelinkInit(self):
@@ -67,6 +70,19 @@ class Radio(commands.Cog):
     async def sendRadioLine(self, guildID):
         await self.textChannel[guildID].send(embed=Embed(title="Today's Announcement From 104.3 KRCT's Steph Gingrich:", description=random.choice(self.radioLines), colour=self.colour))
 
+    # Function to disconnect the bot from a voice channel
+    async def stopBot(self, guild):
+        # Get the voice client
+        voiceClient = self.getVoiceClient(guild)
+        # Stop the song then disconnect the bot
+        await voiceClient.stop()
+        await voiceClient.disconnect(force=False)
+        # Reset the variables
+        self.trackCounter[guild.id] = 0
+        self.nextTrack[guild.id] = 0
+        self.textChannel[guild.id] = None
+        self.infoMessage[guild.id] = None
+
     # Runs when a track starts playing
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.Track):
@@ -76,8 +92,8 @@ class Radio(commands.Cog):
         # Display details on the currently running song
         titleAuthor = self.tracks[self.nextTrack[player.guild.id]-1].query.split(" - ")
         infoEmbed = Embed(title=f"Now Playing: {titleAuthor[0]} by {titleAuthor[1]}", colour=self.colour)
-        infoEmbed.add_field(name="Duration", value=str(pendulum.duration(seconds=track.duration)), inline=True)
         infoEmbed.add_field(name="Link", value=track.uri, inline=True)
+        infoEmbed.add_field(name="Duration", value=str(pendulum.duration(seconds=track.duration)), inline=True)
         infoEmbed.set_image(url=f"https://i.ytimg.com/vi/{track.identifier}/0.jpg")
         await self.infoMessage[player.guild.id].edit(embed=infoEmbed)
 
@@ -92,12 +108,27 @@ class Radio(commands.Cog):
         # Play the next song
         await player.play(self.tracks[self.nextTrack[player.guild.id]])
 
+    # # Runs when a member changes their voicestate
+    # @commands.Cog.listener()
+    # async def on_voice_state_update(self, member, before, after):
+    #     # Test if the bot is connected and if the member is the bot
+    #     if self.isConnected(member.guild) and member.id != self.client.user.id:
+    #         # Test if there is only 1 member left (will have to be bot)
+    #         voiceClientChannel = self.getVoiceClient(member.guild).channel
+    #         if len(voiceClientChannel.members) == 1:
+    #             # Wait 5 minutes and then disconnect if there is still inactivity
+    #             await Utils.commandDebugEmbed(self.textChannel[member.guild.id], f"Warning! Bot will disconnect in 1 minute due to inactivity. Please join {voiceClientChannel.mention} to stop this")
+    #             await asyncio.sleep(60)
+    #             # Test again if there is only 1 member
+    #             if len(voiceClientChannel.members) == 1:
+    #                 await self.stopBot(member.guild)
+
     # connect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Connects the bot to a voice channel. It has a cooldown of {Utils.long} seconds", usage="connect", brief="Radio")
     @commands.cooldown(1, 0, commands.BucketType.guild)
     async def connect(self, ctx):
         # Test if the bot is already connected
-        if not self.isConnected(ctx):
+        if not self.isConnected(ctx.guild):
             # Verify that there is a text channel and a voice channel registered
             radioChannels = []
             for channelID in Utils.restrictor.IDs["radio"][str(ctx.guild.id)]:
@@ -126,17 +157,8 @@ class Radio(commands.Cog):
     @commands.cooldown(1, 0, commands.BucketType.guild)
     async def disconnect(self, ctx):
         # Test if the bot is already connected
-        if self.isConnected(ctx):
-            # Get the voice client
-            voiceClient = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
-            # Stop the song then disconnect the bot
-            await voiceClient.stop()
-            await voiceClient.disconnect(force=False)
-            # Reset the variables
-            self.trackCounter[ctx.guild.id] = 0
-            self.nextTrack[ctx.guild.id] = 0
-            self.textChannel[ctx.guild.id] = None
-            self.infoMessage[ctx.guild.id] = None
+        if self.isConnected(ctx.guild):
+            await self.stopBot(ctx.guild)
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
