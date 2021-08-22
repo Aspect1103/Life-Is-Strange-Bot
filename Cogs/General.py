@@ -36,7 +36,7 @@ class General(commands.Cog):
     # Function which runs once the bot is setup and running
     @commands.Cog.listener()
     async def on_ready(self):
-        # Create dictionary for each guild to test if new game allowed
+        # Create dictionary for each guild to store variables
         self.gameManager.gameAllowed = {guild.id: True for guild in self.client.guilds}
         self.gameManager.gameObj = {guild.id: None for guild in self.client.guilds}
 
