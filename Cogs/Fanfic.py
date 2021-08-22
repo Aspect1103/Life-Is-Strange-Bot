@@ -94,6 +94,12 @@ class Fanfic(commands.Cog):
                     pass
         return None if repeats == 5 else await self.findLastQuote(ctx, lastMessage.created_at, repeats)
 
+    # Function which runs once the bot is setup and running
+    @commands.Cog.listener()
+    async def on_ready(self):
+        # Create dictionary for each guild to hold the quote searcher
+        self.quoteSearcher = {guild.id: None for guild in self.client.guilds}
+
     # quote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote (includeNSFW)", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
@@ -143,10 +149,10 @@ class Fanfic(commands.Cog):
     async def start(self, ctx):
         # Function to check a user's reaction
         def checker(reaction, user):
-            return reaction.message.id == self.quoteSearcher.message.id and user.id == self.quoteSearcher.ctx.author.id and str(reaction) == "⏹️"
+            return reaction.message.id == self.quoteSearcher[ctx.guild.id].message.id and user.id == self.quoteSearcher[ctx.guild.id].ctx.author.id and str(reaction) == "⏹️"
         # Initialise the SearchQuoteManager object
         message = await ctx.channel.send(embed=Embed(title="Quote Searcher", description=f"No filters added. Use {ctx.prefix}searchQuote add to add a filter", colour=self.colour))
-        self.quoteSearcher = SearchQuoteManager(self.client, ctx, message, self.colour, self.worksheetArray)
+        self.quoteSearcher[ctx.guild.id] = SearchQuoteManager(self.client, ctx, message, self.colour, self.worksheetArray)
         await message.add_reaction("⏹️")
         # Wait until the stop button is pressed with a timeout of 5 minutes
         while True:
@@ -157,10 +163,10 @@ class Fanfic(commands.Cog):
             await message.clear_reactions()
             break
         # Remove nsfw works if no smut filter is added
-        if self.quoteSearcher.filters["smut"][1] is None:
-            self.quoteSearcher.finalArray = self.quoteSearcher.filters["smut"][0]("No")
+        if self.quoteSearcher[ctx.guild.id].filters["smut"][1] is None:
+            self.quoteSearcher[ctx.guild.id].finalArray = self.quoteSearcher[ctx.guild.id].filters["smut"][0]("No")
         # Pick a row
-        tempArray = self.quoteSearcher.finalArray
+        tempArray = self.quoteSearcher[ctx.guild.id].finalArray
         if len(tempArray) == 0:
             await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
         elif len(tempArray) == 1:
@@ -179,31 +185,31 @@ class Fanfic(commands.Cog):
             else:
                 await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
         # Reset the quote searcher object so it can be reused
-        self.quoteSearcher = None
+        self.quoteSearcher[ctx.guild.id] = None
 
     # searchQuote add command with a cooldown of 1 use every 5 seconds per guild
     @searchQuote.command(help=f"Add a filter to the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCategory - The category which you want to add a filter for. They are as follows:\n> Title - Result contains this term\n> Author - Result contains this term\n> Ship - Result matches this term\n> Series - Result contains this term\n> Status - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\n> Smut - Result matches this term. Can either be 'Yes', 'No' or '?'\n> Words - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\n> Chapters - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\nTerm - The term you want to filter for", usage="searchQuote|sq (category) (term)", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def add(self, ctx, category=None, term=None):
-        if self.quoteSearcher is None:
+        if self.quoteSearcher[ctx.guild.id] is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
-            if self.quoteSearcher.ctx.author.id != ctx.author.id:
-                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.quoteSearcher.ctx.author.mention} can add filters")
+            if self.quoteSearcher[ctx.guild.id].ctx.author.id != ctx.author.id:
+                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.quoteSearcher[ctx.guild.id].ctx.author.mention} can add filters")
             else:
-                await self.quoteSearcher.addFilter(category, term)
+                await self.quoteSearcher[ctx.guild.id].addFilter(category, term)
 
     # searchQuote remove command with a cooldown of 1 use every 5 seconds per guild
     @searchQuote.command()
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def remove(self, ctx, category=None):
-        if self.quoteSearcher is None:
+        if self.quoteSearcher[ctx.guild.id] is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
-            if self.quoteSearcher.ctx.author.id != ctx.author.id:
-                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.quoteSearcher.ctx.author.mention} can remove filters")
+            if self.quoteSearcher[ctx.guild.id].ctx.author.id != ctx.author.id:
+                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.quoteSearcher[ctx.guild.id].ctx.author.mention} can remove filters")
             else:
-                await self.quoteSearcher.removeFilter(category)
+                await self.quoteSearcher[ctx.guild.id].removeFilter(category)
 
     # outline command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Finds the last quote posted and displays the metadata for that fic. It has a cooldown of {Utils.medium} seconds", usage="outline", brief="Fanfic")

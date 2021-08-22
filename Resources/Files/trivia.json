@@ -910,5 +910,13 @@
         "option 3": "A truck's glovebox",
         "option 4": "In Blackwell's drama room",
         "correct option": "3"
+    },
+    {
+        "question": "Why did Ryan and Vanessa bring Max to the emergency room?",
+        "option 1": "Broke her arm",
+        "option 2": "Bad fever",
+        "option 3": "Ate food she was allergic to",
+        "option 4": "Swallowed a button",
+        "correct option": "4"
     }
 ]

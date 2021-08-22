@@ -39,7 +39,7 @@ async def on_guild_remove(guild):
     Utils.idWriter(tempDict)
 
 
-# Run when discord bot has started
+# Runs when the bot has has started
 @client.event
 async def on_ready():
     # Setup the client variable for the restrictor and listener class

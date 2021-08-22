@@ -38,6 +38,7 @@ class General(commands.Cog):
     async def on_ready(self):
         # Create dictionary for each guild to test if new game allowed
         self.gameManager.gameAllowed = {guild.id: True for guild in self.client.guilds}
+        self.gameManager.gameObj = {guild.id: None for guild in self.client.guilds}
 
     # question command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")

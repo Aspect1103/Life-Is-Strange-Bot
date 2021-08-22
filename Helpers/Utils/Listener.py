@@ -20,7 +20,7 @@ class Listener:
     # Initialise variables
     def __init__(self):
         self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
-        self.colour = Colour.from_rgb(255, 192, 203)
+        self.colour = Colour.purple()
         self.client = None
 
     # Function to set the client variables

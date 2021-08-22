@@ -35,9 +35,9 @@ class GameManager:
     # Function to check a move for a game
     def checkMove(self, reaction, user):
         if self.ID == 1 or self.ID == 2:
-            return reaction.message.id == self.gameObj.gameMessage.id and user.id == self.gameObj.nextPlayer.id and str(reaction) in self.gameObj.gameEmojis
+            return reaction.message.id == self.gameObj[self.ctx.guild.id].gameMessage.id and user.id == self.gameObj[self.ctx.guild.id].nextPlayer.id and str(reaction) in self.gameObj[self.ctx.guild.id].gameEmojis
         elif self.ID == 3 or self.ID == 4:
-            return reaction.message.id == self.gameObj.gameMessage.id and self.gameObj.user.id == user.id and str(reaction) in self.gameObj.gameEmojis
+            return reaction.message.id == self.gameObj[self.ctx.guild.id].gameMessage.id and self.gameObj[self.ctx.guild.id].user.id == user.id and str(reaction) in self.gameObj[self.ctx.guild.id].gameEmojis
 
     # Function to run a game based on a specific ID
     async def runGame(self, ctx, ID):
@@ -46,63 +46,63 @@ class GameManager:
         if self.gameAllowed[self.ctx.guild.id]:
             self.gameAllowed[self.ctx.guild.id] = False
             if ID == 1:
-                self.gameObj = TicTacToe(self.ctx, self.client, self.colour)
+                self.gameObj[self.ctx.guild.id] = TicTacToe(self.ctx, self.client, self.colour)
                 await self.twoplayer()
             elif ID == 2:
-                self.gameObj = Connect4(self.ctx, self.client, self.colour)
+                self.gameObj[self.ctx.guild.id] = Connect4(self.ctx, self.client, self.colour)
                 await self.twoplayer()
             elif ID == 3:
-                self.gameObj = Hangman(self.ctx, self.client, self.colour)
+                self.gameObj[self.ctx.guild.id] = Hangman(self.ctx, self.client, self.colour)
                 await self.singleplayer()
             elif ID == 4:
-                self.gameObj = Anagram(self.ctx, self.client, self.colour)
+                self.gameObj[self.ctx.guild.id] = Anagram(self.ctx, self.client, self.colour)
                 await self.singleplayer()
-            await self.gameObj.gameMessage.clear_reactions()
-            self.gameObj = None
+            await self.gameObj[self.ctx.guild.id].gameMessage.clear_reactions()
+            self.gameObj[self.ctx.guild.id] = None
             self.gameAllowed[self.ctx.guild.id] = True
         else:
             await Utils.commandDebugEmbed(self.ctx.channel, "New game not allowed. Finish any currently running games")
 
     # Function to manage singleplayer games
     async def singleplayer(self):
-        self.gameObj.gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
+        self.gameObj[self.ctx.guild.id].gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         await self.runner()
 
     # Function to manage twoplayer games
     async def twoplayer(self):
         def gameReactChecker(reaction, user):
-            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == self.gameObj.ctx.guild.id and user.id != self.gameObj.ctx.author.id
-        initialEmbed = Embed(title=f"{self.gameObj} Request", description=f"{self.gameObj.player1.mention} wants to play {self.gameObj}. React to this message if you want to challenge them!", colour=self.colour)
-        self.gameObj.gameMessage = await self.gameObj.ctx.send(embed=initialEmbed)
-        await self.gameObj.gameMessage.add_reaction(self.gameInitReaction)
+            return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == self.gameObj[self.ctx.guild.id].ctx.guild.id and user.id != self.gameObj[self.ctx.guild.id].ctx.author.id
+        initialEmbed = Embed(title=f"{self.gameObj[self.ctx.guild.id]} Request", description=f"{self.gameObj[self.ctx.guild.id].player1.mention} wants to play {self.gameObj[self.ctx.guild.id]}. React to this message if you want to challenge them!", colour=self.colour)
+        self.gameObj[self.ctx.guild.id].gameMessage = await self.gameObj[self.ctx.guild.id].ctx.send(embed=initialEmbed)
+        await self.gameObj[self.ctx.guild.id].gameMessage.add_reaction(self.gameInitReaction)
         while True:
             try:
                 reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameInitTimeout, check=gameReactChecker)
-                self.gameObj.player2 = user
+                self.gameObj[self.ctx.guild.id].player2 = user
             except asyncio.TimeoutError:
                 await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
             break
-        if self.gameObj.player2 is not None:
-            await self.gameObj.ctx.channel.send(f"Let's play {self.gameObj}! {self.gameObj.player1.mention} vs {self.gameObj.player2.mention}")
-            await self.gameObj.gameMessage.clear_reactions()
+        if self.gameObj[self.ctx.guild.id].player2 is not None:
+            await self.gameObj[self.ctx.guild.id].ctx.channel.send(f"Let's play {self.gameObj[self.ctx.guild.id]}! {self.gameObj[self.ctx.guild.id].player1.mention} vs {self.gameObj[self.ctx.guild.id].player2.mention}")
+            await self.gameObj[self.ctx.guild.id].gameMessage.clear_reactions()
             await self.runner()
 
     # Function to run a game
     async def runner(self):
-        await self.gameObj.embedUpdate()
-        for emoji in self.gameObj.gameEmojis:
-            await self.gameObj.gameMessage.add_reaction(emoji)
-        while self.gameObj.isPlaying:
+        await self.gameObj[self.ctx.guild.id].embedUpdate()
+        for emoji in self.gameObj[self.ctx.guild.id].gameEmojis:
+            await self.gameObj[self.ctx.guild.id].gameMessage.add_reaction(emoji)
+        while self.gameObj[self.ctx.guild.id].isPlaying:
             # Test if the game has been idle for 5 minutes
-            if Utils.gameActivity(self.gameObj.lastActivity):
-                self.gameObj.isPlaying = False
-                self.gameObj.result = ("Timeout", None)
+            if Utils.gameActivity(self.gameObj[self.ctx.guild.id].lastActivity):
+                self.gameObj[self.ctx.guild.id].isPlaying = False
+                self.gameObj[self.ctx.guild.id].result = ("Timeout", None)
                 await Utils.commandDebugEmbed(self.ctx.channel, "Game has timed out")
             else:
                 try:
                     reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=self.checkMove)
-                    await self.gameObj.gameMessage.remove_reaction(reaction, user)
-                    self.gameObj.processReaction(reaction)
+                    await self.gameObj[self.ctx.guild.id].gameMessage.remove_reaction(reaction, user)
+                    self.gameObj[self.ctx.guild.id].processReaction(reaction)
                 except asyncio.TimeoutError:
                     continue
-            await self.gameObj.embedUpdate()
+            await self.gameObj[self.ctx.guild.id].embedUpdate()

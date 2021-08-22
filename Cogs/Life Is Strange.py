@@ -30,10 +30,10 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.colour = Colour.purple()
         self.cursor = apsw.Connection(str(lisDatabasePath)).cursor()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
-        self.nextTrivia = 0
-        self.pastInputs = []
-        self.pastResponses = []
+        # self.pastInputs = []
+        # self.pastResponses = []
         self.triviaQuestions = None
+        self.nextTrivia = None
         self.choicesTable = None
         self.memoryImages = None
         self.lifeIsStrangeInit()
@@ -50,14 +50,20 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         # Setup memory images array
         self.memoryImages = list(memoryPath.glob("*"))
 
+    # Function which runs once the bot is setup and running
+    @commands.Cog.listener()
+    async def on_ready(self):
+        # Create dictionary for each guild to hold the trivia counter
+        self.nextTrivia = {guild.id: 0 for guild in self.client.guilds}
+
     # Function to create trivia questions
-    def triviaMaker(self):
-        if self.nextTrivia == len(self.triviaQuestions):
+    def triviaMaker(self, ctx):
+        if self.nextTrivia[ctx.guild.id] == len(self.triviaQuestions):
             # All questions done
             random.shuffle(self.triviaQuestions)
-            self.nextTrivia = 0
-        randomTrivia = self.triviaQuestions[self.nextTrivia]
-        self.nextTrivia += 1
+            self.nextTrivia[ctx.guild.id] = 0
+        randomTrivia = self.triviaQuestions[self.nextTrivia[ctx.guild.id]]
+        self.nextTrivia[ctx.guild.id] += 1
         triviaEmbed = Embed(colour=self.colour)
         triviaEmbed.title = randomTrivia["question"]
         triviaEmbed.description = f"""A. {randomTrivia["option 1"]}\nB. {randomTrivia["option 2"]}\nC. {randomTrivia["option 3"]}\nD. {randomTrivia["option 4"]}"""
@@ -203,7 +209,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         def answerCheck(reaction, user):
             return user.id != self.client.user.id
         # Grab random trivia
-        triviaObj, correctOption = self.triviaMaker()
+        triviaObj, correctOption = self.triviaMaker(ctx)
         triviaMessage = await ctx.channel.send(embed=triviaObj)
         # Add relations
         for reaction in self.triviaReactions.keys():
