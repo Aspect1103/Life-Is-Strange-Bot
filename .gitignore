@@ -1,0 +1,5 @@
+*.pyc
+Config.py
+Resources/Files/lisBot.db
+DebugFiles/
+__pycache__/
