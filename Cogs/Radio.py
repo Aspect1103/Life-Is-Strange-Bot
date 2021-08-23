@@ -1,7 +1,8 @@
 # Builtin
-import asyncio
 from pathlib import Path
+import asyncio
 import random
+import math
 # Pip
 from discord.channel import TextChannel, VoiceChannel
 from wavelink.ext import spotify
@@ -13,6 +14,7 @@ import discord.utils
 import wavelink
 import pendulum
 # Custom
+from Helpers.Utils.Paginator import Paginator
 from Helpers.Utils import Utils
 import Config
 
@@ -135,7 +137,7 @@ class Radio(commands.Cog):
 
     # connect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Connects the bot to a voice channel. It has a cooldown of {Utils.long} seconds", usage="connect", brief="Radio")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def connect(self, ctx):
         # Test if the bot is already connected
         if not self.isConnected(ctx.guild):
@@ -164,21 +166,46 @@ class Radio(commands.Cog):
 
     # disconnect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Disconnects the bot from a voice channel. It has a cooldown of {Utils.long} seconds", usage="disconnect", brief="Radio")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def disconnect(self, ctx):
         # Test if the bot is already connected
         if self.isConnected(ctx.guild):
+            # Stop the bot
             await self.stopBot(ctx.guild)
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
+
+    # queue command with a cooldown of 1 use every 60 seconds per guild
+    @commands.command(help=f"TO DO. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
+    @commands.cooldown(1, Utils.long, commands.BucketType.guild)
+    async def queue(self, ctx):
+        # Create variables needed for the queue
+        slicedList = self.tracks[self.nextTrack[ctx.guild.id]:]
+        listAmmount = math.ceil(len(slicedList)/10)
+        splittedList = Utils.listSplit(slicedList, 10, listAmmount)
+        # Create embed objects for each page
+        pages = []
+        for countArr, arr in enumerate(splittedList):
+            tempEmbed = Embed(title=f"{ctx.guild.name} Radio Queue", colour=self.colour)
+            tempEmbed.set_footer(text=f"Page {countArr+1} of {listAmmount}. Track Total: {len(slicedList)}")
+            tempDescription = ""
+            for countTrack, track in enumerate(arr):
+                tempTitleAuthor = track.query.split(" - ")
+                tempDescription += f"{(countArr*10)+countTrack+1}. {tempTitleAuthor[0]} by {tempTitleAuthor[1]}\n"
+            tempEmbed.description = tempDescription
+            pages.append(tempEmbed)
+        # Create paginator
+        paginator = Paginator(ctx, self.client)
+        paginator.addPages(pages)
+        await paginator.start()
 
     # Function to run channelCheck for Radio
     async def cog_check(self, ctx):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx, error):
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx, error):
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Radio cog
