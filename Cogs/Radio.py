@@ -176,7 +176,7 @@ class Radio(commands.Cog):
             await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
     # queue command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help=f"TO DO. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
+    @commands.command(help=f"Displays a server's radio queue. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def queue(self, ctx):
         # Create variables needed for the queue
