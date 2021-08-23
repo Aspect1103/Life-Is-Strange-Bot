@@ -1,4 +1,5 @@
 # Builtin
+import asyncio
 from pathlib import Path
 import random
 # Pip
@@ -46,9 +47,9 @@ class Radio(commands.Cog):
         # Create a wavelink node to play music
         await self.client.wait_until_ready()
         await wavelink.NodePool.create_node(bot=self.client,
-                                            host="lava.link",
-                                            port=80,
-                                            password="anything as a password",
+                                            host="192.168.1.227",
+                                            port=2333,
+                                            password="",
                                             region=VoiceRegion.london,
                                             spotify_client=spotify.SpotifyClient(client_id=Config.spotifyID, client_secret=Config.spotifySecret),
                                             identifier="LiSBot")
@@ -108,20 +109,29 @@ class Radio(commands.Cog):
         # Play the next song
         await player.play(self.tracks[self.nextTrack[player.guild.id]])
 
-    # # Runs when a member changes their voicestate
-    # @commands.Cog.listener()
-    # async def on_voice_state_update(self, member, before, after):
-    #     # Test if the bot is connected and if the member is the bot
-    #     if self.isConnected(member.guild) and member.id != self.client.user.id:
-    #         # Test if there is only 1 member left (will have to be bot)
-    #         voiceClientChannel = self.getVoiceClient(member.guild).channel
-    #         if len(voiceClientChannel.members) == 1:
-    #             # Wait 5 minutes and then disconnect if there is still inactivity
-    #             await Utils.commandDebugEmbed(self.textChannel[member.guild.id], f"Warning! Bot will disconnect in 1 minute due to inactivity. Please join {voiceClientChannel.mention} to stop this")
-    #             await asyncio.sleep(60)
-    #             # Test again if there is only 1 member
-    #             if len(voiceClientChannel.members) == 1:
-    #                 await self.stopBot(member.guild)
+    # Runs when a member changes their voicestate
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        # Test if the bot is connected to the voice channel
+        if self.isConnected(member.guild):
+            voiceClientChannel = self.getVoiceClient(member.guild).channel
+            # Test if the bot is the only one connected to the voice channel
+            if len(voiceClientChannel.members) == 1:
+                # Wait a second so the warning can be the last embed sent
+                await asyncio.sleep(1)
+                message = await Utils.commandDebugEmbed(self.textChannel[member.guild.id], f"Warning! Bot will disconnect in 1 minute due to inactivity. Please join {voiceClientChannel.mention} to stop this")
+                # Test every second for a minute if a user has joined the voice channel
+                timeLeft = 60
+                while timeLeft > 0:
+                    if len(voiceClientChannel.members) > 1:
+                        # A user joined the voice channel so stop testing and delete the warning
+                        await message.delete()
+                        return None
+                    else:
+                        await asyncio.sleep(1)
+                        timeLeft -= 1
+                # No one joined so stop the bot
+                await self.stopBot(member.guild)
 
     # connect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Connects the bot to a voice channel. It has a cooldown of {Utils.long} seconds", usage="connect", brief="Radio")
