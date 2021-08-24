@@ -28,7 +28,8 @@ class Radio(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.colour = Colour.from_rgb(255, 192, 203)
-        self.tracks = wavelink.Queue()
+        self.orgTracks = None
+        self.tracks = None
         self.trackCounter = None
         self.nextTrack = None
         self.textChannel = None
@@ -56,15 +57,15 @@ class Radio(commands.Cog):
                                             spotify_client=spotify.SpotifyClient(client_id=Config.spotifyID, client_secret=Config.spotifySecret),
                                             identifier="LiSBot")
 
-        # Grab all songs and randomise them
-        self.tracks = [partialTrack async for partialTrack in spotify.SpotifyTrack.iterator(query="6jCdO6RGfNw4siuCKpIBgM", partial_tracks=True)]
-        random.shuffle(self.tracks)
-
         # Create dictionary for each guild to store variables
+        self.tracks = {guild.id: [] for guild in self.client.guilds}
         self.trackCounter = {guild.id: 0 for guild in self.client.guilds}
         self.nextTrack = {guild.id: 0 for guild in self.client.guilds}
         self.textChannel = {guild.id: None for guild in self.client.guilds}
         self.infoMessage = {guild.id: None for guild in self.client.guilds}
+
+        # Grab all songs and randomise them
+        self.orgTracks = [partialTrack async for partialTrack in spotify.SpotifyTrack.iterator(query="6jCdO6RGfNw4siuCKpIBgM", partial_tracks=True)]
 
         # Setup radio lines array
         self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
@@ -92,8 +93,12 @@ class Radio(commands.Cog):
         # Increment the guild counters
         self.trackCounter[player.guild.id] += 1
         self.nextTrack[player.guild.id] += 1
+        # Detect if the queue has reached the end
+        if self.nextTrack[player.guild.id] == len(self.tracks[player.guild.id]):
+            random.shuffle(self.tracks[player.guild.id])
+            self.nextTrack[player.guild.id] = 0
         # Display details on the currently running song
-        titleAuthor = self.tracks[self.nextTrack[player.guild.id]-1].query.split(" - ")
+        titleAuthor = self.tracks[player.guild.id][self.nextTrack[player.guild.id]-1].query.split(" - ")
         infoEmbed = Embed(title=f"Now Playing: {titleAuthor[0]} by {titleAuthor[1]}", colour=self.colour)
         infoEmbed.add_field(name="Link", value=track.uri, inline=True)
         infoEmbed.add_field(name="Duration", value=str(pendulum.duration(seconds=track.duration)), inline=True)
@@ -109,7 +114,7 @@ class Radio(commands.Cog):
             await self.sendRadioLine(player.guild.id)
             self.infoMessage[player.guild.id] = await self.textChannel[player.guild.id].send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         # Play the next song
-        await player.play(self.tracks[self.nextTrack[player.guild.id]])
+        await player.play(self.tracks[player.guild.id][self.nextTrack[player.guild.id]])
 
     # Runs when a member changes their voicestate
     @commands.Cog.listener()
@@ -158,7 +163,9 @@ class Radio(commands.Cog):
                 await self.sendRadioLine(ctx.guild.id)
                 self.infoMessage[ctx.guild.id] = await textChannel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
                 # Play music
-                await player.play(self.tracks[self.nextTrack[player.guild.id]])
+                random.shuffle(self.orgTracks)
+                self.tracks[ctx.guild.id] = self.orgTracks
+                await player.play(self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]])
             else:
                 await Utils.commandDebugEmbed(ctx.channel, f"Ensure there is both a text channel and a voice channel registered with {ctx.prefix}channel")
         else:
@@ -179,25 +186,29 @@ class Radio(commands.Cog):
     @commands.command(help=f"Displays a server's radio queue. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def queue(self, ctx):
-        # Create variables needed for the queue
-        slicedList = self.tracks[self.nextTrack[ctx.guild.id]:]
-        listAmmount = math.ceil(len(slicedList)/10)
-        splittedList = Utils.listSplit(slicedList, 10, listAmmount)
-        # Create embed objects for each page
-        pages = []
-        for countArr, arr in enumerate(splittedList):
-            tempEmbed = Embed(title=f"{ctx.guild.name} Radio Queue", colour=self.colour)
-            tempEmbed.set_footer(text=f"Page {countArr+1} of {listAmmount}. Track Total: {len(slicedList)}")
-            tempDescription = ""
-            for countTrack, track in enumerate(arr):
-                tempTitleAuthor = track.query.split(" - ")
-                tempDescription += f"{(countArr*10)+countTrack+1}. {tempTitleAuthor[0]} by {tempTitleAuthor[1]}\n"
-            tempEmbed.description = tempDescription
-            pages.append(tempEmbed)
-        # Create paginator
-        paginator = Paginator(ctx, self.client)
-        paginator.addPages(pages)
-        await paginator.start()
+        # Test if the bot is already connected
+        if self.isConnected(ctx.guild):
+            # Create variables needed for the queue
+            slicedList = self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]:]
+            listAmmount = math.ceil(len(slicedList)/10)
+            splittedList = Utils.listSplit(slicedList, 10, listAmmount)
+            # Create embed objects for each page
+            pages = []
+            for countArr, arr in enumerate(splittedList):
+                tempEmbed = Embed(title=f"{ctx.guild.name} Radio Queue", colour=self.colour)
+                tempEmbed.set_footer(text=f"Page {countArr+1} of {listAmmount}. Track Total: {len(slicedList)}")
+                tempDescription = ""
+                for countTrack, track in enumerate(arr):
+                    tempTitleAuthor = track.query.split(" - ")
+                    tempDescription += f"{(countArr*10)+countTrack+1}. {tempTitleAuthor[0]} by {tempTitleAuthor[1]}\n"
+                tempEmbed.description = tempDescription
+                pages.append(tempEmbed)
+            # Create paginator
+            paginator = Paginator(ctx, self.client)
+            paginator.addPages(pages)
+            await paginator.start()
+        else:
+            await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
     # Function to run channelCheck for Radio
     async def cog_check(self, ctx):
