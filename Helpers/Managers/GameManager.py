@@ -1,9 +1,8 @@
 # Builtin
 import asyncio
 # Pip
-from discord import Colour
-from discord import Client
-from discord import Embed
+from discord.ext.commands import Bot, Context
+from discord import Colour, Embed, Reaction, User
 # Custom
 from Helpers.Games.TicTacToe import TicTacToe
 from Helpers.Games.Connect4 import Connect4
@@ -22,7 +21,7 @@ class GameManager:
         4 - Anagram (singleplayer)
     """
     # Initialise variables
-    def __init__(self, client: Client, colour: Colour):
+    def __init__(self, client: Bot, colour: Colour) -> None:
         self.client = client
         self.colour = colour
         self.gameInitReaction = "✅"
@@ -33,14 +32,14 @@ class GameManager:
         self.gameAllowed = None
 
     # Function to check a move for a game
-    def checkMove(self, reaction, user):
+    def checkMove(self, reaction: Reaction, user: User) -> bool:
         if self.ID == 1 or self.ID == 2:
             return reaction.message.id == self.gameObj[self.ctx.guild.id].gameMessage.id and user.id == self.gameObj[self.ctx.guild.id].nextPlayer.id and str(reaction) in self.gameObj[self.ctx.guild.id].gameEmojis
         elif self.ID == 3 or self.ID == 4:
             return reaction.message.id == self.gameObj[self.ctx.guild.id].gameMessage.id and self.gameObj[self.ctx.guild.id].user.id == user.id and str(reaction) in self.gameObj[self.ctx.guild.id].gameEmojis
 
     # Function to run a game based on a specific ID
-    async def runGame(self, ctx, ID):
+    async def runGame(self, ctx: Context, ID: int) -> None:
         self.ctx = ctx
         self.ID = ID
         if self.gameAllowed[self.ctx.guild.id]:
@@ -64,13 +63,13 @@ class GameManager:
             await Utils.commandDebugEmbed(self.ctx.channel, "New game not allowed. Finish any currently running games")
 
     # Function to manage singleplayer games
-    async def singleplayer(self):
+    async def singleplayer(self) -> None:
         self.gameObj[self.ctx.guild.id].gameMessage = await self.ctx.channel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         await self.runner()
 
     # Function to manage twoplayer games
-    async def twoplayer(self):
-        def gameReactChecker(reaction, user):
+    async def twoplayer(self) -> None:
+        def gameReactChecker(reaction: Reaction, user: User) -> bool:
             return user.id != self.client.user.id and str(reaction) == self.gameInitReaction and reaction.message.guild.id == self.gameObj[self.ctx.guild.id].ctx.guild.id and user.id != self.gameObj[self.ctx.guild.id].ctx.author.id
         initialEmbed = Embed(title=f"{self.gameObj[self.ctx.guild.id]} Request", description=f"{self.gameObj[self.ctx.guild.id].player1.mention} wants to play {self.gameObj[self.ctx.guild.id]}. React to this message if you want to challenge them!", colour=self.colour)
         self.gameObj[self.ctx.guild.id].gameMessage = await self.gameObj[self.ctx.guild.id].ctx.send(embed=initialEmbed)
@@ -88,7 +87,7 @@ class GameManager:
             await self.runner()
 
     # Function to run a game
-    async def runner(self):
+    async def runner(self) -> None:
         await self.gameObj[self.ctx.guild.id].embedUpdate()
         for emoji in self.gameObj[self.ctx.guild.id].gameEmojis:
             await self.gameObj[self.ctx.guild.id].gameMessage.add_reaction(emoji)

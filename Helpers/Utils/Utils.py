@@ -1,40 +1,39 @@
 # Builtin
-from datetime import datetime
-from datetime import timedelta
-from pathlib import Path
 import json
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Dict, Any, Union
 # Pip
-from discord.ext import commands
 from AO3.utils import HTTPError
-from discord import Embed
-from discord import Colour
+from discord import TextChannel, Embed, Colour, Message
+from discord.ext import commands
 # Custom
-from .Restrictor import Restrictor
 from .Listener import Listener
+from .Restrictor import Restrictor
 
 
 # Function to create allowedIDs
-def initIDs():
+def initIDs() -> Dict[str, Dict[str, List[int]]]:
     return json.loads(open(idPath, "r").read())
 
 
 # Function to write changes to channelIDs.json
-def idWriter(newDict):
+def idWriter(newDict: Dict[str, Dict[str, List[int]]]) -> None:
     open(idPath, "w").write(json.dumps(newDict, indent=4))
 
 
 # Function to write messages to error.txt
-def errorWrite(error):
+def errorWrite(error: Union[commands.CommandError, str]) -> None:
     open(errorPath, "a").write(f"{datetime.now()}, {error}\n")
 
 
 # Function to determine the time since last game activity
-def gameActivity(lastActivity):
+def gameActivity(lastActivity: datetime) -> bool:
     return datetime.now() > (lastActivity + timedelta(seconds=gameActivityTimeout))
 
 
 # Function to split a list with a set amount of items in each
-def listSplit(arr, perListSize, listAmount):
+def listSplit(arr: List[Any], perListSize: int, listAmount: int) -> List[List[Any]]:
     result = []
     for i in range(listAmount):
         result.append(arr[i * perListSize:i * perListSize + perListSize])
@@ -42,12 +41,12 @@ def listSplit(arr, perListSize, listAmount):
 
 
 # Function to create an embed displaying the command error
-async def commandDebugEmbed(channel, message):
+async def commandDebugEmbed(channel: TextChannel, message: str) -> Message:
     return await channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
 
 
 # Handle errors
-async def errorHandler(ctx, error):
+async def errorHandler(ctx: commands.Context, error: commands.CommandError) -> None:
     if isinstance(error, commands.errors.MissingPermissions):
         await commandDebugEmbed(ctx.channel, "You do not have sufficient permission to run this command")
     elif isinstance(error, commands.errors.NotOwner):

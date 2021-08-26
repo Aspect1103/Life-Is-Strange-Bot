@@ -1,17 +1,16 @@
 # Builtin
 from datetime import datetime
+from typing import List, Union
 # Pip
-from discord.ext.commands import Context
-from discord import Client
-from discord import Embed
-from discord import Colour
 import numpy
+from discord import Embed, Colour, Reaction
+from discord.ext.commands import Context, Bot
 
 
 # Connect4 class to play connect 4 in a discord channel
 class Connect4:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Client, color: Colour):
+    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
         self.ctx = ctx
         self.client = client
         self.colour = color
@@ -29,11 +28,11 @@ class Connect4:
         self.result = None
 
     # Function to return the game name
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Connect 4"
 
     # Function to manage moves made by the player
-    def moveManager(self, reaction):
+    def moveManager(self, reaction: str) -> None:
         if reaction == self.gameEmojis[0]:
             self.addMove(0)
         elif reaction == self.gameEmojis[1]:
@@ -53,7 +52,7 @@ class Connect4:
             self.result = ["Surrender", self.nextPlayer]
 
     # Function to update the 2D array with new moves
-    def addMove(self, columnNumber):
+    def addMove(self, columnNumber: int) -> None:
         availableRows = [i for i in range(len(self.grid)) if self.grid[i][columnNumber] == 0]
         if len(availableRows) != 0:
             self.currentIndex = [availableRows[-1], columnNumber]
@@ -64,16 +63,16 @@ class Connect4:
             self.changeMade = True
 
     # Function to test for a draw
-    def drawCheck(self):
+    def drawCheck(self) -> None:
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
             self.result = ["Draw", self.nextPlayer]
 
     # Function to check for wins
-    def winChecker(self):
+    def winChecker(self) -> None:
         # Function to check for consecutive numbers
-        def consecutiveCheck(row):
+        def consecutiveCheck(row: Union[List[int], numpy.ndarray]) -> bool:
             totalConsecutive = 0
             if self.nextPlayer == self.player1:
                 valueToCheck = 1
@@ -88,15 +87,15 @@ class Connect4:
                     return True
             return False
         # Function to check for vertical wins
-        def verticalCheck():
+        def verticalCheck() -> bool:
             verticalRow = [row[self.currentIndex[1]] for row in self.grid]
             return consecutiveCheck(verticalRow)
         # Function to check for horizontal wins
-        def horizontalCheck():
+        def horizontalCheck() -> bool:
             horizontalRow = self.grid[self.currentIndex[0]]
             return consecutiveCheck(horizontalRow)
         # Function to check for diagonal wins
-        def diagonalCheck():
+        def diagonalCheck() -> bool:
             result = []
             diagonals = self.getDiagonals()
             for direction in diagonals:
@@ -108,7 +107,7 @@ class Connect4:
             self.result = ["Win", self.nextPlayer]
 
     # Function to get the diagonals
-    def getDiagonals(self):
+    def getDiagonals(self) -> List[List[numpy.ndarray]]:
         def getPositive(npArray):
             return [npArray[::-1, :].diagonal(i) for i in range(-npArray.shape[0]+1, npArray.shape[1])]
         def getNegative(npArray):
@@ -117,14 +116,14 @@ class Connect4:
         return [getPositive(npArray), getNegative(npArray)]
 
     # Function to determine who goes next
-    def switchPlayer(self):
+    def switchPlayer(self) -> None:
         if self.nextPlayer == self.player1:
             self.nextPlayer = self.player2
         else:
             self.nextPlayer = self.player1
 
     # Function to process a reaction from the gameManager
-    def processReaction(self, reaction):
+    def processReaction(self, reaction: Reaction) -> None:
         self.lastActivity = datetime.now()
         self.moveManager(str(reaction))
         if self.isPlaying:
@@ -135,7 +134,7 @@ class Connect4:
                 self.switchPlayer()
 
     # Function to update the board
-    async def embedUpdate(self):
+    async def embedUpdate(self) -> None:
         board = ""
         for row in self.grid:
             for item in row:

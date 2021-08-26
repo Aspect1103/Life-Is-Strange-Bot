@@ -1,22 +1,19 @@
 # Builtin
-from pathlib import Path
 import asyncio
-import random
 import math
+import random
+from pathlib import Path
 # Pip
-from discord.channel import TextChannel, VoiceChannel
-from wavelink.ext import spotify
-from discord.ext import commands
-from discord import VoiceRegion
-from discord import Colour
-from discord import Embed
-import discord.utils
-import wavelink
 import pendulum
+import wavelink
+from discord import VoiceRegion, Colour, Embed, Guild, VoiceClient, Member, utils, VoiceState
+from discord.channel import TextChannel, VoiceChannel
+from discord.ext import commands
+from wavelink.ext import spotify
 # Custom
-from Helpers.Utils.Paginator import Paginator
-from Helpers.Utils import Utils
 import Config
+from Helpers.Utils import Utils
+from Helpers.Utils.Paginator import Paginator
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
@@ -25,7 +22,7 @@ radioPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("radi
 
 # Cog to manage radio commands
 class Radio(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client: commands.Bot) -> None:
         self.client = client
         self.colour = Colour.from_rgb(255, 192, 203)
         self.orgTracks = None
@@ -38,15 +35,15 @@ class Radio(commands.Cog):
         self.client.loop.create_task(self.wavelinkInit())
 
     # Function to get a voiceClient
-    def getVoiceClient(self, guild):
-        return discord.utils.get(self.client.voice_clients, guild=guild)
+    def getVoiceClient(self, guild: Guild) -> VoiceClient:
+        return utils.get(self.client.voice_clients, guild=guild)
 
     # Function to determine if the bot is connected to a voice channel
-    def isConnected(self, guild):
+    def isConnected(self, guild: Guild) -> bool:
         return self.getVoiceClient(guild) is not None
 
     # Initialise the wavelink client
-    async def wavelinkInit(self):
+    async def wavelinkInit(self) -> None:
         # Create a wavelink node to play music
         await self.client.wait_until_ready()
         await wavelink.NodePool.create_node(bot=self.client,
@@ -71,11 +68,11 @@ class Radio(commands.Cog):
         self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
 
     # Function to send a radio line to the text channel
-    async def sendRadioLine(self, guildID):
+    async def sendRadioLine(self, guildID: int) -> None:
         await self.textChannel[guildID].send(embed=Embed(title="Today's Announcement From 104.3 KRCT's Steph Gingrich:", description=random.choice(self.radioLines), colour=self.colour))
 
     # Function to disconnect the bot from a voice channel
-    async def stopBot(self, guild):
+    async def stopBot(self, guild: Guild) -> None:
         # Get the voice client
         voiceClient = self.getVoiceClient(guild)
         # Stop the song then disconnect the bot
@@ -89,7 +86,7 @@ class Radio(commands.Cog):
 
     # Runs when a track starts playing
     @commands.Cog.listener()
-    async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.Track):
+    async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.Track) -> None:
         # Increment the guild counters
         self.trackCounter[player.guild.id] += 1
         self.nextTrack[player.guild.id] += 1
@@ -107,7 +104,7 @@ class Radio(commands.Cog):
 
     # Runs when a track stops playing
     @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason):
+    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.Track, reason: str) -> None:
         # Test if 5 songs have played. If so, send a radio line
         if self.trackCounter[player.guild.id] == 5:
             self.trackCounter[player.guild.id] = 0
@@ -118,7 +115,7 @@ class Radio(commands.Cog):
 
     # Runs when a member changes their voicestate
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState) -> None:
         # Test if the bot is connected to the voice channel
         if self.isConnected(member.guild):
             voiceClientChannel = self.getVoiceClient(member.guild).channel
@@ -143,7 +140,7 @@ class Radio(commands.Cog):
     # connect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Connects the bot to a voice channel. It has a cooldown of {Utils.long} seconds", usage="connect", brief="Radio")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def connect(self, ctx):
+    async def connect(self, ctx: commands.Context) -> None:
         # Test if the bot is already connected
         if not self.isConnected(ctx.guild):
             # Verify that there is a text channel and a voice channel registered
@@ -174,7 +171,7 @@ class Radio(commands.Cog):
     # disconnect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Disconnects the bot from a voice channel. It has a cooldown of {Utils.long} seconds", usage="disconnect", brief="Radio")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def disconnect(self, ctx):
+    async def disconnect(self, ctx: commands.Context) -> None:
         # Test if the bot is already connected
         if self.isConnected(ctx.guild):
             # Stop the bot
@@ -185,7 +182,7 @@ class Radio(commands.Cog):
     # queue command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a server's radio queue. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def queue(self, ctx):
+    async def queue(self, ctx: commands.Context) -> None:
         # Test if the bot is already connected
         if self.isConnected(ctx.guild):
             # Create variables needed for the queue
@@ -211,14 +208,14 @@ class Radio(commands.Cog):
             await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
     # Function to run channelCheck for Radio
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Radio cog
-def setup(client):
+def setup(client: commands.Bot) -> None:
     client.add_cog(Radio(client))

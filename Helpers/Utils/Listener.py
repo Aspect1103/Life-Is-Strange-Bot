@@ -1,12 +1,11 @@
 # Builtin
-from pathlib import Path
 import asyncio
 import json
+from pathlib import Path
 # Pip
-from discord import Client
-from discord import Colour
-from discord import Embed
 import pendulum
+from discord import Colour, Embed
+from discord.ext.commands import Bot
 # Custom
 from Helpers.Utils import Utils
 
@@ -18,21 +17,21 @@ historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpa
 # Listener class to run specific events on startup
 class Listener:
     # Initialise variables
-    def __init__(self):
+    def __init__(self) -> None:
         self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
         self.colour = Colour.purple()
         self.client = None
 
     # Function to set the client variables
-    def setClient(self, client: Client):
+    def setClient(self, client: Bot) -> None:
         self.client = client
 
     # Function which starts the various events
-    async def start(self):
+    async def start(self) -> None:
         await self.historyEvents()
 
     # Sends a message detailing a LiS event which happened on the same day
-    async def historyEvents(self):
+    async def historyEvents(self) -> None:
         # Get tomorrow's date so once midnight hits, the correct date can be checked
         tomorrowDate = pendulum.now().add(days=1)
         midnight = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)

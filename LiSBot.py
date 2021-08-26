@@ -1,15 +1,13 @@
 # Builtin
+from typing import List
 import logging
-import os
+from pathlib import Path
 # Pip
+from discord import Status, Activity, ActivityType, Intents, Guild
 from discord.ext import commands
-from discord import Status
-from discord import Activity
-from discord import ActivityType
-from discord import Intents
 # Custom
-from Helpers.Utils import Utils
 import Config
+from Helpers.Utils import Utils
 
 # Discord variables
 intents = Intents.default()
@@ -17,22 +15,22 @@ intents.members = True
 client = commands.Bot(command_prefix="$", intents=intents)
 
 # Path variables
-rootDirectory = os.path.join(os.path.dirname(__file__))
-logPath = os.path.join(rootDirectory, "DebugFiles", "lisBot.log")
+rootDirectory = Path(__file__).parent
+logPath = rootDirectory.joinpath("DebugFiles").joinpath("lisBot.log")
 
 
-# Run when discord bot has joined a guild
+# Runs when the bot joins a guild
 @client.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: Guild) -> None:
     tempDict = Utils.IDs
     for key, value in tempDict.items():
         value[str(guild.id)] = [-1]
     Utils.idWriter(tempDict)
 
 
-# Run when discord bot has left a guild
+# Runs when the bot leaves a guild
 @client.event
-async def on_guild_remove(guild):
+async def on_guild_remove(guild: Guild) -> None:
     tempDict = Utils.IDs
     for key, value in tempDict.items():
         del value[str(guild.id)]
@@ -41,7 +39,7 @@ async def on_guild_remove(guild):
 
 # Runs when the bot has has started
 @client.event
-async def on_ready():
+async def on_ready() -> None:
     # Setup the client variable for the restrictor and listener class
     Utils.restrictor.setClient(client)
     Utils.listener.setClient(client)

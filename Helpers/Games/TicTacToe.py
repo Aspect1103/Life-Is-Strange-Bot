@@ -1,16 +1,15 @@
 # Builtin
+from typing import List
 from datetime import datetime
 # Pip
-from discord.ext.commands import Context
-from discord import Client
-from discord import Embed
-from discord import Colour
+from discord.ext.commands import Context, Bot
+from discord import Embed, Colour, Reaction
 
 
 # TicTacToe class to play tic tac toe in a discord channel
 class TicTacToe:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Client, color: Colour):
+    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
         self.ctx = ctx
         self.client = client
         self.colour = color
@@ -27,11 +26,11 @@ class TicTacToe:
         self.result = None
 
     # Function to return the game name
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "TicTacToe"
 
     # Function to manage moves made by the player
-    def moveManager(self, reaction):
+    def moveManager(self, reaction: str) -> None:
         if reaction == self.gameEmojis[0]:
             self.addMove([0, 0])
         elif reaction == self.gameEmojis[1]:
@@ -55,7 +54,7 @@ class TicTacToe:
             self.result = ["Surrender", self.nextPlayer]
 
     # Function to update the 2D array with new moves
-    def addMove(self, index):
+    def addMove(self, index: List[int]) -> None:
         if self.grid[index[0]][index[1]] == 0:
             self.changeMade = True
             if self.nextPlayer == self.player1:
@@ -64,14 +63,14 @@ class TicTacToe:
                 self.grid[index[0]][index[1]] = 2
 
     # Function to test for a draw
-    def drawCheck(self):
+    def drawCheck(self) -> None:
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
             self.result = ["Draw", self.nextPlayer]
 
     # Function to check for wins
-    def winChecker(self):
+    def winChecker(self) -> None:
         checks = [
             # Horizontal checks
             self.grid[0][0] == self.grid[0][1] == self.grid[0][2] and self.grid[0][0] != 0 and self.grid[0][1] != 0 and self.grid[0][2] != 0,
@@ -90,14 +89,14 @@ class TicTacToe:
             self.result = ["Win", self.nextPlayer]
 
     # Function to determine who goes next
-    def switchPlayer(self):
+    def switchPlayer(self) -> None:
         if self.nextPlayer == self.player1:
             self.nextPlayer = self.player2
         else:
             self.nextPlayer = self.player1
 
     # Function to process a reaction from the gameManager
-    def processReaction(self, reaction):
+    def processReaction(self, reaction: Reaction) -> None:
         self.lastActivity = datetime.now()
         self.moveManager(str(reaction))
         if self.isPlaying:
@@ -108,7 +107,7 @@ class TicTacToe:
                 self.switchPlayer()
 
     # Function to update the board
-    async def embedUpdate(self):
+    async def embedUpdate(self) -> None:
         board = ""
         for row in self.grid:
             for item in row:

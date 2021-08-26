@@ -3,10 +3,8 @@ from datetime import datetime
 from pathlib import Path
 import random
 # Pip
-from discord.ext.commands import Context
-from discord import Client
-from discord import Colour
-from discord import Embed
+from discord.ext.commands import Context, Bot
+from discord import Colour, Embed, Reaction
 # Custom
 from Helpers.Utils import Utils
 
@@ -18,7 +16,7 @@ lisWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("l
 # Hangman class to play LiS hangman in a discord channel
 class Hangman:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Client, color: Colour):
+    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
         self.ctx = ctx
         self.client = client
         self.colour = color
@@ -47,11 +45,11 @@ class Hangman:
         self.result = None
 
     # Function to return the game name
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Hangman"
 
     # Create the title for the embed
-    def createTitle(self):
+    def createTitle(self) -> str:
         if self.isPlaying:
             temp = "".join(self.title).capitalize()
             return f"Connect 4 - {temp}"
@@ -62,7 +60,7 @@ class Hangman:
                 return f"You Lose. The Correct Word Was {self.chosenWord.capitalize()}"
 
     # Check for a win or lose
-    def winCheck(self):
+    def winCheck(self) -> None:
         if "".join(self.title) == self.chosenWord:
             self.isPlaying = False
             self.result = "Win"
@@ -71,12 +69,12 @@ class Hangman:
             self.result = "Lose"
 
     # Function to process a reaction from the gameManager
-    def processReaction(self, _):
+    def processReaction(self, _: Reaction) -> None:
         self.isPlaying = False
         self.result = "Lose"
 
     # Update the embed
-    async def embedUpdate(self):
+    async def embedUpdate(self) -> None:
         # Update the message with the guessed letter, try count and the new image
         hangmanEmbed = Embed(title=self.createTitle(), colour=self.colour)
         if len(self.guessedLetters) == 0:
@@ -89,7 +87,7 @@ class Hangman:
         await self.gameMessage.edit(embed=hangmanEmbed)
 
     # Make a guess of one of the characters
-    async def guess(self, guessCharacter):
+    async def guess(self, guessCharacter: str) -> None:
         if guessCharacter is None:
             await Utils.commandDebugEmbed(self.ctx.channel, "Make sure a character is being guessed")
         else:

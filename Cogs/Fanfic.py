@@ -1,19 +1,20 @@
 # Builtin
-from pathlib import Path
-import random
 import asyncio
+from datetime import datetime
 import math
+import random
+from pathlib import Path
+from typing import Tuple, Union, List, Any, Optional
 # Pip
-from discord.ext import commands
-from discord import Colour
-from discord import Embed
-import gspread
 import AO3
+import gspread
+from discord import Colour, Embed, Message
+from discord.ext import commands
 # Custom
-from Helpers.Managers.SearchQuoteManager import SearchQuoteManager
-from Helpers.Utils.Paginator import Paginator
-from Helpers.Utils import Utils
 import Config
+from Helpers.Managers.SearchQuoteManager import SearchQuoteManager
+from Helpers.Utils import Utils
+from Helpers.Utils.Paginator import Paginator
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
@@ -23,7 +24,7 @@ ignorePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("ign
 # Cog to manage fanfic commands
 class Fanfic(commands.Cog):
     # Initialise the client
-    def __init__(self, client):
+    def __init__(self, client: commands.Bot) -> None:
         self.client = client
         self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
         self.colour = Colour.green()
@@ -33,7 +34,7 @@ class Fanfic(commands.Cog):
         self.fanficInit()
 
     # Function to initialise fanfic variables
-    def fanficInit(self):
+    def fanficInit(self) -> None:
         # Creates the formatted 2D array for the google spreadsheet
         serviceAccount = gspread.service_account_from_dict(Config.serviceAccount)
         worksheet = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
@@ -48,7 +49,7 @@ class Fanfic(commands.Cog):
         self.ignore = [line for line in open(ignorePath, "r").readlines()]
 
     # Function to create quotes
-    def quoteMaker(self, ficLink):
+    def quoteMaker(self, ficLink: str) -> Tuple[str, Union[AO3.Work, None], Union[str, None], Union[str, None]]:
         work = AO3.Work(AO3.utils.workid_from_url(ficLink), self.session)
         if work.title == "":
             # Work is secret
@@ -68,11 +69,11 @@ class Fanfic(commands.Cog):
         return "", None, None, None
 
     # Function to convert a list
-    def listConverter(self, lst, author=False):
+    def listConverter(self, lst: List[Any], author: bool = False) -> str:
         return ", ".join([item for item in lst]) if not author else ", ".join([author.username for author in lst])
 
     # Function to create embeds
-    def quoteEmbedCreater(self, quote, work, authors, chapterName):
+    def quoteEmbedCreater(self, quote: str, work: AO3.Work, authors: str, chapterName: str) -> Embed:
         quoteEmbed = Embed(colour=self.colour)
         quoteEmbed.title = work.title
         quoteEmbed.url = work.url
@@ -81,7 +82,7 @@ class Fanfic(commands.Cog):
         return quoteEmbed
 
     # Function to find the last quote posted
-    async def findLastQuote(self, ctx, before=None, repeats=0):
+    async def findLastQuote(self, ctx: commands.Context, before: datetime = None, repeats: int = 0) -> Union[Message, None]:
         lastMessage = None
         repeats += 1
         async for message in ctx.channel.history(limit=100, before=before):
@@ -96,14 +97,14 @@ class Fanfic(commands.Cog):
 
     # Function which runs once the bot is setup and running
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         # Create dictionary for each guild to hold the quote searcher
         self.quoteSearcher = {guild.id: None for guild in self.client.guilds}
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote (includeNSFW)", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def quote(self, ctx, includeNsfw="No"):
+    async def quote(self, ctx: commands.Context, includeNsfw: Optional[str] = "No") -> None:
         if includeNsfw.capitalize() == "Yes":
             tempArr = [item for item in self.worksheetArray if item[7] == "Yes" or item[7] == "?"]
         else:
@@ -121,7 +122,7 @@ class Fanfic(commands.Cog):
     # nextQuote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["nq"], help=f"Finds the last quote posted and picks another quote from the same story. It has a cooldown of {Utils.medium} seconds", usage="nextQuote|nq", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def nextQuote(self, ctx):
+    async def nextQuote(self, ctx: commands.Context) -> None:
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Cannot find the last quote. Try running {ctx.prefix}quote")
@@ -140,13 +141,13 @@ class Fanfic(commands.Cog):
     # Base function to initialise the searchQuote group commands with a cooldown of 5 seconds
     @commands.group(invoke_without_command=True, aliases=["sq"], help=f"Group command for searching for specific fics. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="searchQuote|sq", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def searchQuote(self, ctx):
+    async def searchQuote(self, ctx: commands.Context) -> None:
        await ctx.send_help(ctx.command)
 
     # searchQuote start command with a cooldown of 1 use every 60 seconds per guild
     @searchQuote.command(help=f"Starts the quote searcher to search for specific fics. If no filter is added for the 'smut' field, all NSFW fics will be excluded. It has a cooldown of {Utils.long} seconds", usage="searchQuote|sq start", brief="Fanfic")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def start(self, ctx):
+    async def start(self, ctx: commands.Context) -> None:
         # Function to check a user's reaction
         def checker(reaction, user):
             return reaction.message.id == self.quoteSearcher[ctx.guild.id].message.id and user.id == self.quoteSearcher[ctx.guild.id].ctx.author.id and str(reaction) == "⏹️"
@@ -190,7 +191,7 @@ class Fanfic(commands.Cog):
     # searchQuote add command with a cooldown of 1 use every 5 seconds per guild
     @searchQuote.command(help=f"Add a filter to the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCategory - The category which you want to add a filter for. They are as follows:\n> Title - Result contains this term\n> Author - Result contains this term\n> Ship - Result matches this term\n> Series - Result contains this term\n> Status - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\n> Smut - Result matches this term. Can either be 'Yes', 'No' or '?'\n> Words - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\n> Chapters - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\nTerm - The term you want to filter for", usage="searchQuote|sq (category) (term)", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def add(self, ctx, category=None, term=None):
+    async def add(self, ctx: commands.Context, category: str = None, term: str = None) -> None:
         if self.quoteSearcher[ctx.guild.id] is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
@@ -202,7 +203,7 @@ class Fanfic(commands.Cog):
     # searchQuote remove command with a cooldown of 1 use every 5 seconds per guild
     @searchQuote.command()
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def remove(self, ctx, category=None):
+    async def remove(self, ctx: commands.Context, category: str = None) -> None:
         if self.quoteSearcher[ctx.guild.id] is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Quote searcher not initialised. Run {ctx.prefix}searchQuote|sq start to initialise it")
         else:
@@ -214,7 +215,7 @@ class Fanfic(commands.Cog):
     # outline command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Finds the last quote posted and displays the metadata for that fic. It has a cooldown of {Utils.medium} seconds", usage="outline", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def outline(self, ctx):
+    async def outline(self, ctx: commands.Context) -> None:
         # Get the last quote posted and store its url
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
@@ -254,7 +255,7 @@ class Fanfic(commands.Cog):
     # works command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Finds the last quote posted and displays all works posted by that author. It has a cooldown of {Utils.long} seconds", usage="works", brief="Fanfic")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def works(self, ctx):
+    async def works(self, ctx: commands.Context) -> None:
         # Get the last quote posted and create an AO3 User object
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
@@ -299,14 +300,14 @@ class Fanfic(commands.Cog):
                 await Utils.commandDebugEmbed(ctx.channel, f"{authorName} has {user.works} works which is over the limit of {pageLimit * 20}")
 
     # Function to run channelCheck for Fanfic
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Fanfic cog
-def setup(client):
+def setup(client: commands.Bot) -> None:
     client.add_cog(Fanfic(client))

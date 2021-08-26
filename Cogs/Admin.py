@@ -1,13 +1,15 @@
+# Builtin
+from typing import Tuple, Union
 # Pip
 from discord.ext import commands
-from discord import Embed
-from discord import Colour
+from discord import Embed, Colour
 # Custom
 from Helpers.Utils import Utils
 
+
 # Custom check for administrator permissions or owner
 def adminOrOwner():
-    async def predicate(ctx):
+    async def predicate(ctx: commands.Context) -> bool:
         if ctx.author.permissions_in(ctx.channel).administrator:
             return True
         else:
@@ -19,12 +21,12 @@ def adminOrOwner():
 
 # Cog to manage admin commands
 class Admin(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client: commands.Bot) -> None:
         self.client = client
         self.colour = Colour.orange()
 
     # Function to verify a channel command
-    def channelVerify(self, ctx, sect, chnlMent):
+    def channelVerify(self, ctx: commands.Context, sect: str, chnlMent: str) -> Tuple[Union[str, bool], Union[str, None], Union[int, None]]:
         if sect is None and chnlMent is None:
             # Too little arguments
             return "Missing arguments", None, None
@@ -47,21 +49,21 @@ class Admin(commands.Cog):
     # stop command to stop the bot
     @commands.command(help="Stops the bot", usage="stop", brief="Bot Bidness")
     @commands.is_owner()
-    async def stop(self, ctx):
+    async def stop(self, ctx: commands.Context) -> None:
         await ctx.channel.send("Stopping bot")
         await self.client.close()
 
     # Base function to initialise the channel group commands with a cooldown of 6 seconds
     @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Bidness")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def channel(self, ctx):
+    async def channel(self, ctx: commands.Context) -> None:
         await ctx.send_help(ctx.command)
 
     # channel add command with a cooldown of 1 use every 20 seconds per guild
     @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
-    async def add(self, ctx, section=None, channelMent=None):
+    async def add(self, ctx: commands.Context, section: str = None, channelMent: str = None) -> None:
         # Run verifier
         result, sect, ID = self.channelVerify(ctx, section, channelMent)
         if result is True:
@@ -88,7 +90,7 @@ class Admin(commands.Cog):
     @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
-    async def remove(self, ctx, section=None, channelMent=None):
+    async def remove(self, ctx: commands.Context, section: str = None, channelMent: str = None) -> None:
         # Run verifier
         result, sect, ID = self.channelVerify(ctx, section, channelMent)
         if result is True:
@@ -114,7 +116,7 @@ class Admin(commands.Cog):
     # channel list command with a cooldown of 1 use every 20 seconds per guild
     @channel.command(help=f"Lists all the channels a section is allowed in. It has a cooldown of {Utils.short} seconds", usage="channel list", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def list(self, ctx):
+    async def list(self, ctx: commands.Context) -> None:
         # Create embed
         listEmbed = Embed(title="Restricted Categories/Commmands", colour=self.colour)
         for key, value in Utils.IDs.items():
@@ -132,7 +134,7 @@ class Admin(commands.Cog):
     # botRefresh command
     @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Bidness")
     @commands.is_owner()
-    async def botRefresh(self, ctx):
+    async def botRefresh(self, ctx: commands.Context) -> None:
         await Utils.commandDebugEmbed(ctx.channel, "Refreshing extensions")
         # List to store extension names
         extensions = Utils.extensions
@@ -148,20 +150,20 @@ class Admin(commands.Cog):
     @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
-    async def channelRefresh(self, ctx):
+    async def channelRefresh(self, ctx: commands.Context) -> None:
         await Utils.commandDebugEmbed(ctx.channel, "Refreshing channel IDs")
         Utils.restrictor.IDs = Utils.initIDs()
         await Utils.commandDebugEmbed(ctx.channel, "Finished channel IDs")
 
     # Function to run channelCheck for Admin
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Admin cog
-def setup(client):
+def setup(client: commands.Bot) -> None:
     client.add_cog(Admin(client))

@@ -1,12 +1,10 @@
 # Builtin
+import random
 from datetime import datetime
 from pathlib import Path
-import random
 # Pip
-from discord.ext.commands import Context
-from discord import Client
-from discord import Colour
-from discord import Embed
+from discord import Colour, Embed, Reaction
+from discord.ext.commands import Context, Bot
 # Custom
 from Helpers.Utils import Utils
 
@@ -18,7 +16,7 @@ lisWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("l
 # Anagram class to play a LiS anagram puzzle game
 class Anagram:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Client, color: Colour):
+    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
         self.ctx = ctx
         self.client = client
         self.colour = color
@@ -36,17 +34,17 @@ class Anagram:
         self.result = None
 
     # Function to return the game name
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Anagram"
 
     # Function to setup the anagram
-    def setupAnagram(self):
+    def setupAnagram(self) -> str:
         temp = list(self.chosenWord)
         random.shuffle(temp)
         return "".join(temp)
 
     # Create the title for the embed
-    def createTitle(self):
+    def createTitle(self) -> str:
         if self.isPlaying:
             return f"Anagram - {self.anagram.capitalize()}"
         else:
@@ -56,12 +54,12 @@ class Anagram:
                 return f"You Lose. {self.anagram.capitalize()} Is An Anagram Of {self.chosenWord.capitalize()}"
 
     # Function to process a reaction from the gameManager
-    def processReaction(self, _):
+    def processReaction(self, _: Reaction) -> None:
         self.isPlaying = False
         self.result = "Lose"
 
     # Update the embed
-    async def embedUpdate(self):
+    async def embedUpdate(self) -> None:
         # Update the embed with the total guesses
         anagramEmbed = Embed(title=self.createTitle(), colour=self.colour)
         if len(self.guesses) == 0:
@@ -75,7 +73,7 @@ class Anagram:
         await self.gameMessage.edit(embed=anagramEmbed)
 
     # Make a guess of the anagram
-    async def guess(self, word):
+    async def guess(self, word: str) -> None:
         if word is None:
             await Utils.commandDebugEmbed(self.ctx.channel, "Make sure a character is being guessed")
         else:

@@ -1,18 +1,17 @@
 # Builtin
-from pathlib import Path
-import random
 import asyncio
 import json
 import math
+import random
+from pathlib import Path
+from typing import Optional, Tuple, Union, List, Dict
 # Pip
-from discord.ext import commands
-from discord import Embed
-from discord import Colour
-from discord import File
 import apsw
+from discord import Colour, Embed, File, Reaction, User, Member
+from discord.ext import commands
 # Custom
-from Helpers.Utils.Paginator import Paginator
 from Helpers.Utils import Utils
+from Helpers.Utils.Paginator import Paginator
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
@@ -25,7 +24,7 @@ memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 # Cog to manage life is strange commands
 class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Initialise the client
-    def __init__(self, client):
+    def __init__(self, client: commands.Bot) -> None:
         self.client = client
         self.colour = Colour.purple()
         self.cursor = apsw.Connection(str(lisDatabasePath)).cursor()
@@ -39,7 +38,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.lifeIsStrangeInit()
 
     # Function to initialise life is strange variables
-    def lifeIsStrangeInit(self):
+    def lifeIsStrangeInit(self) -> None:
         # Create trivia questions array
         self.triviaQuestions = json.loads(open(triviaPath, "r").read())
         random.shuffle(self.triviaQuestions)
@@ -52,12 +51,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function which runs once the bot is setup and running
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         # Create dictionary for each guild to hold the trivia counter
         self.nextTrivia = {guild.id: 0 for guild in self.client.guilds}
 
     # Function to create trivia questions
-    def triviaMaker(self, ctx):
+    def triviaMaker(self, ctx: commands.Context) -> Tuple[Embed, int]:
         if self.nextTrivia[ctx.guild.id] == len(self.triviaQuestions):
             # All questions done
             random.shuffle(self.triviaQuestions)
@@ -71,7 +70,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return triviaEmbed, int(randomTrivia["correct option"])
 
     # Function to create final trivia embed
-    def finalTrivia(self, triviaEmbed, correctOption, guess):
+    def finalTrivia(self, triviaEmbed: Embed, correctOption: int, guess: Union[Reaction, None]) -> Embed:
         description = triviaEmbed.description.split("\n")
         newDescription = ""
         for count, option in enumerate(description):
@@ -94,7 +93,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return finalObj
 
     # Function to update a user's trivia score
-    def updateTriviaScores(self, ctx, correctOption, guess):
+    def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
         # Get author's data
         try:
             orgUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {ctx.author.id}"))[0]
@@ -161,18 +160,18 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.updateRanks(ctx.guild.id)
 
     # Function to update the ranks for a specific guild
-    def updateRanks(self, guildID):
+    def updateRanks(self, guildID: int) -> None:
         sortedGuildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")))
         sortedRanks = [(row[0], row[1], row[2], row[3], row[4], count+1) for count, row in enumerate(sortedGuildUsers)]
         for rank in sortedRanks:
             self.cursor.execute(f"UPDATE triviaScores SET rank = {rank[5]} WHERE guildID == {rank[0]} AND userID == {rank[1]}")
 
     # Function to sort a list of trivia scores based on the ranks
-    def rankSort(self, arr):
+    def rankSort(self, arr: List[Tuple[int]]) -> List[Tuple[int]]:
         return sorted(arr, key=lambda x: x[2], reverse=True)
 
     # Function to create a choice embed page
-    def choicePageMaker(self, count, episode):
+    def choicePageMaker(self, count: int, episode: List[Dict[str, str]]) -> Embed:
         episodeEmbed = Embed(title=f"Episode {count} Choices", colour=self.colour)
         majorString = "".join([choice["text"] for choice in episode if choice["major"] == "Yes"])
         minorString = "".join([choice["text"] for choice in episode if choice["major"] == "No"])
@@ -199,14 +198,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to remove a user from the triviaScores database when they leave
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: Member) -> None:
         self.cursor.execute(f"DELETE FROM triviaScores WHERE guildID == {member.guild.id} and userID == {member.id}")
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def trivia(self, ctx):
-        def answerCheck(reaction, user):
+    async def trivia(self, ctx: commands.Context) -> None:
+        def answerCheck(reaction: Reaction, user: User) -> bool:
             return user.id != self.client.user.id
         # Grab random trivia
         triviaObj, correctOption = self.triviaMaker(ctx)
@@ -234,7 +233,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - A mention of the person who's trivia score you want. This argument is option as not including it will return the message author's trivia score", usage="triviaScore|ts (target)", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def triviaScore(self, ctx, target=None):
+    async def triviaScore(self, ctx: commands.Context, target: Optional[str] = None) -> None:
         if target is None:
             targetUser = ctx.author
         else:
@@ -257,37 +256,41 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nPage Number - The page of the leaderboard that you want to see. This argument is optional as not including it will display the 1st page (top 10)", usage="triviaLeaderboard|tl (page number)", brief="Trivia")
-    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def triviaLeaderboard(self, ctx, pageNo="1"):
-        guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
-        scoreList = [item[2] for item in guildUsers]
-        maxPage = math.ceil(len(guildUsers)/10)
-        splittedList = Utils.listSplit(guildUsers, 10, maxPage)
+    @commands.cooldown(1, 0, commands.BucketType.guild)
+    async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
+            guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+            scoreList = [item[2] for item in guildUsers]
+            maxPage = math.ceil(len(guildUsers) / 10)
+            splittedList = Utils.listSplit(guildUsers, 10, maxPage)
             pageNo = int(pageNo)
-            if 1 <= pageNo <= maxPage:
-                # Valid page number so display embed
-                triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
-                leaderboardDescription = ""
-                for user in splittedList[pageNo-1]:
-                    userName = await self.client.fetch_user(user[1])
-                    leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
-                if leaderboardDescription == "":
-                    leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
-                triviaLeaderboardEmbed.description = leaderboardDescription
-                triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10]) / len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList) / len(scoreList))} | Total User Count: {len(guildUsers)} | Page {pageNo} of {maxPage}")
-                await ctx.channel.send(embed=triviaLeaderboardEmbed)
+            if maxPage != 0:
+                if 1 <= pageNo <= maxPage:
+                    # Valid page number so display embed
+                    triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
+                    leaderboardDescription = ""
+                    for user in splittedList[pageNo-1]:
+                        userName = await self.client.fetch_user(user[1])
+                        leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
+                    if leaderboardDescription == "":
+                        leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
+                    triviaLeaderboardEmbed.description = leaderboardDescription
+                    triviaLeaderboardEmbed.set_footer(text=f"Top 10 Average Score: {round(sum(scoreList[:10]) / len(scoreList[:10]))} | Total Average Score: {round(sum(scoreList) / len(scoreList))} | Total User Count: {len(guildUsers)} | Page {pageNo} of {maxPage}")
+                    await ctx.channel.send(embed=triviaLeaderboardEmbed)
+                else:
+                    # Number not in range
+                    await Utils.commandDebugEmbed(ctx.channel, f"Invalid page number. Pick a number between 1 and {maxPage}")
             else:
-                # Number not in range
-                await Utils.commandDebugEmbed(ctx.channel, f"Invalid page number. Pick a number between 1 and {maxPage}")
+                # No users in database
+                await Utils.commandDebugEmbed(ctx.channel, f"No users registered. Run {ctx.prefix}trivia to register some")
         else:
             # Argument is not a number
-            await Utils.commandDebugEmbed(ctx.channel, f"Invalid argument. Pick a number between 1 and {maxPage}")
+            await Utils.commandDebugEmbed(ctx.channel, f"Invalid argument. Pick a valid number")
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def choices(self, ctx, epNumber=None):
+    async def choices(self, ctx: commands.Context, epNumber: Optional[int] = None) -> None:
         if epNumber is None:
             # Display all choices with a paginator
             pages = []
@@ -314,7 +317,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # memory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def memory(self, ctx):
+    async def memory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.memoryImages)))
 
     # # chatbot command with a cooldown of 1 use every 5 seconds per guild
@@ -333,14 +336,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     #     await ctx.channel.send(messageToSend)
 
     # Function to run channelCheck for Life Is Strange
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: commands.Context) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx, error):
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
-def setup(client):
+def setup(client: commands.Bot) -> None:
     client.add_cog(lifeIsStrange(client))
