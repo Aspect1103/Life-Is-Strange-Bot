@@ -87,7 +87,7 @@ class Help(commands.HelpCommand):
         return f"`{self.clean_prefix}{command.qualified_name}` - {command.help}"
 
     # Function to create aliases string
-    def create_alises(self, command: commands.Command) -> str:
+    def createAliases(self, command: commands.Command) -> str:
         aliases = None
         if len(command.aliases) > 0:
             aliases = "Aliases: " + ", ".join(command.aliases)
@@ -133,7 +133,7 @@ class Help(commands.HelpCommand):
             cogHelpEmbed.set_footer(text=f"{len(cog.get_commands())} commands")
             for command in cog.get_commands():
                 # Create aliases string
-                aliases = self.create_alises(command)
+                aliases = self.createAliases(command)
                 if aliases is not None:
                     cogHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}\n\n{aliases}", inline=False)
                 else:
@@ -150,7 +150,7 @@ class Help(commands.HelpCommand):
         result = await self.channelCheck()
         if result is None:
             # Create aliases string
-            aliases = self.create_alises(group)
+            aliases = self.createAliases(group)
             # Create embed
             groupHelpEmbed = Embed(title=f"{group.qualified_name} Help", colour=self.colour)
             groupHelpEmbed.set_footer(text=f"{len(group.commands)} commands")
@@ -170,7 +170,7 @@ class Help(commands.HelpCommand):
         result = await self.channelCheck()
         if result is None:
             # Create aliases string
-            aliases = self.create_alises(command)
+            aliases = self.createAliases(command)
             # Create embed
             commandHelpEmbed = Embed(title=f"{self.clean_prefix}{command.qualified_name} Help", colour=self.colour)
             if aliases is not None:

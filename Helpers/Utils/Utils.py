@@ -79,7 +79,7 @@ commandGroups = {
     "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
     "radio": ["connect"],
     "general": ["question", "connect4", "tictactoe", "hangman"],
-    "bot bidness": ["stop", "channel", "botRefresh", "channelRefresh", "about"]
+    "bot bidness": ["stop", "channel", "botRefresh", "channelRefresh", "about", "help"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 

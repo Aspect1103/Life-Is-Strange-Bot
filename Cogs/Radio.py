@@ -32,7 +32,20 @@ class Radio(commands.Cog):
         self.textChannel = None
         self.infoMessage = None
         self.radioLines = None
+        self.radioInit()
         self.client.loop.create_task(self.wavelinkInit())
+
+    # Function to initialise radio variables
+    def radioInit(self) -> None:
+        # Create dictionary for each guild to store variables
+        self.tracks = {guild.id: [] for guild in self.client.guilds}
+        self.trackCounter = {guild.id: 0 for guild in self.client.guilds}
+        self.nextTrack = {guild.id: 0 for guild in self.client.guilds}
+        self.textChannel = {guild.id: None for guild in self.client.guilds}
+        self.infoMessage = {guild.id: None for guild in self.client.guilds}
+
+        # Setup radio lines array
+        self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
 
     # Function to get a voiceClient
     def getVoiceClient(self, guild: Guild) -> VoiceClient:
@@ -54,18 +67,8 @@ class Radio(commands.Cog):
                                             spotify_client=spotify.SpotifyClient(client_id=Config.spotifyID, client_secret=Config.spotifySecret),
                                             identifier="LiSBot")
 
-        # Create dictionary for each guild to store variables
-        self.tracks = {guild.id: [] for guild in self.client.guilds}
-        self.trackCounter = {guild.id: 0 for guild in self.client.guilds}
-        self.nextTrack = {guild.id: 0 for guild in self.client.guilds}
-        self.textChannel = {guild.id: None for guild in self.client.guilds}
-        self.infoMessage = {guild.id: None for guild in self.client.guilds}
-
-        # Grab all songs and randomise them
+        # Grab all songs
         self.orgTracks = [partialTrack async for partialTrack in spotify.SpotifyTrack.iterator(query="6jCdO6RGfNw4siuCKpIBgM", partial_tracks=True)]
-
-        # Setup radio lines array
-        self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
 
     # Function to send a radio line to the text channel
     async def sendRadioLine(self, guildID: int) -> None:
