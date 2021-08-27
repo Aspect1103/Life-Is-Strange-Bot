@@ -81,12 +81,9 @@ class General(commands.Cog):
     # hangman guess command with a cooldown of 1 use every 5 seconds per guild
     @hangman.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character to be guessed", usage="hangman guess (character)", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def guess(self, ctx, character: Optional[str] = None):
-        if str(self.gameManager.gameObj) == "Hangman":
-            if ctx.author.id == self.gameManager.gameObj.user.id:
-                await self.gameManager.gameObj.guess(character)
-            else:
-                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess characters")
+    async def guess(self, ctx: commands.Context, character: Optional[str] = None):
+        if str(self.gameManager.gameObj[ctx.guild.id][ctx.author]) == "Hangman":
+            await self.gameManager.gameObj[ctx.guild.id][ctx.author].guess(character)
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Game is not currently running. Start it with {ctx.prefix}hangman start")
 
@@ -106,11 +103,8 @@ class General(commands.Cog):
     @anagram.command(help=f"Guesses a word in an anagram game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nWord - An alphabetic word to be guessed", usage="anagram guess (word)", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def guess(self, ctx: commands.Context, word: Optional[str] = None) -> None:
-        if str(self.gameManager.gameObj) == "Anagram":
-            if ctx.author.id == self.gameManager.gameObj.user.id:
-                await self.gameManager.gameObj.guess(word)
-            else:
-                await Utils.commandDebugEmbed(ctx.channel, f"Only {self.gameManager.gameObj.user.name}#{self.gameManager.gameObj.user.discriminator} can guess words")
+        if str(self.gameManager.gameObj[ctx.guild.id][ctx.author]) == "Anagram":
+            await self.gameManager.gameObj[ctx.guild.id][ctx.author].guess(word)
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Game is not currently running. Start it with {ctx.prefix}anagram start")
 
