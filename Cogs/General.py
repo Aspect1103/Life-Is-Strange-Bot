@@ -25,6 +25,7 @@ class General(commands.Cog):
         self.isNewGameAllowed = True
         self.questionArray = None
         self.generalInit()
+        self.client.loop.create_task(self.startup())
 
     # Function to initialise general variables
     def generalInit(self) -> None:
@@ -34,8 +35,8 @@ class General(commands.Cog):
         self.questionArray = temp
 
     # Function which runs once the bot is setup and running
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
+    async def startup(self) -> None:
+        await self.client.wait_until_ready()
         # Create dictionary for each guild to store variables
         self.gameManager.gameAllowed = {guild.id: True for guild in self.client.guilds}
         self.gameManager.gameObj = {guild.id: {} for guild in self.client.guilds}
@@ -113,8 +114,8 @@ class General(commands.Cog):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the General cog

@@ -33,7 +33,7 @@ class Radio(commands.Cog):
         self.infoMessage = None
         self.radioLines = None
         self.radioInit()
-        self.client.loop.create_task(self.wavelinkInit())
+        self.client.loop.create_task(self.startup())
 
     # Function to initialise radio variables
     def radioInit(self) -> None:
@@ -55,10 +55,10 @@ class Radio(commands.Cog):
     def isConnected(self, guild: Guild) -> bool:
         return self.getVoiceClient(guild) is not None
 
-    # Initialise the wavelink client
-    async def wavelinkInit(self) -> None:
-        # Create a wavelink node to play music
+    # Function which runs once the bot is setup and running
+    async def startup(self) -> None:
         await self.client.wait_until_ready()
+        # Create a wavelink node to play music
         await wavelink.NodePool.create_node(bot=self.client,
                                             host="192.168.1.227",
                                             port=2333,

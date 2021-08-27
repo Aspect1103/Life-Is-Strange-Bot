@@ -6,7 +6,6 @@ import random
 from pathlib import Path
 from typing import Optional, Tuple, Union, List, Dict
 # Pip
-import apsw
 from discord import Colour, Embed, File, Reaction, User, Member
 from discord.ext import commands
 # Custom
@@ -17,7 +16,6 @@ from Helpers.Utils.Paginator import Paginator
 rootDirectory = Path(__file__).parent.parent
 triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("trivia.json")
 choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
-lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
 memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 
 
@@ -27,7 +25,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     def __init__(self, client: commands.Bot) -> None:
         self.client = client
         self.colour = Colour.purple()
-        self.cursor = apsw.Connection(str(lisDatabasePath)).cursor()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         # self.pastInputs = []
         # self.pastResponses = []
@@ -36,6 +33,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.choicesTable = None
         self.memoryImages = None
         self.lifeIsStrangeInit()
+        self.client.loop.create_task(self.startup())
 
     # Function to initialise life is strange variables
     def lifeIsStrangeInit(self) -> None:
@@ -50,8 +48,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.memoryImages = list(memoryPath.glob("*"))
 
     # Function which runs once the bot is setup and running
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
+    async def startup(self) -> None:
+        await self.client.wait_until_ready()
         # Create dictionary for each guild to hold the trivia counter
         self.nextTrivia = {guild.id: 0 for guild in self.client.guilds}
 

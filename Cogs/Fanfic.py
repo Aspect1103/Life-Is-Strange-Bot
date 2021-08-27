@@ -32,6 +32,7 @@ class Fanfic(commands.Cog):
         self.worksheetArray = None
         self.quoteSearcher = None
         self.fanficInit()
+        self.client.loop.create_task(self.startup())
 
     # Function to initialise fanfic variables
     def fanficInit(self) -> None:
@@ -96,8 +97,8 @@ class Fanfic(commands.Cog):
         return None if repeats == 5 else await self.findLastQuote(ctx, lastMessage.created_at, repeats)
 
     # Function which runs once the bot is setup and running
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
+    async def startup(self) -> None:
+        await self.client.wait_until_ready()
         # Create dictionary for each guild to hold the quote searcher
         self.quoteSearcher = {guild.id: None for guild in self.client.guilds}
 

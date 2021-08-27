@@ -8,6 +8,7 @@ from AO3.utils import HTTPError
 from discord import TextChannel, Embed, Colour, Message
 from discord.ext import commands
 # Custom
+from Helpers.Managers.DatabaseManager import DatabaseManager
 from .Listener import Listener
 from .Restrictor import Restrictor
 
@@ -61,15 +62,17 @@ async def errorHandler(ctx: commands.Context, error: commands.CommandError) -> N
     errorWrite(error)
 
 
-# Script variables
-extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
-gameActivityTimeout = 300
-listener = Listener()
-
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
 idPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("channelIDs.json")
+lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
 errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
+
+# Script variables
+extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
+gameActivityTimeout = 300
+database = DatabaseManager(lisDatabasePath)
+listener = Listener()
 
 # Restrictor class initialisation
 IDs = initIDs()

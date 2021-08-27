@@ -19,7 +19,7 @@ rootDirectory = Path(__file__).parent
 logPath = rootDirectory.joinpath("DebugFiles").joinpath("lisBot.log")
 
 
-# Runs when the bot joins a guild
+# Function to modify channelIDs when the bot joins a guild
 @client.event
 async def on_guild_join(guild: Guild) -> None:
     tempDict = Utils.IDs
@@ -28,7 +28,7 @@ async def on_guild_join(guild: Guild) -> None:
     Utils.idWriter(tempDict)
 
 
-# Runs when the bot leaves a guild
+# Function to modify channelIDs when the bot leaves a guild
 @client.event
 async def on_guild_remove(guild: Guild) -> None:
     tempDict = Utils.IDs
@@ -37,12 +37,13 @@ async def on_guild_remove(guild: Guild) -> None:
     Utils.idWriter(tempDict)
 
 
-# Runs when the bot has has started
-@client.event
-async def on_ready() -> None:
-    # Setup the client variable for the restrictor and listener class
+# Function which runs once the bot is setup and running
+async def startup() -> None:
+    await client.wait_until_ready()
+    # Setup the variables for the restrictor, listener and database manager class
     Utils.restrictor.setClient(client)
     Utils.listener.setClient(client)
+    await Utils.database.connect()
     # Change the presence to show the help command
     await client.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{client.command_prefix}help"))
     # Send message to the debug channel signalling that the bot is ready
@@ -63,4 +64,5 @@ for extension in Utils.extensions:
     client.load_extension(extension)
 
 # Start discord bot
+client.loop.create_task(startup())
 client.run(Config.token)
