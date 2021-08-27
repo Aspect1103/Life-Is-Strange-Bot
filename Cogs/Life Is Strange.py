@@ -91,7 +91,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return finalObj
 
     # Function to sort a list of trivia scores based on the ranks
-    def rankSort(self, arr: List[Tuple[int]]) -> List[Tuple[int]]:
+    def rankSort(self, arr: List[Tuple[int, int, int, int, int, int]]) -> List[Tuple[int, int, int, int, int, int]]:
         return sorted(arr, key=lambda x: x[2], reverse=True)
 
     # Function to create a choice embed page
@@ -122,26 +122,59 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to update a user's trivia score
     async def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
-
+        orgUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id))
+        if guess is None:
+            # No answer
+            orgUser[2] -= 2
+            orgUser[4] += 2
+        else:
+            # Get guess user's data
+            guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id))
+            if self.triviaReactions[str(guess[0])] == correctOption:
+                # Question correct
+                if ctx.author.id == guessUser[1]:
+                    # No steal
+                    orgUser[2] += 2
+                    orgUser[3] += 2
+                else:
+                    # Steal
+                    orgUser[2] += 1
+                    orgUser[3] += 1
+                    guessUser[2] += 1
+                    guessUser[3] += 1
+            else:
+                # Question incorrect
+                if ctx.author.id == guessUser[1]:
+                    # No steal
+                    orgUser[2] -= 2
+                    orgUser[4] += 2
+                else:
+                    # Steal
+                    orgUser[2] -= 1
+                    orgUser[4] += 1
+                    guessUser[2] -= 1
+                    guessUser[4] += 1
+            await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, guess[1].id))
+        await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, ctx.author.id))
         await self.updateRanks(ctx.guild.id)
 
     # Function to update the ranks for a specific guild
     async def updateRanks(self, guildID: int) -> None:
-        guildUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")
+        guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", guildID)
         sortedRanks = [(count+1, row[0], row[1]) for count, row in enumerate(self.rankSort(guildUsers))]
         await Utils.database.executeMany("UPDATE triviaScores SET rank = ? WHERE guildID = ? AND userID = ?", sortedRanks)
 
     # Function to remove a user from the triviaScores database when they leave
     @commands.Cog.listener()
     async def on_member_remove(self, member: Member) -> None:
-        await Utils.database.execute(f"DELETE FROM triviaScores WHERE guildID == {member.guild.id} and userID == {member.id}")
+        await Utils.database.execute("DELETE FROM triviaScores WHERE guildID = ? and userID = ?", (member.guild.id, member.id))
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
+    @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def trivia(self, ctx: commands.Context) -> None:
         def answerCheck(reaction: Reaction, user: User) -> bool:
-            return user.id != self.client.user.id
+            return user.id != self.client.user.id and str(reaction) in self.triviaReactions
         # Grab random trivia
         triviaObj, correctOption = self.triviaMaker(ctx)
         triviaMessage = await ctx.channel.send(embed=triviaObj)
@@ -176,14 +209,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 targetUser = await commands.MemberConverter().convert(ctx, target)
             except commands.MemberNotFound:
                 targetUser = ctx.author
-        user = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetUser.id}")
+        user = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ? AND userID = ?", (ctx.guild.id, targetUser.id))
         userObj = await self.client.fetch_user(targetUser.id)
         if len(user) == 0:
             # User not in database
             await Utils.commandDebugEmbed(ctx.channel, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
-            totalUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")
+            totalUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
             triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
             triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{len(totalUsers)}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
@@ -194,7 +227,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.cooldown(1, 0, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
-            guildUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")
+            guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
             guildUsers = self.rankSort(guildUsers)
             scoreList = [item[2] for item in guildUsers]
             maxPage = math.ceil(len(guildUsers) / 10)
