@@ -76,7 +76,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 temp = option + " ✅"
             else:
                 temp = option + " ❌"
-            if guess != None:
+            if guess is not None:
                 try:
                     if self.triviaReactions[str(guess[0])] == count+1:
                         temp += f" ⬅ {str(guess[1])} guessed"
@@ -89,80 +89,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         finalObj.description = newDescription
         finalObj.set_footer(text=f"{len(self.triviaQuestions)} questions")
         return finalObj
-
-    # Function to update a user's trivia score
-    def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
-        # Get author's data
-        try:
-            orgUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {ctx.author.id}"))[0]
-        except IndexError:
-            # User not in database
-            orgUser = (ctx.guild.id, ctx.author.id, 0, 0, 0, 0)
-            self.cursor.execute(f"INSERT INTO triviaScores values{orgUser}")
-        orgUser = list(orgUser)
-        if guess is None:
-            # No answer
-            orgUser[2] -= 2
-            orgUser[4] += 2
-        else:
-            # Get guess user's data
-            try:
-                guessUser = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} and userID == {guess[1].id}"))[0]
-            except IndexError:
-                # User not in database
-                guessUser = (ctx.guild.id, guess[1].id, 0, 0, 0, 0)
-                self.cursor.execute(f"INSERT INTO triviaScores values{guessUser}")
-            guessUser = list(guessUser)
-            originalAuthor = ctx.author.id
-            guessAuthor = guess[1].id
-            try:
-                if self.triviaReactions[str(guess[0])] == correctOption:
-                    # Question correct
-                    if originalAuthor == guessAuthor:
-                        # No steal
-                        orgUser[2] += 2
-                        orgUser[3] += 2
-                    else:
-                        # Steal
-                        orgUser[2] += 1
-                        orgUser[3] += 1
-                        guessUser[2] += 1
-                        guessUser[3] += 1
-                else:
-                    # Question incorrect
-                    if originalAuthor == guessAuthor:
-                        # No steal
-                        orgUser[2] -= 2
-                        orgUser[4] += 2
-                    else:
-                        # Steal
-                        orgUser[2] -= 1
-                        orgUser[4] += 1
-                        guessUser[2] -= 1
-                        guessUser[4] += 1
-            except KeyError:
-                # Unknown emoji
-                if originalAuthor == guessAuthor:
-                    # No steal
-                    orgUser[2] -= 2
-                    orgUser[4] += 2
-                else:
-                    # Steal
-                    orgUser[2] -= 1
-                    orgUser[4] += 1
-                    guessUser[2] -= 1
-                    guessUser[4] += 1
-            self.cursor.execute(f"UPDATE triviaScores SET score = {guessUser[2]}, pointsGained = {guessUser[3]}, pointsLost = {guessUser[4]} WHERE guildID == {ctx.guild.id} AND userID == {guessAuthor}")
-        self.cursor.execute(f"UPDATE triviaScores SET score = {orgUser[2]}, pointsGained = {orgUser[3]}, pointsLost = {orgUser[4]} WHERE guildID == {ctx.guild.id} AND userID == {ctx.author.id}")
-        # Update ranks
-        self.updateRanks(ctx.guild.id)
-
-    # Function to update the ranks for a specific guild
-    def updateRanks(self, guildID: int) -> None:
-        sortedGuildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")))
-        sortedRanks = [(row[0], row[1], row[2], row[3], row[4], count+1) for count, row in enumerate(sortedGuildUsers)]
-        for rank in sortedRanks:
-            self.cursor.execute(f"UPDATE triviaScores SET rank = {rank[5]} WHERE guildID == {rank[0]} AND userID == {rank[1]}")
 
     # Function to sort a list of trivia scores based on the ranks
     def rankSort(self, arr: List[Tuple[int]]) -> List[Tuple[int]]:
@@ -194,10 +120,21 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     #                          headers={"Authorization": f"Bearer {Config.huggingfaceToken}"},
     #                          json=payload).json()
 
+    # Function to update a user's trivia score
+    async def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
+
+        await self.updateRanks(ctx.guild.id)
+
+    # Function to update the ranks for a specific guild
+    async def updateRanks(self, guildID: int) -> None:
+        guildUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {guildID}")
+        sortedRanks = [(count+1, row[0], row[1]) for count, row in enumerate(self.rankSort(guildUsers))]
+        await Utils.database.executeMany("UPDATE triviaScores SET rank = ? WHERE guildID = ? AND userID = ?", sortedRanks)
+
     # Function to remove a user from the triviaScores database when they leave
     @commands.Cog.listener()
     async def on_member_remove(self, member: Member) -> None:
-        self.cursor.execute(f"DELETE FROM triviaScores WHERE guildID == {member.guild.id} and userID == {member.id}")
+        await Utils.database.execute(f"DELETE FROM triviaScores WHERE guildID == {member.guild.id} and userID == {member.id}")
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nUnrecognised emoji and answered by the original command sender = 2 points lost.\nUnrecognised emoji and answer stolen = 1 point lost for each person.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
@@ -225,7 +162,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 await triviaMessage.edit(embed=resultEmbed)
             break
         # Update trivia scores
-        self.updateTriviaScores(ctx, correctOption, reaction)
+        await self.updateTriviaScores(ctx, correctOption, reaction)
         await triviaMessage.clear_reactions()
 
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
@@ -239,16 +176,16 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                 targetUser = await commands.MemberConverter().convert(ctx, target)
             except commands.MemberNotFound:
                 targetUser = ctx.author
-        user = list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetUser.id}"))
+        user = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id} AND userID == {targetUser.id}")
         userObj = await self.client.fetch_user(targetUser.id)
         if len(user) == 0:
             # User not in database
             await Utils.commandDebugEmbed(ctx.channel, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
-            totalUserCount = len(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+            totalUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")
             triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
-            triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{totalUserCount}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
+            triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{len(totalUsers)}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
             await ctx.channel.send(embed=triviaScoreEmbed)
 
@@ -257,7 +194,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.cooldown(1, 0, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
-            guildUsers = self.rankSort(list(self.cursor.execute(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")))
+            guildUsers = await Utils.database.fetch(f"SELECT * FROM triviaScores WHERE guildID == {ctx.guild.id}")
+            guildUsers = self.rankSort(guildUsers)
             scoreList = [item[2] for item in guildUsers]
             maxPage = math.ceil(len(guildUsers) / 10)
             splittedList = Utils.listSplit(guildUsers, 10, maxPage)
@@ -299,18 +237,12 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             paginator.addPages(pages)
             await paginator.start()
         else:
-            # Only display specific episode number
-            episodeNum = epNumber[0]
-            # Run checks to make sure argument is correct
-            if episodeNum.isdigit():
-                episodeNum = int(episodeNum)
-                if 1 <= episodeNum <= 5:
-                    # Create embed page
-                    await ctx.channel.send(embed=self.choicePageMaker(episodeNum, self.choicesTable[episodeNum-1]))
-                else:
-                    await Utils.commandDebugEmbed(ctx.channel, "Not a valid episode number")
+            episodeNum = int(epNumber)
+            if 1 <= episodeNum <= 5:
+                # Create embed page
+                await ctx.channel.send(embed=self.choicePageMaker(episodeNum, self.choicesTable[episodeNum-1]))
             else:
-                await Utils.commandDebugEmbed(ctx.channel, "Episode number is not a number")
+                await Utils.commandDebugEmbed(ctx.channel, "Not a valid episode number")
 
     # memory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
@@ -338,8 +270,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
-        await Utils.errorHandler(ctx, error)
+    #async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+    #    await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
