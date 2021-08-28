@@ -29,27 +29,14 @@ class GameManager:
         self.gameObj = None
 
     # Function to test if a game is a twoplayer game or not
-    def isTwoplayer(self, ctx: Context) -> bool:
+    def getType(self, ctx: Context) -> str:
         gameTypes = {
-            True: ["TicTacToe", "Connect4"],
-            False: ["Hangman", "Anagram"]
+            "twoplayer": [1, 2],
+            "singleplayer": [3, 4]
         }
         for key, value in gameTypes.items():
-            if str(self.gameObj[ctx.guild.id][ctx.author]) in value:
+            if self.gameObj[ctx.guild.id][ctx.author].ID in value:
                 return key
-
-    # Function to update the game leaderboard
-    def updateGameScores(self, ctx: Context) -> None:
-        if self.isTwoplayer(ctx):
-            if str(self.gameObj[ctx.guild.id][ctx.author]) == "TicTacToe":
-                print("tic")
-            elif str(self.gameObj[ctx.guild.id][ctx.author]) == "Connect4":
-                print("4")
-        else:
-            if str(self.gameObj[ctx.guild.id][ctx.author]) == "Hangman":
-                print("hang")
-            elif str(self.gameObj[ctx.guild.id][ctx.author]) == "Anagram":
-                print("ana")
 
     # Function to run a game based on a specific ID
     async def runGame(self, ctx: Context, ID: int) -> None:
@@ -67,7 +54,6 @@ class GameManager:
                 self.gameObj[ctx.guild.id][ctx.author] = Anagram(ctx, self.client, self.colour)
                 await self.singleplayer(ctx)
             await self.gameObj[ctx.guild.id][ctx.author].gameMessage.clear_reactions()
-            self.updateGameScores(ctx)
             del self.gameObj[ctx.guild.id][ctx.author]
         else:
             await Utils.commandDebugEmbed(ctx.channel, "You can only run one game per user at a time")
@@ -99,9 +85,10 @@ class GameManager:
     # Function to run a game
     async def runner(self, ctx: Context) -> None:
         def checkMove(reaction: Reaction, user: User) -> bool:
-            if self.isTwoplayer(ctx):
+            gameName = self.getType(ctx)
+            if gameName == "twoplayer":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].nextPlayer.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis
-            else:
+            elif gameName == "singleplayer":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].user.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis
         await self.gameObj[ctx.guild.id][ctx.author].embedUpdate()
         for emoji in self.gameObj[ctx.guild.id][ctx.author].gameEmojis:

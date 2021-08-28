@@ -14,6 +14,7 @@ class Connect4:
         self.ctx = ctx
         self.client = client
         self.colour = color
+        self.ID = 2
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()
@@ -49,7 +50,8 @@ class Connect4:
             self.addMove(6)
         elif reaction == self.gameEmojis[7]:
             self.isPlaying = False
-            self.result = ["Surrender", self.nextPlayer]
+            self.switchPlayer()
+            self.result = ["Win", self.nextPlayer]
 
     # Function to update the 2D array with new moves
     def addMove(self, columnNumber: int) -> None:
@@ -149,9 +151,7 @@ class Connect4:
         if self.isPlaying:
             gameEmbed.title = f"Connect 4 - {self.nextPlayer}'s Turn"
         else:
-            if self.result[0] == "Surrender":
-                gameEmbed.title = f"Game Over! {self.result[1]} Surrendered"
-            elif self.result[0] == "Win":
+            if self.result[0] == "Win":
                 gameEmbed.title = f"Game Over! {self.result[1]} Won"
             elif self.result[0] == "Draw":
                 gameEmbed.title = f"Game Over! It's A Draw"

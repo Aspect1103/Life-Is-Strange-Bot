@@ -13,6 +13,7 @@ class TicTacToe:
         self.ctx = ctx
         self.client = client
         self.colour = color
+        self.ID = 1
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()
@@ -51,7 +52,8 @@ class TicTacToe:
             self.addMove([2, 2])
         elif reaction == self.gameEmojis[9]:
             self.isPlaying = False
-            self.result = ["Surrender", self.nextPlayer]
+            self.switchPlayer()
+            self.result = ["Win", self.nextPlayer]
 
     # Function to update the 2D array with new moves
     def addMove(self, index: List[int]) -> None:
@@ -122,9 +124,7 @@ class TicTacToe:
         if self.isPlaying:
             gameEmbed.title = f"TicTacToe - {self.nextPlayer}'s Turn"
         else:
-            if self.result[0] == "Surrender":
-                gameEmbed.title = f"Game Over! {self.result[1]} Surrendered"
-            elif self.result[0] == "Win":
+            if self.result[0] == "Win":
                 gameEmbed.title = f"Game Over! {self.result[1]} Won"
             elif self.result[0] == "Draw":
                 gameEmbed.title = f"Game Over! It's A Draw"

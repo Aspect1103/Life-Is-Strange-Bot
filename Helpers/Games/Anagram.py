@@ -20,6 +20,7 @@ class Anagram:
         self.ctx = ctx
         self.client = client
         self.colour = color
+        self.ID = 4
         self.words = self.words = [word.replace("\n", "") for word in open(lisWordsPath, "r").readlines()]
         self.chosenWord = random.choice(self.words).lower()
         self.anagram = self.setupAnagram()

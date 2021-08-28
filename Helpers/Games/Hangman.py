@@ -20,6 +20,7 @@ class Hangman:
         self.ctx = ctx
         self.client = client
         self.colour = color
+        self.ID = 3
         self.images = [
             "https://i.imgur.com/Lb0LwVY",
             "https://i.imgur.com/JrIiOGl",
