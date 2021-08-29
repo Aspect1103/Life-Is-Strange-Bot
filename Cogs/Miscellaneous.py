@@ -1,4 +1,5 @@
 # Builtin
+import random
 from typing import Union, Mapping, List
 # Pip
 from discord import Embed, Colour
@@ -49,6 +50,20 @@ class Miscellaneous(commands.Cog):
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def pizza(self, ctx: commands.Context) -> None:
         await ctx.channel.send("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
+
+    # joyce command with a cooldown of 1 use every 5 seconds per guild
+    @commands.command(help=f"Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon. It has a cooldown of {Utils.superShort} seconds", usage="joyce")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
+    async def joyce(self, ctx: commands.Context) -> None:
+        gifs = [
+            "https://tenor.com/view/coffee-coffee-cup-hot-hot-coffee-gif-16748161",
+            "https://tenor.com/view/cup-of-tea-teapot-cuppa-hot-cup-of-tea-scalding-hot-gif-17825685",
+            "https://tenor.com/view/waffles-food-syrup-honey-breakfast-gif-10931785",
+            "https://tenor.com/view/bacon-gif-4287744",
+            "https://tenor.com/view/eggs-breakfast-cooking-gif-14913289",
+            "https://tenor.com/view/pour-in-food52-omelet-yummy-gif-19595825"
+        ]
+        await ctx.channel.send(f"Order Up!\n{random.choice(gifs)}")
 
     # about command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays information about the bot. It has a cooldown of {Utils.short} seconds", usage="about", brief="Bot Bidness")
