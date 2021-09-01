@@ -63,7 +63,7 @@ class Miscellaneous(commands.Cog):
             "https://tenor.com/view/eggs-breakfast-cooking-gif-14913289",
             "https://tenor.com/view/pour-in-food52-omelet-yummy-gif-19595825"
         ]
-        await ctx.channel.send(f"Order Up!\n{random.choice(gifs)}")
+        await ctx.channel.send(f"Joyce: Incoming!\n{random.choice(gifs)}")
 
     # about command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays information about the bot. It has a cooldown of {Utils.short} seconds", usage="about", brief="Bot Bidness")

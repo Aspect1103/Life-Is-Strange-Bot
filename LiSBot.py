@@ -1,5 +1,4 @@
 # Builtin
-from typing import List
 import logging
 from pathlib import Path
 # Pip

@@ -122,14 +122,14 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function to update a user's trivia score
     async def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
-        orgUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id))
+        orgUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
         if guess is None:
             # No answer
             orgUser[2] -= 2
             orgUser[4] += 2
         else:
             # Get guess user's data
-            guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id))
+            guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
             if self.triviaReactions[str(guess[0])] == correctOption:
                 # Question correct
                 if ctx.author.id == guessUser[1]:
@@ -303,8 +303,8 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    #async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
-    #    await Utils.errorHandler(ctx, error)
+    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+        await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog

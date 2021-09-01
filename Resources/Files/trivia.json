@@ -918,5 +918,13 @@
         "option 3": "Ate food she was allergic to",
         "option 4": "Swallowed a button",
         "correct option": "4"
+    },
+    {
+        "question": "How much money did Chloe find in Wells' office drawer for the handicapped fund?",
+        "option 1": "$2000",
+        "option 2": "$5000",
+        "option 3": "$4500",
+        "option 4": "$1500",
+        "correct option": "2"
     }
 ]

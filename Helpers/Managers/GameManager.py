@@ -1,5 +1,6 @@
 # Builtin
 import asyncio
+from typing import List, Tuple
 # Pip
 from discord.ext.commands import Bot, Context
 from discord import Colour, Embed, Reaction, User
@@ -8,6 +9,7 @@ from Helpers.Games.TicTacToe import TicTacToe
 from Helpers.Games.Connect4 import Connect4
 from Helpers.Games.Hangman import Hangman
 from Helpers.Games.Anagram import Anagram
+from Helpers.Games.Sokoban import Sokoban
 from Helpers.Utils import Utils
 
 
@@ -19,6 +21,7 @@ class GameManager:
         2 - Connect4 (twoplayer)
         3 - Hangman (singleplayer)
         4 - Anagram (singleplayer)
+        5 - Sokoban (singleplayer)
     """
     # Initialise variables
     def __init__(self, client: Bot, colour: Colour) -> None:
@@ -28,15 +31,9 @@ class GameManager:
         self.gameInitTimeout = 300
         self.gameObj = None
 
-    # Function to test if a game is a twoplayer game or not
-    def getType(self, ctx: Context) -> str:
-        gameTypes = {
-            "twoplayer": [1, 2],
-            "singleplayer": [3, 4]
-        }
-        for key, value in gameTypes.items():
-            if self.gameObj[ctx.guild.id][ctx.author].ID in value:
-                return key
+    # Function to sort a list of game scores based on the ranks
+    def rankSort(self, arr: List[Tuple[int, int, int, int, int, int, int]]) -> List[Tuple[int, int, int, int, int, int, int]]:
+        return sorted(arr, key=lambda x: x[3], reverse=True)
 
     # Function to run a game based on a specific ID
     async def runGame(self, ctx: Context, ID: int) -> None:
@@ -53,7 +50,13 @@ class GameManager:
             elif ID == 4:
                 self.gameObj[ctx.guild.id][ctx.author] = Anagram(ctx, self.client, self.colour)
                 await self.singleplayer(ctx)
+            elif ID == 5:
+                self.gameObj[ctx.guild.id][ctx.author] = Sokoban(ctx, self.client, self.colour)
+                await self.gameObj[ctx.guild.id][ctx.author].initGrid()
+                await self.singleplayer(ctx)
             await self.gameObj[ctx.guild.id][ctx.author].gameMessage.clear_reactions()
+            await self.gameObj[ctx.guild.id][ctx.author].updateScores()
+            await self.updateRanks(ctx)
             del self.gameObj[ctx.guild.id][ctx.author]
         else:
             await Utils.commandDebugEmbed(ctx.channel, "You can only run one game per user at a time")
@@ -85,10 +88,10 @@ class GameManager:
     # Function to run a game
     async def runner(self, ctx: Context) -> None:
         def checkMove(reaction: Reaction, user: User) -> bool:
-            gameName = self.getType(ctx)
-            if gameName == "twoplayer":
+            gameName = str(self.gameObj[ctx.guild.id][ctx.author])
+            if gameName == "TicTacToe" or gameName == "Connect4":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].nextPlayer.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis
-            elif gameName == "singleplayer":
+            elif gameName == "Hangman" or gameName == "Anagram" or gameName == "Sokoban":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].user.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis
         await self.gameObj[ctx.guild.id][ctx.author].embedUpdate()
         for emoji in self.gameObj[ctx.guild.id][ctx.author].gameEmojis:
@@ -107,3 +110,9 @@ class GameManager:
                 except asyncio.TimeoutError:
                     continue
             await self.gameObj[ctx.guild.id][ctx.author].embedUpdate()
+
+    # Function to update the ranks for a specific game
+    async def updateRanks(self, ctx: Context) -> None:
+        guildUsers = await Utils.database.fetch("SELECT * FROM gameScores WHERE guildID = ? AND gameID = ?", (ctx.guild.id, self.gameObj[ctx.guild.id][ctx.author].gameID))
+        sortedRanks = [(count+1, row[0], row[1], row[2]) for count, row in enumerate(self.rankSort(guildUsers))]
+        await Utils.database.executeMany("UPDATE gameScores SET rank = ? WHERE guildID = ? AND userID = ? AND gameID = ?", sortedRanks)

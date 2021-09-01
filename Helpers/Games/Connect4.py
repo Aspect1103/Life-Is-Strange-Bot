@@ -14,7 +14,7 @@ class Connect4:
         self.ctx = ctx
         self.client = client
         self.colour = color
-        self.ID = 2
+        self.gameID = 2
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()

@@ -13,7 +13,7 @@ class TicTacToe:
         self.ctx = ctx
         self.client = client
         self.colour = color
-        self.ID = 1
+        self.gameID = 1
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()

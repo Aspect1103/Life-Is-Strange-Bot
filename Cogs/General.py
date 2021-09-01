@@ -109,6 +109,12 @@ class General(commands.Cog):
         else:
             await Utils.commandDebugEmbed(ctx.channel, f"Game is not currently running. Start it with {ctx.prefix}anagram start")
 
+    # sokoban command with a cooldown of 1 use every 120 seconds per guild
+    @commands.command(help=f"Displays a randomly generated Sokoban game. It has a cooldown of {Utils.extraLong} seconds", usage="sokoban", brief="General")
+    @commands.cooldown(1, Utils.extraLong, commands.BucketType.guild)
+    async def sokoban(self, ctx: commands.Context) -> None:
+        await self.gameManager.runGame(ctx, 5)
+
     # Function to run channelCheck for General
     async def cog_check(self, ctx: commands.Context) -> None:
         return await Utils.restrictor.commandCheck(ctx)

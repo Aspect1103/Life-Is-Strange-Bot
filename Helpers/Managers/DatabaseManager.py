@@ -34,11 +34,15 @@ class DatabaseManager:
             return [tuple(row) for row in result]
 
     # Function for fetching a user's data from the database (or adding a new row)
-    async def fetchUser(self, statement: str, params: Tuple[int, int]) -> List[int]:
+    async def fetchUser(self, statement: str, params: Tuple[int, ...], table: str) -> List[int]:
         result = await self.fetch(statement, params)
         if len(result) == 0:
-            result = (params[0], params[1], 0, 0, 0, 0)
-            await self.execute("INSERT INTO triviaScores values(?, ?, ?, ?, ?, ?)", result)
+            if table == "triviaScores":
+                result = (params[0], params[1], 0, 0, 0, 0)
+                await self.execute("INSERT INTO triviaScores values(?, ?, ?, ?, ?, ?)", result)
+            elif table == "gameScores":
+                result = (params[0], params[1], params[2], 0, 0, 0, 0)
+                await self.execute("INSERT INTO gameScores values(?, ?, ?, ?, ?, ?, ?)", result)
             return list(result)
         else:
             return list(result[0])
