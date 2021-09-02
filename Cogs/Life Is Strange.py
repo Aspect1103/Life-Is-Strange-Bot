@@ -90,10 +90,6 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         finalObj.set_footer(text=f"{len(self.triviaQuestions)} questions")
         return finalObj
 
-    # Function to sort a list of trivia scores based on the ranks
-    def rankSort(self, arr: List[Tuple[int, int, int, int, int, int]]) -> List[Tuple[int, int, int, int, int, int]]:
-        return sorted(arr, key=lambda x: x[2], reverse=True)
-
     # Function to create a choice embed page
     def choicePageMaker(self, count: int, episode: List[Dict[str, str]]) -> Embed:
         episodeEmbed = Embed(title=f"Episode {count} Choices", colour=self.colour)
@@ -161,7 +157,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     # Function to update the ranks for a specific guild
     async def updateRanks(self, guildID: int) -> None:
         guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", guildID)
-        sortedRanks = [(count+1, row[0], row[1]) for count, row in enumerate(self.rankSort(guildUsers))]
+        sortedRanks = [(count+1, row[0], row[1]) for count, row in enumerate(Utils.rankSort(guildUsers, 2))]
         await Utils.database.executeMany("UPDATE triviaScores SET rank = ? WHERE guildID = ? AND userID = ?", sortedRanks)
 
     # Function to remove a user from the triviaScores database when they leave
@@ -228,7 +224,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
             guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
-            guildUsers = self.rankSort(guildUsers)
+            guildUsers = Utils.rankSort(guildUsers, 2)
             scoreList = [item[2] for item in guildUsers]
             maxPage = math.ceil(len(guildUsers) / 10)
             splittedList = Utils.listSplit(guildUsers, 10, maxPage)

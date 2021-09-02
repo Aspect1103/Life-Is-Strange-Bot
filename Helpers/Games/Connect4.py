@@ -19,8 +19,8 @@ class Connect4:
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()
         self.grid = [[0 for i in range(7)] for j in range(6)]
-        self.iconEmojis = ["🔵", "🟡", "🔴"]
         self.gameEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "🛑"]
+        self.iconEmojis = ["\U0001F535", "\U0001F7E1", "\U0001F534"]
         self.isPlaying = True
         self.changeMade = False
         self.player2 = None
@@ -51,7 +51,7 @@ class Connect4:
         elif reaction == self.gameEmojis[7]:
             self.isPlaying = False
             self.switchPlayer()
-            self.result = ["Win", self.nextPlayer]
+            self.result = ("Win", self.nextPlayer)
 
     # Function to update the 2D array with new moves
     def addMove(self, columnNumber: int) -> None:
@@ -69,7 +69,7 @@ class Connect4:
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
-            self.result = ["Draw", self.nextPlayer]
+            self.result = ("Draw", self.nextPlayer)
 
     # Function to check for wins
     def winChecker(self) -> None:
@@ -106,7 +106,7 @@ class Connect4:
             return any(result)
         if verticalCheck() or horizontalCheck() or diagonalCheck():
             self.isPlaying = False
-            self.result = ["Win", self.nextPlayer]
+            self.result = ("Win", self.nextPlayer)
 
     # Function to get the diagonals
     def getDiagonals(self) -> List[List[numpy.ndarray]]:
@@ -158,3 +158,7 @@ class Connect4:
             else:
                 gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
+
+    # Function to update the scores
+    async def updateScores(self) -> None:
+        pass

@@ -2,7 +2,7 @@
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Tuple
 # Pip
 from AO3.utils import HTTPError
 from discord import TextChannel, Embed, Colour, Message
@@ -39,6 +39,11 @@ def listSplit(arr: List[Any], perListSize: int, listAmount: int) -> List[List[An
     for i in range(listAmount):
         result.append(arr[i * perListSize:i * perListSize + perListSize])
     return result
+
+
+# Function to sort a list of tuples based on a specific index
+def rankSort(arr: List[Tuple[int, ...]], indexToSort: int) -> List[Tuple[int, ...]]:
+    return sorted(arr, key=lambda x: x[indexToSort], reverse=True)
 
 
 # Function to create an embed displaying the command error

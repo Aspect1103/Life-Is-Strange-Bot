@@ -18,8 +18,8 @@ class TicTacToe:
         self.nextPlayer = self.player1
         self.lastActivity = datetime.now()
         self.grid = [[0 for i in range(3)] for j in range(3)]
-        self.iconEmojis = ["🟦", "❌", "⭕"]
         self.gameEmojis = ["↖️", "⬆️", "↗️", "⬅️", "⏺️", "➡️", "↙️", "⬇️", "↘️", "🛑"]
+        self.iconEmojis = ["\U0001F7E6", "\U0000274C", "\U00002B55"]
         self.isPlaying = True
         self.changeMade = False
         self.player2 = None
@@ -53,7 +53,7 @@ class TicTacToe:
         elif reaction == self.gameEmojis[9]:
             self.isPlaying = False
             self.switchPlayer()
-            self.result = ["Win", self.nextPlayer]
+            self.result = ("Win", self.nextPlayer)
 
     # Function to update the 2D array with new moves
     def addMove(self, index: List[int]) -> None:
@@ -69,7 +69,7 @@ class TicTacToe:
         temp = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
-            self.result = ["Draw", self.nextPlayer]
+            self.result = ("Draw", self.nextPlayer)
 
     # Function to check for wins
     def winChecker(self) -> None:
@@ -88,7 +88,7 @@ class TicTacToe:
         ]
         if any([check for check in checks]):
             self.isPlaying = False
-            self.result = ["Win", self.nextPlayer]
+            self.result = ("Win", self.nextPlayer)
 
     # Function to determine who goes next
     def switchPlayer(self) -> None:
@@ -131,3 +131,7 @@ class TicTacToe:
             else:
                 gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
+
+    # Function to update the scores
+    async def updateScores(self) -> None:
+        pass

@@ -1,6 +1,5 @@
 # Builtin
 import asyncio
-from typing import List, Tuple
 # Pip
 from discord.ext.commands import Bot, Context
 from discord import Colour, Embed, Reaction, User
@@ -30,10 +29,6 @@ class GameManager:
         self.twoplayerInitReaction = "✅"
         self.gameInitTimeout = 300
         self.gameObj = None
-
-    # Function to sort a list of game scores based on the ranks
-    def rankSort(self, arr: List[Tuple[int, int, int, int, int, int, int]]) -> List[Tuple[int, int, int, int, int, int, int]]:
-        return sorted(arr, key=lambda x: x[3], reverse=True)
 
     # Function to run a game based on a specific ID
     async def runGame(self, ctx: Context, ID: int) -> None:
@@ -114,5 +109,5 @@ class GameManager:
     # Function to update the ranks for a specific game
     async def updateRanks(self, ctx: Context) -> None:
         guildUsers = await Utils.database.fetch("SELECT * FROM gameScores WHERE guildID = ? AND gameID = ?", (ctx.guild.id, self.gameObj[ctx.guild.id][ctx.author].gameID))
-        sortedRanks = [(count+1, row[0], row[1], row[2]) for count, row in enumerate(self.rankSort(guildUsers))]
+        sortedRanks = [(count+1, row[0], row[1], row[2]) for count, row in enumerate(Utils.rankSort(guildUsers, 3))]
         await Utils.database.executeMany("UPDATE gameScores SET rank = ? WHERE guildID = ? AND userID = ? AND gameID = ?", sortedRanks)
