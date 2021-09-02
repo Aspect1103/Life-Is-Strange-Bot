@@ -20,12 +20,12 @@ attributes = {
 
 # Cog to manage miscellaneous commands
 class Miscellaneous(commands.Cog):
-    # Initialise the client
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    # Initialise the bot
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.colour = Colour.orange()
-        self.client.help_command = Help(command_attrs=attributes)
-        self.client.help_command.cog = self
+        self.bot.help_command = Help(command_attrs=attributes)
+        self.bot.help_command.cog = self
 
     # bum command with a cooldown of 1 use every 5 seconds per guild
     @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
@@ -70,7 +70,7 @@ class Miscellaneous(commands.Cog):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def about(self, ctx: commands.Context) -> None:
         # Create embed
-        botInfo = await self.client.application_info()
+        botInfo = await self.bot.application_info()
         aboutEmbed = Embed(title=f"About {ctx.me.name}", colour=self.colour)
         aboutEmbed.add_field(name="Developer", value=botInfo.owner, inline=True)
         aboutEmbed.add_field(name="Need Help?", value=f"Use {ctx.prefix}help", inline=True)
@@ -208,5 +208,5 @@ class Help(commands.HelpCommand):
 
 
 # Function which initialises the Miscellaneous cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(Miscellaneous(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(Miscellaneous(bot))

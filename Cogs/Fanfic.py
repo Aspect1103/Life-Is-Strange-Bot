@@ -23,16 +23,16 @@ ignorePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("ign
 
 # Cog to manage fanfic commands
 class Fanfic(commands.Cog):
-    # Initialise the client
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    # Initialise the bot
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
         self.colour = Colour.green()
         self.ignore = []
         self.worksheetArray = None
         self.quoteSearcher = None
         self.fanficInit()
-        self.client.loop.create_task(self.startup())
+        self.bot.loop.create_task(self.startup())
 
     # Function to initialise fanfic variables
     def fanficInit(self) -> None:
@@ -88,7 +88,7 @@ class Fanfic(commands.Cog):
         repeats += 1
         async for message in ctx.channel.history(limit=100, before=before):
             lastMessage = message
-            if message.author.id == self.client.user.id:
+            if message.author.id == self.bot.user.id:
                 try:
                     if message.embeds[0].author.name != Embed.Empty:
                         return message.embeds[0]
@@ -98,9 +98,9 @@ class Fanfic(commands.Cog):
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.client.wait_until_ready()
+        await self.bot.wait_until_ready()
         # Create dictionary for each guild to hold the quote searcher
-        self.quoteSearcher = {guild.id: None for guild in self.client.guilds}
+        self.quoteSearcher = {guild.id: None for guild in self.bot.guilds}
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote (includeNSFW)", brief="Fanfic")
@@ -154,12 +154,12 @@ class Fanfic(commands.Cog):
             return reaction.message.id == self.quoteSearcher[ctx.guild.id].message.id and user.id == self.quoteSearcher[ctx.guild.id].ctx.author.id and str(reaction) == "⏹️"
         # Initialise the SearchQuoteManager object
         message = await ctx.channel.send(embed=Embed(title="Quote Searcher", description=f"No filters added. Use {ctx.prefix}searchQuote add to add a filter", colour=self.colour))
-        self.quoteSearcher[ctx.guild.id] = SearchQuoteManager(self.client, ctx, message, self.colour, self.worksheetArray)
+        self.quoteSearcher[ctx.guild.id] = SearchQuoteManager(self.bot, ctx, message, self.colour, self.worksheetArray)
         await message.add_reaction("⏹️")
         # Wait until the stop button is pressed with a timeout of 5 minutes
         while True:
             try:
-                reaction, user = await self.client.wait_for("reaction_add", timeout=300, check=checker)
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=300, check=checker)
             except asyncio.TimeoutError:
                 pass
             await message.clear_reactions()
@@ -286,7 +286,7 @@ class Fanfic(commands.Cog):
                             tempEmbed.add_field(name=work.title, value=work.url)
                         pages.append(tempEmbed)
                     # Create paginator
-                    paginator = Paginator(ctx, self.client)
+                    paginator = Paginator(ctx, self.bot)
                     paginator.addPages(pages)
                     await paginator.start()
                 else:
@@ -310,5 +310,5 @@ class Fanfic(commands.Cog):
 
 
 # Function which initialises the Fanfic cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(Fanfic(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(Fanfic(bot))

@@ -9,9 +9,9 @@ from discord import Embed, Colour, Reaction
 # TicTacToe class to play tic tac toe in a discord channel
 class TicTacToe:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
+    def __init__(self, ctx: Context, bot: Bot, color: Colour) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.colour = color
         self.gameID = 1
         self.player1 = self.ctx.author

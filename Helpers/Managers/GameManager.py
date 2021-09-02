@@ -24,8 +24,8 @@ class GameManager:
         5 - Sokoban (singleplayer)
     """
     # Initialise variables
-    def __init__(self, client: Bot, colour: Colour) -> None:
-        self.client = client
+    def __init__(self, bot: Bot, colour: Colour) -> None:
+        self.bot = bot
         self.colour = colour
         self.twoplayerInitReaction = "✅"
         self.gameInitTimeout = 300
@@ -39,19 +39,19 @@ class GameManager:
     async def runGame(self, ctx: Context, ID: int) -> None:
         if ctx.author not in self.gameObj[ctx.guild.id]:
             if ID == 1:
-                self.gameObj[ctx.guild.id][ctx.author] = TicTacToe(ctx, self.client, self.colour)
+                self.gameObj[ctx.guild.id][ctx.author] = TicTacToe(ctx, self.bot, self.colour)
                 await self.twoplayer(ctx)
             elif ID == 2:
-                self.gameObj[ctx.guild.id][ctx.author] = Connect4(ctx, self.client, self.colour)
+                self.gameObj[ctx.guild.id][ctx.author] = Connect4(ctx, self.bot, self.colour)
                 await self.twoplayer(ctx)
             elif ID == 3:
-                self.gameObj[ctx.guild.id][ctx.author] = Hangman(ctx, self.client, self.colour)
+                self.gameObj[ctx.guild.id][ctx.author] = Hangman(ctx, self.bot, self.colour)
                 await self.singleplayer(ctx)
             elif ID == 4:
-                self.gameObj[ctx.guild.id][ctx.author] = Anagram(ctx, self.client, self.colour)
+                self.gameObj[ctx.guild.id][ctx.author] = Anagram(ctx, self.bot, self.colour)
                 await self.singleplayer(ctx)
             elif ID == 5:
-                self.gameObj[ctx.guild.id][ctx.author] = Sokoban(ctx, self.client, self.colour)
+                self.gameObj[ctx.guild.id][ctx.author] = Sokoban(ctx, self.bot, self.colour)
                 await self.gameObj[ctx.guild.id][ctx.author].initGrid()
                 await self.singleplayer(ctx)
             await self.gameObj[ctx.guild.id][ctx.author].gameMessage.clear_reactions()
@@ -69,13 +69,13 @@ class GameManager:
     # Function to manage twoplayer games
     async def twoplayer(self, ctx: Context) -> None:
         def gameReactChecker(reaction: Reaction, user: User) -> bool:
-            return user.id != self.client.user.id and user.id != ctx.author.id and str(reaction) == self.twoplayerInitReaction and reaction.message.guild.id == self.gameObj[ctx.guild.id][ctx.author].ctx.guild.id and reaction.message.id == reactMessage.id
+            return user.id != self.bot.user.id and user.id != ctx.author.id and str(reaction) == self.twoplayerInitReaction and reaction.message.guild.id == self.gameObj[ctx.guild.id][ctx.author].ctx.guild.id and reaction.message.id == reactMessage.id
         initialEmbed = Embed(title=f"{self.gameObj[ctx.guild.id][ctx.author]} Request", description=f"{self.gameObj[ctx.guild.id][ctx.author].player1.mention} wants to play {self.gameObj[ctx.guild.id][ctx.author]}. React to this message if you want to challenge them!", colour=self.colour)
         reactMessage = self.gameObj[ctx.guild.id][ctx.author].gameMessage = await ctx.channel.send(embed=initialEmbed)
         await self.gameObj[ctx.guild.id][ctx.author].gameMessage.add_reaction(self.twoplayerInitReaction)
         while True:
             try:
-                reaction, user = await self.client.wait_for("reaction_add", timeout=self.gameInitTimeout, check=gameReactChecker)
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=self.gameInitTimeout, check=gameReactChecker)
                 self.gameObj[ctx.guild.id][ctx.author].player2 = user
             except asyncio.TimeoutError:
                 await Utils.commandDebugEmbed(ctx.channel, "Game has timed out")
@@ -104,7 +104,7 @@ class GameManager:
                 await Utils.commandDebugEmbed(ctx.channel, "Game has timed out")
             else:
                 try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=1, check=checkMove)
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout=1, check=checkMove)
                     await self.gameObj[ctx.guild.id][ctx.author].gameMessage.remove_reaction(reaction, user)
                     self.gameObj[ctx.guild.id][ctx.author].processReaction(reaction)
                 except asyncio.TimeoutError:

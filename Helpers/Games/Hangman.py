@@ -16,9 +16,9 @@ lisWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("l
 # Hangman class to play LiS hangman in a discord channel
 class Hangman:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
+    def __init__(self, ctx: Context, bot: Bot, color: Colour) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.colour = color
         self.gameID = 3
         self.images = [

@@ -1,9 +1,6 @@
 # Pip
-from discord.ext.commands import Context
-from discord import Embed
-from discord import Colour
-from discord import Client
-from discord import Message
+from discord.ext.commands import Context, Bot
+from discord import Embed, Colour, Message
 # Custom
 from Helpers.Utils import Utils
 
@@ -11,8 +8,8 @@ from Helpers.Utils import Utils
 # SearchQuoteManager class to switch between different embeds
 class SearchQuoteManager:
     # Initialise variables
-    def __init__(self, client: Client, ctx: Context, message: Message, colour: Colour, worksheet: list):
-        self.client = client
+    def __init__(self, bot: Bot, ctx: Context, message: Message, colour: Colour, worksheet: list):
+        self.bot = bot
         self.ctx = ctx
         self.message = message
         self.colour = colour
@@ -113,7 +110,7 @@ class SearchQuoteManager:
     # Remove a filter from the array
     async def removeFilter(self, category):
         if category is None:
-            await Utils.commandDebugEmbed(self.ctx, "Invalid category")
+            await Utils.commandDebugEmbed(self.ctx.channel, "Invalid category")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():

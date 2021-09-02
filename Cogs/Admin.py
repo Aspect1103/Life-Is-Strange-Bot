@@ -21,8 +21,8 @@ def adminOrOwner():
 
 # Cog to manage admin commands
 class Admin(commands.Cog):
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.colour = Colour.orange()
 
     # Function to verify a channel command
@@ -35,7 +35,7 @@ class Admin(commands.Cog):
             if sect.lower() in Utils.IDs:
                 # Section exists
                 channelID = int("".join([str(num) for num in chnlMent if num.isdigit()]))
-                if self.client.get_channel(channelID).guild.id == ctx.guild.id:
+                if self.bot.get_channel(channelID).guild.id == ctx.guild.id:
                     # Valid channel
                     return True, sect.lower(), channelID
                 else:
@@ -51,7 +51,7 @@ class Admin(commands.Cog):
     @commands.is_owner()
     async def stop(self, ctx: commands.Context) -> None:
         await ctx.channel.send("Stopping bot")
-        await self.client.close()
+        await self.bot.close()
 
     # Base function to initialise the channel group commands with a cooldown of 6 seconds
     @commands.group(invoke_without_command=True, help=f"Group command for adding and removing allowed channels. This command has subcommands. It has a cooldown of {Utils.superShort} seconds", usage="channel", brief="Bot Bidness")
@@ -125,7 +125,7 @@ class Admin(commands.Cog):
                 listEmbed.add_field(name=f"{key.title()}", value="This command is allowed everywhere. Enjoy!", inline=False)
             else:
                 # Command/category restricted
-                textChannelAllowed = [self.client.get_channel(channel) for channel in value[str(ctx.guild.id)]]
+                textChannelAllowed = [self.bot.get_channel(channel) for channel in value[str(ctx.guild.id)]]
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
                 listEmbed.add_field(name=f"{key.title()}", value=guildAllowed, inline=False)
         # Send embed
@@ -140,10 +140,10 @@ class Admin(commands.Cog):
         extensions = Utils.extensions
         # Unload all extensions
         for extension in extensions:
-            self.client.unload_extension(extension)
+            self.bot.unload_extension(extension)
         # Load all extensions
         for extension in extensions:
-            self.client.load_extension(extension)
+            self.bot.load_extension(extension)
         await Utils.commandDebugEmbed(ctx.channel, "Finished refreshing extensions")
 
     # channelRefresh command with a cooldown of 1 use every 20 seconds per guild
@@ -165,5 +165,5 @@ class Admin(commands.Cog):
 
 
 # Function which initialises the Admin cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(Admin(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(Admin(bot))

@@ -20,11 +20,11 @@ class Listener:
     def __init__(self) -> None:
         self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
         self.colour = Colour.purple()
-        self.client = None
+        self.bot = None
 
-    # Function to set the client variables
-    def setClient(self, client: Bot) -> None:
-        self.client = client
+    # Function to set the bot variable
+    def setBot(self, bot: Bot) -> None:
+        self.bot = bot
 
     # Function which starts the various events
     async def start(self) -> None:
@@ -43,7 +43,7 @@ class Listener:
             for value in Utils.restrictor.IDs["life is strange"].values():
                 try:
                     # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
-                    await self.client.get_channel(value[0]).send(embed=historyEmbed)
+                    await self.bot.get_channel(value[0]).send(embed=historyEmbed)
                 except AttributeError:
                     # This is just for testing purposes
                     # Normally this will never run since the bot will be in every guild in IDs

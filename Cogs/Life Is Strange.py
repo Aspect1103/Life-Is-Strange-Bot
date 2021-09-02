@@ -21,9 +21,9 @@ memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 
 # Cog to manage life is strange commands
 class lifeIsStrange(commands.Cog, name="Life Is Strange"):
-    # Initialise the client
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    # Initialise the bot
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.colour = Colour.purple()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         # self.pastInputs = []
@@ -33,7 +33,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         self.choicesTable = None
         self.memoryImages = None
         self.lifeIsStrangeInit()
-        self.client.loop.create_task(self.startup())
+        self.bot.loop.create_task(self.startup())
 
     # Function to initialise life is strange variables
     def lifeIsStrangeInit(self) -> None:
@@ -49,9 +49,9 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.client.wait_until_ready()
+        await self.bot.wait_until_ready()
         # Create dictionary for each guild to hold the trivia counter
-        self.nextTrivia = {guild.id: 0 for guild in self.client.guilds}
+        self.nextTrivia = {guild.id: 0 for guild in self.bot.guilds}
 
     # Function to create trivia questions
     def triviaMaker(self, ctx: commands.Context) -> Tuple[Embed, int]:
@@ -174,7 +174,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def trivia(self, ctx: commands.Context) -> None:
         def answerCheck(reaction: Reaction, user: User) -> bool:
-            return user.id != self.client.user.id and str(reaction) in self.triviaReactions
+            return user.id != self.bot.user.id and str(reaction) in self.triviaReactions
         # Grab random trivia
         triviaObj, correctOption = self.triviaMaker(ctx)
         triviaMessage = await ctx.channel.send(embed=triviaObj)
@@ -185,7 +185,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         reaction = None
         while True:
             try:
-                reaction = await self.client.wait_for("reaction_add", timeout=15, check=answerCheck)
+                reaction = await self.bot.wait_for("reaction_add", timeout=15, check=answerCheck)
                 # Edit the embed with the results
                 resultEmbed = self.finalTrivia(triviaObj, correctOption, reaction)
                 await triviaMessage.edit(embed=resultEmbed)
@@ -210,7 +210,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             except commands.MemberNotFound:
                 targetUser = ctx.author
         user = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ? AND userID = ?", (ctx.guild.id, targetUser.id))
-        userObj = await self.client.fetch_user(targetUser.id)
+        userObj = await self.bot.fetch_user(targetUser.id)
         if len(user) == 0:
             # User not in database
             await Utils.commandDebugEmbed(ctx.channel, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
@@ -239,7 +239,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
                     triviaLeaderboardEmbed = Embed(title=f"{ctx.guild.name}'s Trivia Leaderboard", colour=self.colour)
                     leaderboardDescription = ""
                     for user in splittedList[pageNo-1]:
-                        userName = await self.client.fetch_user(user[1])
+                        userName = await self.bot.fetch_user(user[1])
                         leaderboardDescription += f"{user[5]}. {userName}. (Score: **{user[2]}** | Points Gained: **{user[3]}** | Points Lost: **{user[4]}**)\n"
                     if leaderboardDescription == "":
                         leaderboardDescription = f"No users added. Run {ctx.prefix}trivia to add some"
@@ -266,7 +266,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             for count, episode in enumerate(self.choicesTable):
                 pages.append(self.choicePageMaker(count+1, episode))
             # Create paginator
-            paginator = Paginator(ctx, self.client)
+            paginator = Paginator(ctx, self.bot)
             paginator.addPages(pages)
             await paginator.start()
         else:
@@ -308,5 +308,5 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
 
 # Function which initialises the life is strange cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(lifeIsStrange(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(lifeIsStrange(bot))

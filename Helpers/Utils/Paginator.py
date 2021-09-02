@@ -11,9 +11,9 @@ from Helpers.Utils import Utils
 # Paginator class to switch between different embeds
 class Paginator:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Bot, timeout: float = 300) -> None:
+    def __init__(self, ctx: Context, bot: Bot, timeout: float = 300) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.pages = []
         self.reactions = ["⏪", "⬅️", "⏹️", "➡️", "⏩"]
         self.timeout = timeout
@@ -35,7 +35,7 @@ class Paginator:
 
     # Function to check a reaction
     def checker(self, reaction: Reaction, user: User) -> bool:
-        return reaction.message.id == self.message.id and user.id != self.client.user.id and str(reaction) in self.reactions
+        return reaction.message.id == self.message.id and user.id != self.bot.user.id and str(reaction) in self.reactions
 
     # Function to stop the paginator
     async def stop(self) -> None:
@@ -71,7 +71,7 @@ class Paginator:
                 await self.message.add_reaction(reaction)
             while self.isRunning:
                 try:
-                    reaction, user = await self.client.wait_for("reaction_add", timeout=self.timeout,
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout=self.timeout,
                                                                 check=self.checker)
                     await self.message.remove_reaction(reaction, user)
                     await self.manager(str(reaction))

@@ -11,7 +11,7 @@ from Helpers.Utils import Utils
 # Discord variables
 intents = Intents.default()
 intents.members = True
-client = commands.Bot(command_prefix="$", intents=intents)
+bot = commands.Bot(command_prefix="$", intents=intents)
 
 # Path variables
 rootDirectory = Path(__file__).parent
@@ -19,7 +19,7 @@ logPath = rootDirectory.joinpath("DebugFiles").joinpath("lisBot.log")
 
 
 # Function to modify channelIDs when the bot joins a guild
-@client.event
+@bot.event
 async def on_guild_join(guild: Guild) -> None:
     tempDict = Utils.IDs
     for key, value in tempDict.items():
@@ -28,7 +28,7 @@ async def on_guild_join(guild: Guild) -> None:
 
 
 # Function to modify channelIDs when the bot leaves a guild
-@client.event
+@bot.event
 async def on_guild_remove(guild: Guild) -> None:
     tempDict = Utils.IDs
     for key, value in tempDict.items():
@@ -38,15 +38,15 @@ async def on_guild_remove(guild: Guild) -> None:
 
 # Function which runs once the bot is setup and running
 async def startup() -> None:
-    await client.wait_until_ready()
+    await bot.wait_until_ready()
     # Setup the variables for the restrictor, listener and database manager class
-    Utils.restrictor.setClient(client)
-    Utils.listener.setClient(client)
+    Utils.restrictor.setBot(bot)
+    Utils.listener.setBot(bot)
     await Utils.database.connect()
     # Change the presence to show the help command
-    await client.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{client.command_prefix}help"))
+    await bot.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{bot.command_prefix}help"))
     # Send message to the debug channel signalling that the bot is ready
-    await client.get_channel(817807544482922496).send("Running")
+    await bot.get_channel(817807544482922496).send("Running")
     # Start the listener
     await Utils.listener.start()
 
@@ -60,8 +60,8 @@ logger.addHandler(handler)
 
 # Load all extensions (filenames for the exterior cogs)
 for extension in Utils.extensions:
-    client.load_extension(extension)
+    bot.load_extension(extension)
 
 # Start discord bot
-client.loop.create_task(startup())
-client.run(Config.token)
+bot.loop.create_task(startup())
+bot.run(Config.token)

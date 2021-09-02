@@ -16,16 +16,16 @@ questionPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("q
 
 # Cog to manage general commands
 class General(commands.Cog):
-    # Initialise the client
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    # Initialise the bot
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.colour = Colour.blue()
-        self.gameManager = GameManager(self.client, self.colour)
+        self.gameManager = GameManager(self.bot, self.colour)
         self.nextQuestion = 0
         self.isNewGameAllowed = True
         self.questionArray = None
         self.generalInit()
-        self.client.loop.create_task(self.startup())
+        self.bot.loop.create_task(self.startup())
 
     # Function to initialise general variables
     def generalInit(self) -> None:
@@ -36,10 +36,10 @@ class General(commands.Cog):
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.client.wait_until_ready()
+        await self.bot.wait_until_ready()
         # Create dictionary for each guild to store variables
-        self.gameManager.gameAllowed = {guild.id: True for guild in self.client.guilds}
-        self.gameManager.gameObj = {guild.id: {} for guild in self.client.guilds}
+        self.gameManager.gameAllowed = {guild.id: True for guild in self.bot.guilds}
+        self.gameManager.gameObj = {guild.id: {} for guild in self.bot.guilds}
 
     # question command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")
@@ -125,5 +125,5 @@ class General(commands.Cog):
 
 
 # Function which initialises the General cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(General(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(General(bot))

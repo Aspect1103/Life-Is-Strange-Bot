@@ -22,8 +22,8 @@ radioPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("radi
 
 # Cog to manage radio commands
 class Radio(commands.Cog):
-    def __init__(self, client: commands.Bot) -> None:
-        self.client = client
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
         self.colour = Colour.from_rgb(255, 192, 203)
         self.orgTracks = None
         self.tracks = None
@@ -33,23 +33,23 @@ class Radio(commands.Cog):
         self.infoMessage = None
         self.radioLines = None
         self.radioInit()
-        self.client.loop.create_task(self.startup())
+        self.bot.loop.create_task(self.startup())
 
     # Function to initialise radio variables
     def radioInit(self) -> None:
         # Create dictionary for each guild to store variables
-        self.tracks = {guild.id: [] for guild in self.client.guilds}
-        self.trackCounter = {guild.id: 0 for guild in self.client.guilds}
-        self.nextTrack = {guild.id: 0 for guild in self.client.guilds}
-        self.textChannel = {guild.id: None for guild in self.client.guilds}
-        self.infoMessage = {guild.id: None for guild in self.client.guilds}
+        self.tracks = {guild.id: [] for guild in self.bot.guilds}
+        self.trackCounter = {guild.id: 0 for guild in self.bot.guilds}
+        self.nextTrack = {guild.id: 0 for guild in self.bot.guilds}
+        self.textChannel = {guild.id: None for guild in self.bot.guilds}
+        self.infoMessage = {guild.id: None for guild in self.bot.guilds}
 
         # Setup radio lines array
         self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
 
     # Function to get a voiceClient
     def getVoiceClient(self, guild: Guild) -> VoiceClient:
-        return utils.get(self.client.voice_clients, guild=guild)
+        return utils.get(self.bot.voice_clients, guild=guild)
 
     # Function to determine if the bot is connected to a voice channel
     def isConnected(self, guild: Guild) -> bool:
@@ -57,9 +57,9 @@ class Radio(commands.Cog):
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.client.wait_until_ready()
+        await self.bot.wait_until_ready()
         # Create a wavelink node to play music
-        await wavelink.NodePool.create_node(bot=self.client,
+        await wavelink.NodePool.create_node(bot=self.bot,
                                             host="192.168.1.227",
                                             port=2333,
                                             password="",
@@ -76,7 +76,7 @@ class Radio(commands.Cog):
 
     # Function to disconnect the bot from a voice channel
     async def stopBot(self, guild: Guild) -> None:
-        # Get the voice client
+        # Get the voice bot
         voiceClient = self.getVoiceClient(guild)
         # Stop the song then disconnect the bot
         await voiceClient.stop()
@@ -149,7 +149,7 @@ class Radio(commands.Cog):
             # Verify that there is a text channel and a voice channel registered
             radioChannels = []
             for channelID in Utils.restrictor.IDs["radio"][str(ctx.guild.id)]:
-                channel = self.client.get_channel(channelID)
+                channel = self.bot.get_channel(channelID)
                 if type(channel) not in [type(temp) for temp in radioChannels]:
                     radioChannels.append(channel)
             radioChannelTypes = [type(temp) for temp in radioChannels]
@@ -204,7 +204,7 @@ class Radio(commands.Cog):
                 tempEmbed.description = tempDescription
                 pages.append(tempEmbed)
             # Create paginator
-            paginator = Paginator(ctx, self.client)
+            paginator = Paginator(ctx, self.bot)
             paginator.addPages(pages)
             await paginator.start()
         else:
@@ -220,5 +220,5 @@ class Radio(commands.Cog):
 
 
 # Function which initialises the Radio cog
-def setup(client: commands.Bot) -> None:
-    client.add_cog(Radio(client))
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(Radio(bot))

@@ -10,9 +10,9 @@ from discord.ext.commands import Context, Bot
 # Connect4 class to play connect 4 in a discord channel
 class Connect4:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
+    def __init__(self, ctx: Context, bot: Bot, color: Colour) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.colour = color
         self.gameID = 2
         self.player1 = self.ctx.author

@@ -20,9 +20,9 @@ class Sokoban:
         3 - Destination
         4 - Player
     """
-    def __init__(self, ctx: Context, client: Bot, colour: Colour) -> None:
+    def __init__(self, ctx: Context, bot: Bot, colour: Colour) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.colour = colour
         self.gameID = 5
         self.user = self.ctx.author

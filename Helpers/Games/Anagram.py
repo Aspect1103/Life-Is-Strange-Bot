@@ -16,9 +16,9 @@ lisWordsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("l
 # Anagram class to play a LiS anagram puzzle game
 class Anagram:
     # Initialise variables
-    def __init__(self, ctx: Context, client: Bot, color: Colour) -> None:
+    def __init__(self, ctx: Context, bot: Bot, color: Colour) -> None:
         self.ctx = ctx
-        self.client = client
+        self.bot = bot
         self.colour = color
         self.gameID = 4
         self.words = self.words = [word.replace("\n", "") for word in open(lisWordsPath, "r").readlines()]
