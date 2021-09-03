@@ -50,8 +50,6 @@ class GameManager:
                 await self.gameObj[ctx.guild.id][ctx.author].initGrid()
                 await self.singleplayer(ctx)
             await self.gameObj[ctx.guild.id][ctx.author].gameMessage.clear_reactions()
-            await self.gameObj[ctx.guild.id][ctx.author].updateScores()
-            await self.updateRanks(ctx)
             del self.gameObj[ctx.guild.id][ctx.author]
         else:
             await Utils.commandDebugEmbed(ctx.channel, "You can only run one game per user at a time")
@@ -105,9 +103,3 @@ class GameManager:
                 except asyncio.TimeoutError:
                     continue
             await self.gameObj[ctx.guild.id][ctx.author].embedUpdate()
-
-    # Function to update the ranks for a specific game
-    async def updateRanks(self, ctx: Context) -> None:
-        guildUsers = await Utils.database.fetch("SELECT * FROM gameScores WHERE guildID = ? AND gameID = ?", (ctx.guild.id, self.gameObj[ctx.guild.id][ctx.author].gameID))
-        sortedRanks = [(count+1, row[0], row[1], row[2]) for count, row in enumerate(Utils.rankSort(guildUsers, 3))]
-        await Utils.database.executeMany("UPDATE gameScores SET rank = ? WHERE guildID = ? AND userID = ? AND gameID = ?", sortedRanks)

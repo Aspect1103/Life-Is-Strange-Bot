@@ -133,11 +133,11 @@ class Sokoban:
     # Function to initialise the grid and related variables
     async def initGrid(self) -> None:
         # Create width, height and box count variables
-        user = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.ctx.author.id, self.gameID), "gameScores")
+        user = await Utils.database.fetchUser("SELECT * FROM sokoban WHERE guildID = ? and userID = ?", (self.ctx.guild.id, self.ctx.author.id), "sokoban")
         gridWidth = 7
         gridHeight = 6
         boxCount = 1
-        self.level = user[3]+1
+        self.level = user[2]+1
         for i in range(self.level//20):
             gridWidth += 2
             gridHeight += 1
@@ -205,10 +205,6 @@ class Sokoban:
             tempDescription += "\n"
         sokobanEmbed.description = tempDescription
         await self.gameMessage.edit(embed=sokobanEmbed)
+        if not self.isPlaying and self.result[0] == "Win":
+            await Utils.database.execute("UPDATE sokoban SET completedLevels = ? WHERE guildID = ? And userID = ?", (self.level, self.ctx.guild.id, self.user.id))
 
-    # Function to update the scores
-    async def updateScores(self) -> None:
-        user = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.user.id, self.gameID), "gameScores")
-        if self.result[0] == "Win":
-            user[3] += 1
-        await Utils.database.execute("UPDATE gameScores SET score = ? WHERE guildID = ? and userID = ? and gameID = ?", (user[3], user[0], user[1], user[2]))

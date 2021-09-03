@@ -40,9 +40,9 @@ class DatabaseManager:
             if table == "triviaScores":
                 result = (params[0], params[1], 0, 0, 0, 0)
                 await self.execute("INSERT INTO triviaScores values(?, ?, ?, ?, ?, ?)", result)
-            elif table == "gameScores":
-                result = (params[0], params[1], params[2], 0, 0, 0, 0)
-                await self.execute("INSERT INTO gameScores values(?, ?, ?, ?, ?, ?, ?)", result)
+            elif table == "sokoban":
+                result = (params[0], params[1], 0)
+                await self.execute("INSERT INTO sokoban values(?, ?, ?)", result)
             return list(result)
         else:
             return list(result[0])

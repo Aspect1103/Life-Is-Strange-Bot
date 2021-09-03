@@ -160,31 +160,3 @@ class Connect4:
             else:
                 gameEmbed.title = f"Game Over!"
         await self.gameMessage.edit(embed=gameEmbed)
-
-    # Function to update the scores
-    async def updateScores(self) -> None:
-        if self.result[0] == "Win":
-            if self.result[1] == self.player1:
-                # Player 1 won so set user1 variable to player1's score and user2 to player2's score
-                user1 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player1.id, self.gameID), "gameScores")
-                user2 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player2.id, self.gameID), "gameScores")
-            else:
-                # Player 2 won so set user1 variable to player2's score and user2 to player1's score
-                user1 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player2.id, self.gameID), "gameScores")
-                user2 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player1.id, self.gameID), "gameScores")
-            user1[3] += 1
-            user1[4] += 1
-            user2[3] -= 1
-            user2[5] += 1
-        elif self.result[0] == "Timeout":
-            user1 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player1.id, self.gameID), "gameScores")
-            user2 = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.player2.id, self.gameID), "gameScores")
-            user1[3] -= 1
-            user1[5] += 1
-            user2[3] -= 1
-            user2[5] += 1
-        else:
-            # This runs if there is a draw
-            return
-        await Utils.database.execute("UPDATE gameScores SET score = ?, gamesWon = ?, gamesLost = ? WHERE guildID = ? and userID = ? and gameID = ?", (user1[3], user1[4], user1[5], user1[0], user1[1], user1[2]))
-        await Utils.database.execute("UPDATE gameScores SET score = ?, gamesWon = ?, gamesLost = ? WHERE guildID = ? and userID = ? and gameID = ?", (user2[3], user2[4], user2[5], user2[0], user2[1], user2[2]))

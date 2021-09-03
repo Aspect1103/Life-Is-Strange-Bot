@@ -220,7 +220,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nPage Number - The page of the leaderboard that you want to see. This argument is optional as not including it will display the 1st page (top 10)", usage="triviaLeaderboard|tl (page number)", brief="Trivia")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
             guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)

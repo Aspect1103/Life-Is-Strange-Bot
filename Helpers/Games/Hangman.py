@@ -106,14 +106,3 @@ class Hangman:
                 self.incorrectGuesses += 1
             self.winCheck()
             await self.embedUpdate()
-
-    # Function to update the scores
-    async def updateScores(self) -> None:
-        user = await Utils.database.fetchUser("SELECT * FROM gameScores WHERE guildID = ? and userID = ? and gameID = ?", (self.ctx.guild.id, self.user.id, self.gameID), "gameScores")
-        if self.result[0] == "Win":
-            user[3] += 1
-            user[4] += 1
-        elif self.result[0] == "Lose" or self.result[0] == "Timeout":
-            user[3] -= 1
-            user[5] += 1
-        await Utils.database.execute("UPDATE gameScores SET score = ?, gamesWon = ?, gamesLost = ? WHERE guildID = ? and userID = ? and gameID = ?", (user[3], user[4], user[5], user[0], user[1], user[2]))
