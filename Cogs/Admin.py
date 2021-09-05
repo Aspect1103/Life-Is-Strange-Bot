@@ -60,7 +60,7 @@ class Admin(commands.Cog):
         await ctx.send_help(ctx.command)
 
     # channel add command with a cooldown of 1 use every 20 seconds per guild
-    @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add (section name) (channel)", brief="Bot Bidness")
+    @channel.command(help=f"Adds a channel to a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel add <section name> <channel>", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def add(self, ctx: commands.Context, section: str = None, channelMent: str = None) -> None:
@@ -87,7 +87,7 @@ class Admin(commands.Cog):
             await Utils.commandDebugEmbed(ctx.channel, result)
 
     # channel remove command with a cooldown of 1 use every 20 seconds per guild
-    @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove (section name) (channel)", brief="Bot Bidness")
+    @channel.command(help=f"Removes a channel from a section's allowed channels. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nSection Name - Either Bot Bidness/fanfic/general/choices/image/trivia\nChannel - Mention of the channel which you want to add", usage="channel remove <section name> <channel>", brief="Bot Bidness")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     @adminOrOwner()
     async def remove(self, ctx: commands.Context, section: str = None, channelMent: str = None) -> None:

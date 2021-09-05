@@ -103,7 +103,7 @@ class Fanfic(commands.Cog):
         self.quoteSearcher = {guild.id: None for guild in self.bot.guilds}
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote (includeNSFW)", brief="Fanfic")
+    @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote [includeNSFW]", brief="Fanfic")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def quote(self, ctx: commands.Context, includeNsfw: Optional[str] = "No") -> None:
         if includeNsfw.capitalize() == "Yes":
@@ -190,7 +190,7 @@ class Fanfic(commands.Cog):
         self.quoteSearcher[ctx.guild.id] = None
 
     # searchQuote add command with a cooldown of 1 use every 5 seconds per guild
-    @searchQuote.command(help=f"Add a filter to the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCategory - The category which you want to add a filter for. They are as follows:\n> Title - Result contains this term\n> Author - Result contains this term\n> Ship - Result matches this term\n> Series - Result contains this term\n> Status - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\n> Smut - Result matches this term. Can either be 'Yes', 'No' or '?'\n> Words - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\n> Chapters - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\nTerm - The term you want to filter for", usage="searchQuote|sq (category) (term)", brief="Fanfic")
+    @searchQuote.command(help=f"Add a filter to the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCategory - The category which you want to add a filter for. They are as follows:\n> Title - Result contains this term\n> Author - Result contains this term\n> Ship - Result matches this term\n> Series - Result contains this term\n> Status - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\n> Smut - Result matches this term. Can either be 'Yes', 'No' or '?'\n> Words - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\n> Chapters - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\nTerm - The term you want to filter for", usage="searchQuote|sq add <category> <term>", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def add(self, ctx: commands.Context, category: str = None, term: str = None) -> None:
         if self.quoteSearcher[ctx.guild.id] is None:
@@ -202,7 +202,7 @@ class Fanfic(commands.Cog):
                 await self.quoteSearcher[ctx.guild.id].addFilter(category, term)
 
     # searchQuote remove command with a cooldown of 1 use every 5 seconds per guild
-    @searchQuote.command()
+    @searchQuote.command(help=f"Removes a filter from the quote searcher. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCategory - The category which you want to add a filter for. They are as follows:\n> Title - Result contains this term\n> Author - Result contains this term\n> Ship - Result matches this term\n> Series - Result contains this term\n> Status - Result matches this term. Can either be 'Completed', 'In progress' or 'Abandoned'\n> Smut - Result matches this term. Can either be 'Yes', 'No' or '?'\n> Words - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)\n> Chapters - Result matches this term. Use '>' (greater than), '<' (less than), '>=' (greater than or equal to), '<=' (less than or equal to), '==' (equal to), '!=' (not equal to) or '-' (for a range)", usage="searchQuote|sq remove <category>", brief="Fanfic")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def remove(self, ctx: commands.Context, category: str = None) -> None:
         if self.quoteSearcher[ctx.guild.id] is None:

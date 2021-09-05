@@ -74,7 +74,7 @@ class General(commands.Cog):
         await self.gameManager.runGame(ctx, 3)
 
     # hangmanGuess command with a cooldown of 1 use every 5 seconds per guild
-    @commands.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character to be guessed", usage="hangmanGuess (character)", brief="General")
+    @commands.command(help=f"Guesses a character in a hangman game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nCharacter - An alphabetic character to be guessed", usage="hangmanGuess <character>", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def hangmanGuess(self, ctx: commands.Context, character: Optional[str] = None):
         try:
@@ -90,7 +90,7 @@ class General(commands.Cog):
         await self.gameManager.runGame(ctx, 4)
 
     # anagramGuess command with a cooldown of 1 use every 5 seconds per guild
-    @commands.command(help=f"Guesses a word in an anagram game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nWord - An alphabetic word to be guessed", usage="anagramGuess (word)", brief="General")
+    @commands.command(help=f"Guesses a word in an anagram game. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nWord - An alphabetic word to be guessed", usage="anagramGuess <word>", brief="General")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
     async def anagramGuess(self, ctx: commands.Context, word: Optional[str] = None) -> None:
         try:

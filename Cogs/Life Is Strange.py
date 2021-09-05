@@ -20,7 +20,7 @@ memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 
 
 # Cog to manage life is strange commands
-class lifeIsStrange(commands.Cog, name="Life Is Strange"):
+class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     # Initialise the bot
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -195,7 +195,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
         await triviaMessage.clear_reactions()
 
     # triviaScore command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - A mention of the person who's trivia score you want. This argument is option as not including it will return the message author's trivia score", usage="triviaScore|ts (target)", brief="Trivia")
+    @commands.command(aliases=["ts"], help=f"Displays a user's trivia score. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTarget - A mention of the person who's trivia score you want. This argument is option as not including it will return the message author's trivia score", usage="triviaScore|ts [target]", brief="Trivia")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def triviaScore(self, ctx: commands.Context, target: Optional[str] = None) -> None:
         if target is None:
@@ -219,7 +219,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             await ctx.channel.send(embed=triviaScoreEmbed)
 
     # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nPage Number - The page of the leaderboard that you want to see. This argument is optional as not including it will display the 1st page (top 10)", usage="triviaLeaderboard|tl (page number)", brief="Trivia")
+    @commands.command(aliases=["tl"], help=f"Displays the server's trivia scores leaderboard. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nPage Number - The page of the leaderboard that you want to see. This argument is optional as not including it will display the 1st page (top 10)", usage="triviaLeaderboard|tl [page number]", brief="Trivia")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
@@ -253,7 +253,7 @@ class lifeIsStrange(commands.Cog, name="Life Is Strange"):
             await Utils.commandDebugEmbed(ctx.channel, f"Invalid argument. Pick a valid number")
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
-    @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices (episode number)", brief="Life Is Strange")
+    @commands.command(help=f"Displays the different choices in the game and their responses. It has a cooldown of {Utils.long} seconds", description="\nArguments:\nEpisode Number - Either 1, 2, 3, 4 or 5. This argument is optional as not including it will display all choices", usage="choices [episode number]", brief="Life Is Strange")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
     async def choices(self, ctx: commands.Context, epNumber: Optional[int] = None) -> None:
         if epNumber is None:

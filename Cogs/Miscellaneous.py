@@ -1,4 +1,5 @@
 # Builtin
+import re
 import random
 from typing import Union, Mapping, List
 # Pip
@@ -13,7 +14,7 @@ attributes = {
     "cooldown": commands.Cooldown(1, Utils.superShort, commands.BucketType.user),
     "help": f"Displays the help command. It has a cooldown of {Utils.superShort} seconds",
     "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
-    "usage": "help (cog/group/command name)",
+    "usage": "help [cog/group/command name]",
     "brief": "Bot Bidness"
 }
 
@@ -105,8 +106,12 @@ class Help(commands.HelpCommand):
     def createAliases(self, command: commands.Command) -> str:
         aliases = None
         if len(command.aliases) > 0:
-            aliases = "Aliases: " + ", ".join(command.aliases)
+            aliases = "Aliases: " + ", ".join([f"{self.clean_prefix}{comm}" for comm in command.aliases])
         return aliases
+
+    # Function to get a cog name and separate it if needed
+    def getCogName(self, name):
+        return " ".join(re.split("(?=[A-Z])", name))
 
     # Function to check and determine the end channel for the help command
     async def channelCheck(self) -> Union[None, str]:
@@ -119,6 +124,10 @@ class Help(commands.HelpCommand):
         if result is None:
             # Create embed list
             pages = []
+            # Create home page
+            homepageEmbed = Embed(title=f"Life Is Strange Bot", description="```<> = Required argument\n[] = Optional argument```", colour=self.colour)
+            homepageEmbed.set_thumbnail(url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg")
+            pages.append(homepageEmbed)
             # Get iterable dict of each cog and their commands
             pageCount = 0
             for cog, commandList in mapping.items():
@@ -128,9 +137,11 @@ class Help(commands.HelpCommand):
                 if commandSignatures:
                     # Create embed
                     helpEmbed = Embed(title=f"Page {pageCount}/{len(mapping.items()) - 1}", colour=self.colour)
-                    helpEmbed.add_field(name=f"{cog.qualified_name} Cog", value="\n".join(commandSignatures), inline=False)
+                    helpEmbed.add_field(name=f"{self.getCogName(cog.qualified_name)} Cog", value="\n".join(commandSignatures), inline=False)
                     helpEmbed.set_footer(text=f"{len(commandList)} commands")
                     pages.append(helpEmbed)
+                    # Append cog to the home page
+                    pages[0].add_field(name=f"{self.getCogName(cog.qualified_name)}", value=f"For more information type:\n`{self.clean_prefix}help {cog.qualified_name}`")
             # Create paginator
             paginator = Paginator(self.context, self.context.bot)
             paginator.addPages(pages)
@@ -144,7 +155,7 @@ class Help(commands.HelpCommand):
         result = await self.channelCheck()
         if result is None:
             # Create embed
-            cogHelpEmbed = Embed(title=f"{cog.qualified_name} Help", colour=self.colour)
+            cogHelpEmbed = Embed(title=f"{self.getCogName(cog.qualified_name)} Help", colour=self.colour)
             cogHelpEmbed.set_footer(text=f"{len(cog.get_commands())} commands")
             for command in cog.get_commands():
                 # Create aliases string
