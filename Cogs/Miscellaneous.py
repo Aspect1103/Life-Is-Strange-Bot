@@ -4,6 +4,7 @@ import random
 from typing import Union, Mapping, List
 # Pip
 from discord import Embed, Colour
+from discord.appinfo import AppInfo
 from discord.ext import commands
 # Custom
 from Helpers.Utils import Utils
@@ -71,7 +72,7 @@ class Miscellaneous(commands.Cog):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def about(self, ctx: commands.Context) -> None:
         # Create embed
-        botInfo = await self.bot.application_info()
+        botInfo: AppInfo = await self.bot.application_info()
         aboutEmbed = Embed(title=f"About {ctx.me.name}", colour=self.colour)
         aboutEmbed.add_field(name="Developer", value=botInfo.owner, inline=True)
         aboutEmbed.add_field(name="Need Help?", value=f"Use {ctx.prefix}help", inline=True)

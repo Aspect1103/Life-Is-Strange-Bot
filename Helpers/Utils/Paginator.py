@@ -2,7 +2,7 @@
 import asyncio
 from typing import Optional, List
 # Pip
-from discord import Embed, Reaction, User
+from discord import Embed, Reaction, User, Message
 from discord.ext.commands import Context, Bot
 # Custom
 from Helpers.Utils import Utils
@@ -66,13 +66,12 @@ class Paginator:
     # Function to start the paginator
     async def start(self) -> None:
         if len(self.pages) != 0:
-            self.message = await self.ctx.channel.send(embed=self.pages[0])
+            self.message: Message = await self.ctx.channel.send(embed=self.pages[0])
             for reaction in self.reactions:
                 await self.message.add_reaction(reaction)
             while self.isRunning:
                 try:
-                    reaction, user = await self.bot.wait_for("reaction_add", timeout=self.timeout,
-                                                                check=self.checker)
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout=self.timeout, check=self.checker)
                     await self.message.remove_reaction(reaction, user)
                     await self.manager(str(reaction))
                 except asyncio.TimeoutError:

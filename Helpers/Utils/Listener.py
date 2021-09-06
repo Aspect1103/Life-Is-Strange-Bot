@@ -2,6 +2,7 @@
 import asyncio
 import json
 from pathlib import Path
+from typing import List
 # Pip
 import pendulum
 from discord import Colour, Embed
@@ -18,7 +19,7 @@ historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpa
 class Listener:
     # Initialise variables
     def __init__(self) -> None:
-        self.historyEventsTable = json.loads(open(historyEventsPath, "r").read())
+        self.historyEventsTable: List[List[str]] = json.loads(open(historyEventsPath, "r").read())
         self.colour = Colour.purple()
         self.bot = None
 
@@ -34,7 +35,7 @@ class Listener:
     async def historyEvents(self) -> None:
         # Get tomorrow's date so once midnight hits, the correct date can be checked
         tomorrowDate = pendulum.now().add(days=1)
-        midnight = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)
+        midnight: pendulum.DateTime = pendulum.DateTime(year=tomorrowDate.year, month=tomorrowDate.month, day=tomorrowDate.day, hour=23, minute=59, tzinfo=tomorrowDate.tzinfo)
         await asyncio.sleep(tomorrowDate.diff(midnight).in_seconds()+120)
         tomorrowEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
         if len(tomorrowEvent) == 1:

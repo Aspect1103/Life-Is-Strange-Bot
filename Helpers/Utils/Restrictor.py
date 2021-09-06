@@ -2,6 +2,7 @@
 from pathlib import Path
 from typing import Union, List, Dict
 # Pip
+from discord import TextChannel, VoiceChannel
 from discord.ext.commands import Context, Bot
 
 # Path variables
@@ -40,6 +41,6 @@ class Restrictor:
     # Function to grab the allowed channels
     async def grabAllowed(self, ctx: Context) -> str:
         allowedChannel = self.getAllowed(ctx)
-        textChannelAllowed = [self.bot.get_channel(channel) for channel in allowedChannel]
+        textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [self.bot.get_channel(channel) for channel in allowedChannel]
         guildAllowed = ", ".join([channel.mention for channel in textChannelAllowed])
         return f"This command is only allowed in {guildAllowed}"

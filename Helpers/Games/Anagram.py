@@ -2,6 +2,7 @@
 import random
 from datetime import datetime
 from pathlib import Path
+from typing import List
 # Pip
 from discord import Colour, Embed, Reaction
 from discord.ext.commands import Context, Bot
@@ -21,7 +22,7 @@ class Anagram:
         self.bot = bot
         self.colour = color
         self.gameID = 4
-        self.words = self.words = [word.replace("\n", "") for word in open(lisWordsPath, "r").readlines()]
+        self.words = [word.replace("\n", "") for word in open(lisWordsPath, "r").readlines()]
         self.chosenWord = random.choice(self.words).lower()
         self.anagram = self.setupAnagram()
         self.user = self.ctx.author
@@ -40,7 +41,7 @@ class Anagram:
 
     # Function to setup the anagram
     def setupAnagram(self) -> str:
-        temp = list(self.chosenWord)
+        temp: List[str] = list(self.chosenWord)
         random.shuffle(temp)
         return "".join(temp)
 

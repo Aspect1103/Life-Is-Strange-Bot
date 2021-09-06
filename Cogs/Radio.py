@@ -2,11 +2,13 @@
 import asyncio
 import math
 import random
+from abc import ABCMeta
 from pathlib import Path
+from typing import List, Union
 # Pip
 import pendulum
 import wavelink
-from discord import VoiceRegion, Colour, Embed, Guild, VoiceClient, Member, utils, VoiceState
+from discord import VoiceRegion, Colour, Embed, Guild, VoiceClient, Member, utils, VoiceState, Message
 from discord.channel import TextChannel, VoiceChannel
 from discord.ext import commands
 from wavelink.ext import spotify
@@ -98,7 +100,7 @@ class Radio(commands.Cog):
             random.shuffle(self.tracks[player.guild.id])
             self.nextTrack[player.guild.id] = 0
         # Display details on the currently running song
-        titleAuthor = self.tracks[player.guild.id][self.nextTrack[player.guild.id]-1].query.split(" - ")
+        titleAuthor: List[str] = self.tracks[player.guild.id][self.nextTrack[player.guild.id]-1].query.split(" - ")
         infoEmbed = Embed(title=f"Now Playing: {titleAuthor[0]} by {titleAuthor[1]}", colour=self.colour)
         infoEmbed.add_field(name="Link", value=track.uri, inline=True)
         infoEmbed.add_field(name="Duration", value=str(pendulum.duration(seconds=track.duration)), inline=True)
@@ -112,7 +114,7 @@ class Radio(commands.Cog):
         if self.trackCounter[player.guild.id] == 5:
             self.trackCounter[player.guild.id] = 0
             await self.sendRadioLine(player.guild.id)
-            self.infoMessage[player.guild.id] = await self.textChannel[player.guild.id].send(embed=Embed(title="Initialising, please wait", colour=self.colour))
+            self.infoMessage[player.guild.id]: Message = await self.textChannel[player.guild.id].send(embed=Embed(title="Initialising, please wait", colour=self.colour))
         # Play the next song
         await player.play(self.tracks[player.guild.id][self.nextTrack[player.guild.id]])
 
@@ -121,7 +123,7 @@ class Radio(commands.Cog):
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState) -> None:
         # Test if the bot is connected to the voice channel
         if self.isConnected(member.guild):
-            voiceClientChannel = self.getVoiceClient(member.guild).channel
+            voiceClientChannel: VoiceChannel = self.getVoiceClient(member.guild).channel
             # Test if the bot is the only one connected to the voice channel
             if len(voiceClientChannel.members) == 1:
                 # Wait a second so the warning can be the last embed sent
@@ -149,22 +151,22 @@ class Radio(commands.Cog):
             # Verify that there is a text channel and a voice channel registered
             radioChannels = []
             for channelID in Utils.restrictor.IDs["radio"][str(ctx.guild.id)]:
-                channel = self.bot.get_channel(channelID)
+                channel: Union[TextChannel, VoiceChannel] = self.bot.get_channel(channelID)
                 if type(channel) not in [type(temp) for temp in radioChannels]:
                     radioChannels.append(channel)
-            radioChannelTypes = [type(temp) for temp in radioChannels]
+            radioChannelTypes: List[Union[ABCMeta]] = [type(temp) for temp in radioChannels]
             if TextChannel in radioChannelTypes and VoiceChannel in radioChannelTypes:
                 # Grab text and voice channels
                 voiceChannel = radioChannels[0] if type(radioChannels[0]) == VoiceChannel else radioChannels[1]
                 textChannel = radioChannels[0] if type(radioChannels[0]) == TextChannel else radioChannels[1]
                 self.textChannel[ctx.guild.id] = textChannel
                 # Connect the bot to the voice channel then send a starting radio line and info embed
-                player = await voiceChannel.connect(cls=wavelink.Player)
+                player: wavelink.Player = await voiceChannel.connect(cls=wavelink.Player)
                 await self.sendRadioLine(ctx.guild.id)
-                self.infoMessage[ctx.guild.id] = await textChannel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
+                self.infoMessage[ctx.guild.id]: Message = await textChannel.send(embed=Embed(title="Initialising, please wait", colour=self.colour))
                 # Play music
                 random.shuffle(self.orgTracks)
-                self.tracks[ctx.guild.id] = self.orgTracks
+                self.tracks[ctx.guild.id]: List[wavelink.PartialTrack] = self.orgTracks
                 await player.play(self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]])
             else:
                 await Utils.commandDebugEmbed(ctx.channel, f"Ensure there is both a text channel and a voice channel registered with {ctx.prefix}channel")
@@ -189,7 +191,7 @@ class Radio(commands.Cog):
         # Test if the bot is already connected
         if self.isConnected(ctx.guild):
             # Create variables needed for the queue
-            slicedList = self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]:]
+            slicedList: List[wavelink.PartialTrack] = self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]:]
             listAmmount = math.ceil(len(slicedList)/10)
             splittedList = Utils.listSplit(slicedList, 10, listAmmount)
             # Create embed objects for each page
@@ -199,7 +201,7 @@ class Radio(commands.Cog):
                 tempEmbed.set_footer(text=f"Page {countArr+1} of {listAmmount}. Track Total: {len(slicedList)}")
                 tempDescription = ""
                 for countTrack, track in enumerate(arr):
-                    tempTitleAuthor = track.query.split(" - ")
+                    tempTitleAuthor: List[str] = track.query.split(" - ")
                     tempDescription += f"{(countArr*10)+countTrack+1}. {tempTitleAuthor[0]} by {tempTitleAuthor[1]}\n"
                 tempEmbed.description = tempDescription
                 pages.append(tempEmbed)

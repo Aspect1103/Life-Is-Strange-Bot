@@ -2,7 +2,7 @@
 import asyncio
 # Pip
 from discord.ext.commands import Bot, Context
-from discord import Colour, Embed, Reaction, User
+from discord import Colour, Embed, Reaction, User, Message
 # Custom
 from Helpers.Games.TicTacToe import TicTacToe
 from Helpers.Games.Connect4 import Connect4
@@ -17,7 +17,7 @@ class GameManager:
     """
     Game Modes:
         1 - TicTacToe (twoplayer)
-        2 - Connect4 (twoplayer)
+        2 - Connect 4 (twoplayer)
         3 - Hangman (singleplayer)
         4 - Anagram (singleplayer)
         5 - Sokoban (singleplayer)
@@ -62,9 +62,9 @@ class GameManager:
     # Function to manage twoplayer games
     async def twoplayer(self, ctx: Context) -> None:
         def gameReactChecker(reaction: Reaction, user: User) -> bool:
-            return user.id != self.bot.user.id and user.id != ctx.author.id and str(reaction) == self.twoplayerInitReaction and reaction.message.guild.id == self.gameObj[ctx.guild.id][ctx.author].ctx.guild.id and reaction.message.id == reactMessage.id
+            return user.id != self.bot.user.id and user.id != ctx.author.id and str(reaction) == self.twoplayerInitReaction and reaction.message.guild.id == self.gameObj[ctx.guild.id][ctx.author].ctx.guild.id and reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id
         initialEmbed = Embed(title=f"{self.gameObj[ctx.guild.id][ctx.author]} Request", description=f"{self.gameObj[ctx.guild.id][ctx.author].player1.mention} wants to play {self.gameObj[ctx.guild.id][ctx.author]}. React to this message if you want to challenge them!", colour=self.colour)
-        reactMessage = self.gameObj[ctx.guild.id][ctx.author].gameMessage = await ctx.channel.send(embed=initialEmbed)
+        self.gameObj[ctx.guild.id][ctx.author].gameMessage = await ctx.channel.send(embed=initialEmbed)
         await self.gameObj[ctx.guild.id][ctx.author].gameMessage.add_reaction(self.twoplayerInitReaction)
         while True:
             try:
@@ -82,7 +82,7 @@ class GameManager:
     async def runner(self, ctx: Context) -> None:
         def checkMove(reaction: Reaction, user: User) -> bool:
             gameName = str(self.gameObj[ctx.guild.id][ctx.author])
-            if gameName == "TicTacToe" or gameName == "Connect4":
+            if gameName == "TicTacToe" or gameName == "Connect 4":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].nextPlayer.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis
             elif gameName == "Hangman" or gameName == "Anagram" or gameName == "Sokoban":
                 return reaction.message.id == self.gameObj[ctx.guild.id][ctx.author].gameMessage.id and user.id == self.gameObj[ctx.guild.id][ctx.author].user.id and str(reaction) in self.gameObj[ctx.guild.id][ctx.author].gameEmojis

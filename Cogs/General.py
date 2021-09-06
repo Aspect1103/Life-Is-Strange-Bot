@@ -1,5 +1,5 @@
 # Builtin
-from typing import Optional
+from typing import Optional, List
 import random
 from pathlib import Path
 # Pip
@@ -49,7 +49,7 @@ class General(commands.Cog):
             # All questions done
             random.shuffle(self.questionArray)
             self.nextQuestion = 0
-        randomQuestion = self.questionArray[self.nextQuestion]
+        randomQuestion: str = self.questionArray[self.nextQuestion]
         self.nextQuestion += 1
         questionEmbed = Embed(title=randomQuestion,  colour=self.colour)
         questionEmbed.set_footer(text=f"{len(self.questionArray)} questions")

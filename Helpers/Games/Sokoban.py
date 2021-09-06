@@ -179,7 +179,7 @@ class Sokoban:
         self.orgPlayerPos = [playerPositionX, playerPositionY]
         self.playerPos = self.orgPlayerPos
         self.orgGrid = tempGrid
-        # Stop overwriting of self.grid
+        # Stop overwriting of self.orgGrid
         self.grid = copy.deepcopy(self.orgGrid)
         self.remainingBoxes = boxCount
 
@@ -188,7 +188,7 @@ class Sokoban:
         sokobanEmbed = Embed(title=self.getTitle(), colour=self.colour)
         tempDescription = ""
         # Stop overwriting of self.grid
-        temp = copy.deepcopy(self.grid)
+        temp: List[List[int]] = copy.deepcopy(self.grid)
         temp[self.playerPos[1]][self.playerPos[0]] = 4
         for row in temp:
             for column in row:

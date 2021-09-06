@@ -68,14 +68,14 @@ class TicTacToe:
 
     # Function to test for a draw
     def drawCheck(self) -> None:
-        temp = [item for row in self.grid for item in row]
+        temp: List[int] = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
             self.result = ("Draw", self.nextPlayer)
 
     # Function to check for wins
     def winChecker(self) -> None:
-        checks = [
+        checks: List[bool] = [
             # Horizontal checks
             self.grid[0][0] == self.grid[0][1] == self.grid[0][2] and self.grid[0][0] != 0 and self.grid[0][1] != 0 and self.grid[0][2] != 0,
             self.grid[1][0] == self.grid[1][1] == self.grid[1][2] and self.grid[1][0] != 0 and self.grid[1][1] != 0 and self.grid[1][2] != 0,
@@ -88,7 +88,7 @@ class TicTacToe:
             self.grid[0][0] == self.grid[1][1] == self.grid[2][2] and self.grid[0][0] != 0 and self.grid[1][1] != 0 and self.grid[2][2] != 0,
             self.grid[0][2] == self.grid[1][1] == self.grid[2][0] and self.grid[0][2] != 0 and self.grid[1][1] != 0 and self.grid[2][0] != 0
         ]
-        if any([check for check in checks]):
+        if any(checks):
             self.isPlaying = False
             self.result = ("Win", self.nextPlayer)
 

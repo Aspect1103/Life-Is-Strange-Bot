@@ -5,8 +5,6 @@ from typing import List, Union
 import numpy
 from discord import Embed, Colour, Reaction
 from discord.ext.commands import Context, Bot
-# Custom
-from Helpers.Utils import Utils
 
 
 # Connect4 class to play connect 4 in a discord channel
@@ -57,7 +55,7 @@ class Connect4:
 
     # Function to update the 2D array with new moves
     def addMove(self, columnNumber: int) -> None:
-        availableRows = [i for i in range(len(self.grid)) if self.grid[i][columnNumber] == 0]
+        availableRows: List[int] = [i for i in range(len(self.grid)) if self.grid[i][columnNumber] == 0]
         if len(availableRows) != 0:
             self.currentIndex = [availableRows[-1], columnNumber]
             if self.nextPlayer == self.player1:
@@ -68,7 +66,7 @@ class Connect4:
 
     # Function to test for a draw
     def drawCheck(self) -> None:
-        temp = [item for row in self.grid for item in row]
+        temp: List[int] = [item for row in self.grid for item in row]
         if all(item != 0 for item in temp):
             self.isPlaying = False
             self.result = ("Draw", self.nextPlayer)
@@ -92,11 +90,11 @@ class Connect4:
             return False
         # Function to check for vertical wins
         def verticalCheck() -> bool:
-            verticalRow = [row[self.currentIndex[1]] for row in self.grid]
+            verticalRow: List[int] = [row[self.currentIndex[1]] for row in self.grid]
             return consecutiveCheck(verticalRow)
         # Function to check for horizontal wins
         def horizontalCheck() -> bool:
-            horizontalRow = self.grid[self.currentIndex[0]]
+            horizontalRow: List[int] = self.grid[self.currentIndex[0]]
             return consecutiveCheck(horizontalRow)
         # Function to check for diagonal wins
         def diagonalCheck() -> bool:

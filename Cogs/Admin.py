@@ -1,8 +1,8 @@
 # Builtin
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 # Pip
 from discord.ext import commands
-from discord import Embed, Colour
+from discord import Embed, Colour, TextChannel, VoiceChannel
 # Custom
 from Helpers.Utils import Utils
 
@@ -26,7 +26,7 @@ class Admin(commands.Cog):
         self.colour = Colour.orange()
 
     # Function to verify a channel command
-    def channelVerify(self, ctx: commands.Context, sect: str, chnlMent: str) -> Tuple[Union[str, bool], Union[str, None], Union[int, None]]:
+    def channelVerify(self, ctx: commands.Context, sect: str, chnlMent: str) -> Tuple[Union[bool, str], Union[str, None], Union[int, None]]:
         if sect is None and chnlMent is None:
             # Too little arguments
             return "Missing arguments", None, None
@@ -125,7 +125,7 @@ class Admin(commands.Cog):
                 listEmbed.add_field(name=f"{key.title()}", value="This command is allowed everywhere. Enjoy!", inline=False)
             else:
                 # Command/category restricted
-                textChannelAllowed = [self.bot.get_channel(channel) for channel in value[str(ctx.guild.id)]]
+                textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [self.bot.get_channel(channel) for channel in value[str(ctx.guild.id)]]
                 guildAllowed = ", ".join([channel.mention for channel in filter(None, textChannelAllowed)])
                 listEmbed.add_field(name=f"{key.title()}", value=guildAllowed, inline=False)
         # Send embed

@@ -82,12 +82,12 @@ listener = Listener()
 # Restrictor class initialisation
 IDs = initIDs()
 commandGroups = {
-    "life is strange": ["choices", "memory", "chatbot"],
+    "life is strange": ["choices", "memory"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
-    "fanfic": ["quote", "nextQuote", "searchQuote", "outline", "works"],
+    "fanfic": ["quote", "nextQuote", "searchQuote", "searchQuote start", "searchQuote add", "searchQuote remove", "outline", "works"],
     "radio": ["connect"],
-    "general": ["question", "connect4", "tictactoe", "hangman"],
-    "bot bidness": ["stop", "channel", "botRefresh", "channelRefresh", "about", "help"]
+    "general": ["question", "connect4", "tictactoe", "hangmanStart", "hangmanGuess", "anagramStart", "anagramGuess", "sokoban"],
+    "bot bidness": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about", "help"]
 }
 restrictor = Restrictor(IDs, commandGroups)
 

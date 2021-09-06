@@ -1,8 +1,8 @@
 # Builtin
 import asyncio
-from datetime import datetime
 import math
 import random
+from datetime import datetime
 from pathlib import Path
 from typing import Tuple, Union, List, Any, Optional
 # Pip
@@ -38,7 +38,7 @@ class Fanfic(commands.Cog):
     def fanficInit(self) -> None:
         # Creates the formatted 2D array for the google spreadsheet
         serviceAccount = gspread.service_account_from_dict(Config.serviceAccount)
-        worksheet = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
+        worksheet: List[List[str]] = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
         emptyRow = 0
         for row in range(len(worksheet)):
             if worksheet[row][10] == "":
@@ -47,7 +47,7 @@ class Fanfic(commands.Cog):
         self.worksheetArray = worksheet[:emptyRow]
 
         # Assign the IDs which are to be ignored to the ignore list
-        self.ignore = [line for line in open(ignorePath, "r").readlines()]
+        self.ignore: List[str] = [line for line in open(ignorePath, "r").readlines()]
 
     # Function to create quotes
     def quoteMaker(self, ficLink: str) -> Tuple[str, Union[AO3.Work, None], Union[str, None], Union[str, None]]:
@@ -58,7 +58,7 @@ class Fanfic(commands.Cog):
         quoteTries = 0
         while quoteTries < 5:
             quoteTries += 1
-            randomChapter = work.chapters[random.randrange(work.nchapters)]
+            randomChapter: AO3.Chapter = work.chapters[random.randrange(work.nchapters)]
             textList = list(filter(None, randomChapter.text.split("\n")))
             if len(textList) == 0:
                 # Work has no words
@@ -153,7 +153,7 @@ class Fanfic(commands.Cog):
         def checker(reaction, user):
             return reaction.message.id == self.quoteSearcher[ctx.guild.id].message.id and user.id == self.quoteSearcher[ctx.guild.id].ctx.author.id and str(reaction) == "⏹️"
         # Initialise the SearchQuoteManager object
-        message = await ctx.channel.send(embed=Embed(title="Quote Searcher", description=f"No filters added. Use {ctx.prefix}searchQuote add to add a filter", colour=self.colour))
+        message: Message = await ctx.channel.send(embed=Embed(title="Quote Searcher", description=f"No filters added. Use {ctx.prefix}searchQuote add to add a filter", colour=self.colour))
         self.quoteSearcher[ctx.guild.id] = SearchQuoteManager(self.bot, ctx, message, self.colour, self.worksheetArray)
         await message.add_reaction("⏹️")
         # Wait until the stop button is pressed with a timeout of 5 minutes
@@ -168,7 +168,7 @@ class Fanfic(commands.Cog):
         if self.quoteSearcher[ctx.guild.id].filters["smut"][1] is None:
             self.quoteSearcher[ctx.guild.id].finalArray = self.quoteSearcher[ctx.guild.id].filters["smut"][0]("No")
         # Pick a row
-        tempArray = self.quoteSearcher[ctx.guild.id].finalArray
+        tempArray: List[List[str]] = self.quoteSearcher[ctx.guild.id].finalArray
         if len(tempArray) == 0:
             await message.edit(embed=Embed(title="Quote Searcher", description="No matches found", colour=self.colour))
         elif len(tempArray) == 1:
@@ -222,7 +222,7 @@ class Fanfic(commands.Cog):
         if lastQuote is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
-            lastUrl = lastQuote.url
+            lastUrl: str = lastQuote.url
             # Create AO3 object then use it to create an info embed
             work = AO3.Work(AO3.utils.workid_from_url(lastUrl), self.session)
             infoEmbed = Embed(colour=self.colour)
@@ -231,22 +231,22 @@ class Fanfic(commands.Cog):
             infoEmbed.set_author(name=self.listConverter(work.authors, True))
             infoEmbed.add_field(name="Rating:", value=work.rating)
             warnings = self.listConverter(work.warnings)
-            if warnings != None:
+            if warnings is not None:
                 infoEmbed.add_field(name="Warnings:", value=warnings)
             categories = self.listConverter(work.categories)
-            if categories != None:
+            if categories is not None:
                 infoEmbed.add_field(name="Categories:", value=categories)
             fandoms = self.listConverter(work.fandoms)
-            if fandoms == None:
+            if fandoms is not None:
                 infoEmbed.add_field(name="Fandom:", value=fandoms)
             relationships = self.listConverter(work.relationships)
-            if relationships != None:
+            if relationships is not None:
                 infoEmbed.add_field(name="Relationships:", value=relationships)
             characters = self.listConverter(work.characters)
-            if characters != None:
+            if characters is not None:
                 infoEmbed.add_field(name="Characters:", value=characters)
             tags = self.listConverter(work.tags)
-            if tags != None:
+            if tags is not None:
                 infoEmbed.add_field(name="Additional Tags:", value=tags)
             infoEmbed.add_field(name="Summary:", value=work.summary)
             infoEmbed.set_footer(text=f"Words: {work.words}. Chapters: {work.nchapters}. Language: {work.language}")
@@ -262,13 +262,13 @@ class Fanfic(commands.Cog):
         if lastQuote is None:
             await Utils.commandDebugEmbed(ctx.channel, f"Cannot find the last quote. Try running {ctx.prefix}quote")
         else:
-            authorName = lastQuote.author.name
+            authorName: str = lastQuote.author.name
             user = AO3.User(authorName, self.session)
             # If there are more than 5 pages of works, don't create embed
             pageLimit = 5
             if user.work_pages <= pageLimit:
                 # Get all of their works (Note: Works aren't loaded)
-                works = user.get_works(use_threading=True)
+                works: List[AO3.Work] = user.get_works(use_threading=True)
                 workLimit = 5
                 # If the amount of works is above workLimit, then create paginated menu
                 if len(works) > workLimit:

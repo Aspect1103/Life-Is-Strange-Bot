@@ -1,6 +1,7 @@
 # Builtin
-from typing import List, Tuple, Union
 from pathlib import Path
+from typing import List, Tuple, Union
+from sqlite3 import Row
 # Pip
 import asqlite
 
@@ -14,7 +15,7 @@ class DatabaseManager:
 
     # Function to connect to the database
     async def connect(self) -> None:
-        self.connection = await asqlite.connect(str(self.path))
+        self.connection: asqlite.Connection = await asqlite.connect(str(self.path))
 
     # Function for executing sql statements that don't return anything
     async def execute(self, statement: str, params: Union[Tuple[int, ...], int]) -> None:
@@ -30,7 +31,7 @@ class DatabaseManager:
     async def fetch(self, statement: str, params: Union[Tuple[int, ...], int]) -> List[Tuple[int, int, int, int, int, int]]:
         async with self.connection.cursor() as fetchCursor:
             await fetchCursor.execute(statement, params)
-            result = await fetchCursor.fetchall()
+            result: List[Row] = await fetchCursor.fetchall()
             return [tuple(row) for row in result]
 
     # Function for fetching a user's data from the database (or adding a new row)

@@ -6,7 +6,7 @@ import random
 from pathlib import Path
 from typing import Optional, Tuple, Union, List, Dict
 # Pip
-from discord import Colour, Embed, File, Reaction, User, Member
+from discord import Colour, Embed, File, Reaction, User, Member, Message
 from discord.ext import commands
 # Custom
 from Helpers.Utils import Utils
@@ -38,11 +38,11 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     # Function to initialise life is strange variables
     def lifeIsStrangeInit(self) -> None:
         # Create trivia questions array
-        self.triviaQuestions = json.loads(open(triviaPath, "r").read())
+        self.triviaQuestions: List[Dict[str, str]] = json.loads(open(triviaPath, "r").read())
         random.shuffle(self.triviaQuestions)
 
         # Setup the choices table
-        self.choicesTable = json.loads(open(choicesPath, "r").read())
+        self.choicesTable: List[List[Dict[str, str]]] = json.loads(open(choicesPath, "r").read())
 
         # Setup memory images array
         self.memoryImages = list(memoryPath.glob("*"))
@@ -59,7 +59,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             # All questions done
             random.shuffle(self.triviaQuestions)
             self.nextTrivia[ctx.guild.id] = 0
-        randomTrivia = self.triviaQuestions[self.nextTrivia[ctx.guild.id]]
+        randomTrivia: Dict[str, str] = self.triviaQuestions[self.nextTrivia[ctx.guild.id]]
         self.nextTrivia[ctx.guild.id] += 1
         triviaEmbed = Embed(colour=self.colour)
         triviaEmbed.title = randomTrivia["question"]
@@ -79,7 +79,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             if guess is not None:
                 try:
                     if self.triviaReactions[str(guess[0])] == count+1:
-                        temp += f" ⬅ {str(guess[1])} guessed"
+                        temp += f" \U00002B05 {str(guess[1])} guessed"
                 except KeyError:
                     # Unknown emoji
                     pass
@@ -173,12 +173,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             return user.id != self.bot.user.id and str(reaction) in self.triviaReactions
         # Grab random trivia
         triviaObj, correctOption = self.triviaMaker(ctx)
-        triviaMessage = await ctx.channel.send(embed=triviaObj)
+        triviaMessage: Message = await ctx.channel.send(embed=triviaObj)
         # Add relations
         for reaction in self.triviaReactions.keys():
             await triviaMessage.add_reaction(reaction)
         # Wait for the user's reaction and make sure the bot's reactions aren't counted
-        reaction = None
+        reaction: Union[Reaction, None] = None
         while True:
             try:
                 reaction = await self.bot.wait_for("reaction_add", timeout=15, check=answerCheck)
@@ -226,7 +226,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
             guildUsers = Utils.rankSort(guildUsers, 2)
             scoreList = [item[2] for item in guildUsers]
-            maxPage = math.ceil(len(guildUsers) / 10)
+            maxPage = math.ceil(len(guildUsers)/10)
             splittedList = Utils.listSplit(guildUsers, 10, maxPage)
             pageNo = int(pageNo)
             if maxPage != 0:
