@@ -2,10 +2,8 @@
 from typing import List
 from datetime import datetime
 # Pip
-from discord.ext.commands import Context, Bot
 from discord import Embed, Colour, Reaction
-# Custom
-from Helpers.Utils import Utils
+from discord.ext.commands import Context, Bot
 
 
 # TicTacToe class to play tic tac toe in a discord channel

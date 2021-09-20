@@ -1,8 +1,8 @@
 # Builtin
-import random
 import copy
-from typing import List
+import random
 from datetime import datetime
+from typing import List
 # Pip
 from discord import Embed, Colour, Reaction
 from discord.ext.commands import Context, Bot

@@ -1,7 +1,7 @@
 # Builtin
 from pathlib import Path
-from typing import List, Tuple, Union
 from sqlite3 import Row
+from typing import List, Tuple, Union
 # Pip
 import asqlite
 

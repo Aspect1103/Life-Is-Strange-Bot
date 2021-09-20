@@ -1,8 +1,8 @@
 # Builtin
 from typing import Tuple, Union, List
 # Pip
-from discord.ext import commands
 from discord import Embed, Colour, TextChannel, VoiceChannel
+from discord.ext import commands
 # Custom
 from Helpers.Utils import Utils
 

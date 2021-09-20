@@ -1,8 +1,8 @@
 # Builtin
 import asyncio
 # Pip
-from discord.ext.commands import Bot, Context
 from discord import Colour, Embed, Reaction, User, Message
+from discord.ext.commands import Bot, Context
 # Custom
 from Helpers.Games.TicTacToe import TicTacToe
 from Helpers.Games.Connect4 import Connect4

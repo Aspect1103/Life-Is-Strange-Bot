@@ -1,7 +1,7 @@
 # Builtin
-from typing import Optional, List
 import random
 from pathlib import Path
+from typing import Optional, List
 # Pip
 from discord import Embed, Colour
 from discord.ext import commands

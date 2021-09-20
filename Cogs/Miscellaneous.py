@@ -1,6 +1,6 @@
 # Builtin
-import re
 import random
+import re
 from typing import Union, Mapping, List
 # Pip
 from discord import Embed, Colour

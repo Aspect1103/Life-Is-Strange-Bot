@@ -1,8 +1,8 @@
 # Builtin
 from typing import List
 # Pip
-from discord.ext.commands import Context, Bot
 from discord import Embed, Colour, Message
+from discord.ext.commands import Context, Bot
 # Custom
 from Helpers.Utils import Utils
 
