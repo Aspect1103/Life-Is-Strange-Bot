@@ -21,23 +21,15 @@ class General(commands.Cog):
         self.bot = bot
         self.colour = Colour.blue()
         self.gameManager = GameManager(self.bot, self.colour)
-        self.nextQuestion = 0
+        self.questionArray = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
         self.isNewGameAllowed = True
-        self.questionArray = None
-        self.generalInit()
-        self.bot.loop.create_task(self.startup())
-
-    # Function to initialise general variables
-    def generalInit(self) -> None:
-        # Create questions array
-        temp = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
-        random.shuffle(temp)
-        self.questionArray = temp
+        self.nextQuestion = None
+        random.shuffle(self.questionArray)
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.bot.wait_until_ready()
         # Create dictionary for each guild to store variables
+        self.nextQuestion = {guild.id: 0 for guild in self.bot.guilds}
         self.gameManager.gameAllowed = {guild.id: True for guild in self.bot.guilds}
         self.gameManager.gameObj = {guild.id: {} for guild in self.bot.guilds}
 
@@ -45,12 +37,12 @@ class General(commands.Cog):
     @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def question(self, ctx: commands.Context) -> None:
-        if self.nextQuestion == len(self.questionArray):
+        if self.nextQuestion[ctx.guild.id] == len(self.questionArray):
             # All questions done
             random.shuffle(self.questionArray)
-            self.nextQuestion = 0
-        randomQuestion: str = self.questionArray[self.nextQuestion]
-        self.nextQuestion += 1
+            self.nextQuestion[ctx.guild.id] = 0
+        randomQuestion: str = self.questionArray[self.nextQuestion[ctx.guild.id]]
+        self.nextQuestion[ctx.guild.id] += 1
         questionEmbed = Embed(title=randomQuestion,  colour=self.colour)
         questionEmbed.set_footer(text=f"{len(self.questionArray)} questions")
         await ctx.channel.send(embed=questionEmbed)

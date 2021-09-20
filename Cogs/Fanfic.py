@@ -28,26 +28,10 @@ class Fanfic(commands.Cog):
         self.bot = bot
         self.session = AO3.Session(Config.ao3Username, Config.ao3Password)
         self.colour = Colour.green()
-        self.ignore = []
-        self.worksheetArray = None
+        self.ignore = [line for line in open(ignorePath, "r").readlines()]
         self.quoteSearcher = None
-        self.fanficInit()
-        self.bot.loop.create_task(self.startup())
-
-    # Function to initialise fanfic variables
-    def fanficInit(self) -> None:
-        # Creates the formatted 2D array for the google spreadsheet
-        serviceAccount = gspread.service_account_from_dict(Config.serviceAccount)
-        worksheet: List[List[str]] = serviceAccount.open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
-        emptyRow = 0
-        for row in range(len(worksheet)):
-            if worksheet[row][10] == "":
-                emptyRow = row
-                break
-        self.worksheetArray = worksheet[:emptyRow]
-
-        # Assign the IDs which are to be ignored to the ignore list
-        self.ignore: List[str] = [line for line in open(ignorePath, "r").readlines()]
+        tempWorksheet: List[List[str]] = gspread.service_account_from_dict(Config.serviceAccount).open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
+        self.worksheetArray = tempWorksheet[:tempWorksheet.index([""]*11)]
 
     # Function to create quotes
     def quoteMaker(self, ficLink: str) -> Tuple[str, Union[AO3.Work, None], Union[str, None], Union[str, None]]:
@@ -64,7 +48,7 @@ class Fanfic(commands.Cog):
                 # Work has no words
                 return "", None, None, None
             quote = random.choice(textList)
-            if len(quote.split()) >= 10 and len(quote.split()) <= 170:
+            if 10 <= len(quote.split()) <= 170:
                 return quote, work, self.listConverter(work.authors, True), randomChapter.title
         # No quotes found
         return "", None, None, None
@@ -82,6 +66,11 @@ class Fanfic(commands.Cog):
         quoteEmbed.set_author(name=authors)
         return quoteEmbed
 
+    # Function which runs once the bot is setup and running
+    async def startup(self) -> None:
+        # Create dictionary for each guild to hold the quote searcher
+        self.quoteSearcher = {guild.id: None for guild in self.bot.guilds}
+
     # Function to find the last quote posted
     async def findLastQuote(self, ctx: commands.Context, before: datetime = None, repeats: int = 0) -> Union[Message, None]:
         lastMessage = None
@@ -95,12 +84,6 @@ class Fanfic(commands.Cog):
                 except IndexError:
                     pass
         return None if repeats == 5 else await self.findLastQuote(ctx, lastMessage.created_at, repeats)
-
-    # Function which runs once the bot is setup and running
-    async def startup(self) -> None:
-        await self.bot.wait_until_ready()
-        # Create dictionary for each guild to hold the quote searcher
-        self.quoteSearcher = {guild.id: None for guild in self.bot.guilds}
 
     # quote command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Grabs a random quote from a LiS fic on AO3. By default, it will only search non-NSFW fics which can be changed through the includeNSFW argument. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nIncludeNSFW - Yes/No (doesn't have to be capitalised). This argument is optional as not including it will default to 'No'", usage="quote [includeNSFW]", brief="Fanfic")

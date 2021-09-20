@@ -9,7 +9,7 @@ from discord import TextChannel, Embed, Colour, Message
 from discord.ext import commands
 # Custom
 from Helpers.Managers.DatabaseManager import DatabaseManager
-from .Listener import Listener
+from .Tasks import Tasks
 from .Restrictor import Restrictor
 
 
@@ -77,7 +77,7 @@ errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
 extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
 gameActivityTimeout = 300
 database = DatabaseManager(lisDatabasePath)
-listener = Listener()
+tasks = Tasks()
 
 # Restrictor class initialisation
 IDs = initIDs()

@@ -29,6 +29,10 @@ class Miscellaneous(commands.Cog):
         self.bot.help_command = Help(command_attrs=attributes)
         self.bot.help_command.cog = self
 
+    # Function which runs once the bot is setup and running
+    async def startup(self) -> None:
+        pass
+
     # bum command with a cooldown of 1 use every 5 seconds per guild
     @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)

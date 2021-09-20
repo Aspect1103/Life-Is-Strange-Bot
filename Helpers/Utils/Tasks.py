@@ -15,8 +15,8 @@ rootDirectory = Path(__file__).parent.parent.parent
 historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("historyEvents.json")
 
 
-# Listener class to run specific events on startup
-class Listener:
+# Tasks class to run specific events on startup
+class Tasks:
     # Initialise variables
     def __init__(self) -> None:
         self.historyEventsTable: List[List[str]] = json.loads(open(historyEventsPath, "r").read())
@@ -29,9 +29,14 @@ class Listener:
 
     # Function which starts the various events
     async def start(self) -> None:
+        await self.redditPoster()
         await self.historyEvents()
 
-    # Sends a message detailing a LiS event which happened on the same day
+    # Function which sends a message linking the top post from r/lifeisstrange
+    async def redditPoster(self) -> None:
+        pass
+
+    # Function which sends a message detailing a LiS event which happened on the same day
     async def historyEvents(self) -> None:
         # Get tomorrow's date so once midnight hits, the correct date can be checked
         tomorrowDate = pendulum.now().add(days=1)

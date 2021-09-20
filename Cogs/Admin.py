@@ -46,6 +46,10 @@ class Admin(commands.Cog):
                 validSections = "/".join(Utils.IDs.keys())
                 return f"Section not found. Try {validSections}", None, None
 
+    # Function which runs once the bot is setup and running
+    async def startup(self) -> None:
+        pass
+
     # stop command to stop the bot
     @commands.command(help="Stops the bot", usage="stop", brief="Bot Bidness")
     @commands.is_owner()

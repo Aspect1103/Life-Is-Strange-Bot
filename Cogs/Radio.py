@@ -27,27 +27,13 @@ class Radio(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.colour = Colour.from_rgb(255, 192, 203)
+        self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
         self.orgTracks = None
         self.tracks = None
         self.trackCounter = None
         self.nextTrack = None
         self.textChannel = None
         self.infoMessage = None
-        self.radioLines = None
-        self.radioInit()
-        self.bot.loop.create_task(self.startup())
-
-    # Function to initialise radio variables
-    def radioInit(self) -> None:
-        # Create dictionary for each guild to store variables
-        self.tracks = {guild.id: [] for guild in self.bot.guilds}
-        self.trackCounter = {guild.id: 0 for guild in self.bot.guilds}
-        self.nextTrack = {guild.id: 0 for guild in self.bot.guilds}
-        self.textChannel = {guild.id: None for guild in self.bot.guilds}
-        self.infoMessage = {guild.id: None for guild in self.bot.guilds}
-
-        # Setup radio lines array
-        self.radioLines = [line.replace("\n", "") for line in open(radioPath, "r", encoding="utf8").readlines()]
 
     # Function to get a voiceClient
     def getVoiceClient(self, guild: Guild) -> VoiceClient:
@@ -59,7 +45,13 @@ class Radio(commands.Cog):
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.bot.wait_until_ready()
+        # Create dictionary for each guild to store variables
+        self.tracks = {guild.id: [] for guild in self.bot.guilds}
+        self.trackCounter = {guild.id: 0 for guild in self.bot.guilds}
+        self.nextTrack = {guild.id: 0 for guild in self.bot.guilds}
+        self.textChannel = {guild.id: None for guild in self.bot.guilds}
+        self.infoMessage = {guild.id: None for guild in self.bot.guilds}
+
         # Create a wavelink node to play music
         await wavelink.NodePool.create_node(bot=self.bot,
                                             host="192.168.1.227",
@@ -70,7 +62,11 @@ class Radio(commands.Cog):
                                             identifier="LiSBot")
 
         # Grab all songs
-        self.orgTracks = [partialTrack async for partialTrack in spotify.SpotifyTrack.iterator(query="6jCdO6RGfNw4siuCKpIBgM", partial_tracks=True)]
+        self.orgTracks = await self.getSongs()
+
+    # Function to get songs from the spotify playlist
+    async def getSongs(self) -> List[wavelink.PartialTrack]:
+        return [partialTrack async for partialTrack in spotify.SpotifyTrack.iterator(query="6jCdO6RGfNw4siuCKpIBgM", partial_tracks=True)]
 
     # Function to send a radio line to the text channel
     async def sendRadioLine(self, guildID: int) -> None:

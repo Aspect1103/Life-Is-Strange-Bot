@@ -26,30 +26,16 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.bot = bot
         self.colour = Colour.purple()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
+        self.triviaQuestions = json.loads(open(triviaPath, "r").read())
+        self.choicesTable = json.loads(open(choicesPath, "r").read())
+        self.memoryImages = list(memoryPath.glob("*"))
         # self.pastInputs = []
         # self.pastResponses = []
-        self.triviaQuestions = None
         self.nextTrivia = None
-        self.choicesTable = None
-        self.memoryImages = None
-        self.lifeIsStrangeInit()
-        self.bot.loop.create_task(self.startup())
-
-    # Function to initialise life is strange variables
-    def lifeIsStrangeInit(self) -> None:
-        # Create trivia questions array
-        self.triviaQuestions: List[Dict[str, str]] = json.loads(open(triviaPath, "r").read())
         random.shuffle(self.triviaQuestions)
-
-        # Setup the choices table
-        self.choicesTable: List[List[Dict[str, str]]] = json.loads(open(choicesPath, "r").read())
-
-        # Setup memory images array
-        self.memoryImages = list(memoryPath.glob("*"))
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        await self.bot.wait_until_ready()
         # Create dictionary for each guild to hold the trivia counter
         self.nextTrivia = {guild.id: 0 for guild in self.bot.guilds}
 

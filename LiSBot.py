@@ -41,14 +41,17 @@ async def startup() -> None:
     await bot.wait_until_ready()
     # Setup the variables for the restrictor, listener and database manager class
     Utils.restrictor.setBot(bot)
-    Utils.listener.setBot(bot)
+    Utils.tasks.setBot(bot)
     await Utils.database.connect()
+    # Run the startup functions for each cog
+    for cog in bot.cogs.values():
+        await cog.startup()
     # Change the presence to show the help command
     await bot.change_presence(status=Status.online, activity=Activity(type=ActivityType.listening, name=f"{bot.command_prefix}help"))
     # Send message to the debug channel signalling that the bot is ready
     await bot.get_channel(817807544482922496).send("Running")
     # Start the listener
-    await Utils.listener.start()
+    await Utils.tasks.start()
 
 
 # Setup automatic logging for debugging
