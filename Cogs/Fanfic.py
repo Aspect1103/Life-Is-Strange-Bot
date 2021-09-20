@@ -30,7 +30,7 @@ class Fanfic(commands.Cog):
         self.colour = Colour.green()
         self.ignore = [line for line in open(ignorePath, "r").readlines()]
         self.quoteSearcher = None
-        tempWorksheet: List[List[str]] = gspread.service_account_from_dict(Config.serviceAccount).open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
+        tempWorksheet = gspread.service_account_from_dict(Config.serviceAccount).open("Life Is Strange Read Fanfictions").worksheet("Life Is Strange Read Fanfictions").get_all_values()[2:]
         self.worksheetArray = tempWorksheet[:tempWorksheet.index([""]*11)]
 
     # Function to create quotes

@@ -39,9 +39,9 @@ async def on_guild_remove(guild: Guild) -> None:
 # Function which runs once the bot is setup and running
 async def startup() -> None:
     await bot.wait_until_ready()
-    # Setup the variables for the restrictor, listener and database manager class
+    # Setup the helper scripts
     Utils.restrictor.setBot(bot)
-    Utils.tasks.setBot(bot)
+    await Utils.tasks.startup(bot)
     await Utils.database.connect()
     # Run the startup functions for each cog
     for cog in bot.cogs.values():
