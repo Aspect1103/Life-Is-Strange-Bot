@@ -53,8 +53,9 @@ class Tasks:
                     self.posts[guild.id].append(submission.id)
                     await submission.author.load()
                     postEmbed = Embed(title=submission.title, url=f"https://www.reddit.com{submission.permalink}", colour=self.colour)
-                    postEmbed.set_image(url=submission.url)
                     postEmbed.set_author(name=submission.author.name, url=f"https://www.reddit.com/user/{submission.author.name}", icon_url=submission.author.icon_img)
+                    # This will only display an image if the post has 1 image (no gallery)
+                    postEmbed.set_image(url=submission.url)
                     await self.sendEmbed(postEmbed)
                     break
 
