@@ -15,7 +15,7 @@ class DatabaseManager:
 
     # Function to connect to the database
     async def connect(self) -> None:
-        self.connection: asqlite.Connection = await asqlite.connect(str(self.path))
+        self.connection = await asqlite.connect(str(self.path))
 
     # Function for executing sql statements that don't return anything
     async def execute(self, statement: str, params: Union[Tuple[int, ...], int]) -> None:
