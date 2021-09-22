@@ -1,8 +1,8 @@
 # Builtin
 import random
-from datetime import datetime
 from pathlib import Path
 # Pip
+import pendulum
 from discord import Colour, Embed, Reaction
 from discord.ext.commands import Context, Bot
 # Custom
@@ -36,7 +36,7 @@ class Hangman:
         self.title = ["-"]*len(self.chosenWord)
         self.gameEmojis = ["🛑"]
         self.user = self.ctx.author
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.totalTries = 6
         self.incorrectGuesses = 0
         self.correctGuesses = 0
@@ -92,7 +92,7 @@ class Hangman:
         if guessCharacter is None:
             await Utils.commandDebugEmbed(self.ctx.channel, "Make sure a character is being guessed")
         else:
-            self.lastActivity = datetime.now()
+            self.lastActivity = pendulum.now()
             userGuess = guessCharacter.lower()
             self.guesses += 1
             self.guessedLetters.append(userGuess)

@@ -142,7 +142,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
 
     # Function to update the ranks for a specific guild
     async def updateRanks(self, guildID: int) -> None:
-        guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", guildID)
+        guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", (guildID, ))
         sortedRanks = [(count+1, row[0], row[1]) for count, row in enumerate(Utils.rankSort(guildUsers, 2))]
         await Utils.database.executeMany("UPDATE triviaScores SET rank = ? WHERE guildID = ? AND userID = ?", sortedRanks)
 
@@ -198,7 +198,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             await Utils.commandDebugEmbed(ctx.channel, f"{userObj.mention} hasn't answered any questions. Run {ctx.prefix}trivia to answer some")
         else:
             # User in database
-            totalUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
+            totalUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", (ctx.guild.id, ))
             triviaScoreEmbed = Embed(title=f"{userObj.name}'s Trivia Score", colour=self.colour)
             triviaScoreEmbed.description = f"Rank: **{user[0][5]}/{len(totalUsers)}**\nScore: **{user[0][2]}**\nPoints Gained: **{user[0][3]}**\nPoints Lost: **{user[0][4]}**"
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar_url)
@@ -209,7 +209,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def triviaLeaderboard(self, ctx: commands.Context, pageNo: Optional[str] = "1") -> None:
         if pageNo.isdigit():
-            guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", ctx.guild.id)
+            guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", (ctx.guild.id, ))
             guildUsers = Utils.rankSort(guildUsers, 2)
             scoreList = [item[2] for item in guildUsers]
             maxPage = math.ceil(len(guildUsers)/10)

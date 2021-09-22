@@ -1,7 +1,7 @@
 # Builtin
 from typing import List
-from datetime import datetime
 # Pip
+import pendulum
 from discord import Embed, Colour, Reaction
 from discord.ext.commands import Context, Bot
 
@@ -16,7 +16,7 @@ class TicTacToe:
         self.gameID = 1
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.grid = [[0 for i in range(3)] for j in range(3)]
         self.gameEmojis = ["↖️", "⬆️", "↗️", "⬅️", "⏺️", "➡️", "↙️", "⬇️", "↘️", "🛑"]
         self.iconEmojis = ["\U0001F7E6", "\U0000274C", "\U00002B55"]
@@ -99,7 +99,7 @@ class TicTacToe:
 
     # Function to process a reaction from the gameManager
     def processReaction(self, reaction: Reaction) -> None:
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.moveManager(str(reaction))
         if self.isPlaying:
             if self.changeMade:

@@ -1,9 +1,9 @@
 # Builtin
 import json
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Union, Tuple
 # Pip
+import pendulum
 from AO3.utils import HTTPError
 from discord import TextChannel, Embed, Colour, Message
 from discord.ext import commands
@@ -25,12 +25,12 @@ def idWriter(newDict: Dict[str, Dict[str, List[int]]]) -> None:
 
 # Function to write messages to error.txt
 def errorWrite(error: Union[commands.CommandError, str]) -> None:
-    open(errorPath, "a").write(f"{datetime.now()}, {error}\n")
+    open(errorPath, "a").write(f"{pendulum.now()}, {error}\n")
 
 
 # Function to determine the time since last game activity
-def gameActivity(lastActivity: datetime) -> bool:
-    return datetime.now() > (lastActivity + timedelta(seconds=gameActivityTimeout))
+def gameActivity(lastActivity: pendulum.datetime) -> bool:
+    return pendulum.now() > lastActivity.add(seconds=gameActivityTimeout)
 
 
 # Function to split a list with a set amount of items in each

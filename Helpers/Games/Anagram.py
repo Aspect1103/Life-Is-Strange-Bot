@@ -1,9 +1,9 @@
 # Builtin
 import random
-from datetime import datetime
 from pathlib import Path
 from typing import List
 # Pip
+import pendulum
 from discord import Colour, Embed, Reaction
 from discord.ext.commands import Context, Bot
 # Custom
@@ -26,7 +26,7 @@ class Anagram:
         self.chosenWord = random.choice(self.words).lower()
         self.anagram = self.setupAnagram()
         self.user = self.ctx.author
-        self.startTime = datetime.now()
+        self.startTime = pendulum.now()
         self.lastActivity = self.startTime
         self.gameEmojis = ["🛑"]
         self.guesses = []
@@ -70,7 +70,7 @@ class Anagram:
             anagramEmbed.add_field(name="Guesses Words", value=", ".join(self.guesses))
         anagramEmbed.add_field(name="Total Guesses", value=str(self.totalGuesses))
         if not self.isPlaying:
-            totalTime = datetime.now()-self.startTime
+            totalTime = pendulum.period(self.startTime, pendulum.now())
             anagramEmbed.add_field(name="Total Time", value=f"{str(round(totalTime.total_seconds(), 2))} Seconds")
         await self.gameMessage.edit(embed=anagramEmbed)
 
@@ -79,7 +79,7 @@ class Anagram:
         if word is None:
             await Utils.commandDebugEmbed(self.ctx.channel, "Make sure a character is being guessed")
         else:
-            self.lastActivity = datetime.now()
+            self.lastActivity = pendulum.now()
             self.guesses.append(word.capitalize())
             self.totalGuesses += 1
             userGuess = word.lower()

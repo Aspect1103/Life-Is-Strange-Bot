@@ -1,8 +1,8 @@
 # Builtin
-from datetime import datetime
 from typing import List, Union
 # Pip
 import numpy
+import pendulum
 from discord import Embed, Colour, Reaction
 from discord.ext.commands import Context, Bot
 
@@ -17,7 +17,7 @@ class Connect4:
         self.gameID = 2
         self.player1 = self.ctx.author
         self.nextPlayer = self.player1
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.grid = [[0 for i in range(7)] for j in range(6)]
         self.gameEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "🛑"]
         self.iconEmojis = ["\U0001F535", "\U0001F7E1", "\U0001F534"]
@@ -126,7 +126,7 @@ class Connect4:
 
     # Function to process a reaction from the gameManager
     def processReaction(self, reaction: Reaction) -> None:
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.moveManager(str(reaction))
         if self.isPlaying:
             if self.changeMade:

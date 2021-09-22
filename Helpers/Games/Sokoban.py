@@ -1,9 +1,9 @@
 # Builtin
 import copy
 import random
-from datetime import datetime
 from typing import List
 # Pip
+import pendulum
 from discord import Embed, Colour, Reaction
 from discord.ext.commands import Context, Bot
 # Custom
@@ -30,7 +30,7 @@ class Sokoban:
         self.gridEmojis = ["\U00002B1B", "\U0001F7EB", "\U0000274C", "\U0001F602"]
         self.wallColours = ["\U0001F7E6", "\U0001F7E5", "\U0001F7E7", "\U0001F7E8", "\U0001F7E9", "\U0001F7EA"]
         self.gameColour = random.choice(self.wallColours)
-        self.lastActivity = datetime.now()
+        self.lastActivity = pendulum.now()
         self.isPlaying = True
         self.gameMessage = None
         self.orgPlayerPos = None
@@ -90,6 +90,7 @@ class Sokoban:
 
     # Function to process a reaction from the gameManager
     def processReaction(self, reaction: Reaction) -> None:
+        self.lastActivity = pendulum.now()
         if str(reaction) == self.gameEmojis[0] and self.grid[self.playerPos[1]][self.playerPos[0]-1] != 1:
             if self.grid[self.playerPos[1]][self.playerPos[0]-1] == 2:
                 if self.checkBox([self.playerPos[0]-2, self.playerPos[1]]):
