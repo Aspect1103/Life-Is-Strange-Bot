@@ -6,6 +6,7 @@ import random
 from pathlib import Path
 from typing import Optional, Tuple, Union, List, Dict
 # Pip
+import pendulum
 from discord import Colour, Embed, File, Reaction, User, Member, Message
 from discord.ext import commands
 # Custom
@@ -104,7 +105,9 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
 
     # Function to update a user's trivia score
     async def updateTriviaScores(self, ctx: commands.Context, correctOption: int, guess: Union[Reaction, None]) -> None:
+        # REMOVE THIS STUFF ONCE BUG FOUND
         orgUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
+        ouser = orgUser
         if guess is None:
             # No answer
             orgUser[2] -= 2
@@ -112,6 +115,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         else:
             # Get guess user's data
             guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
+            guser = guessUser
             if self.triviaReactions[str(guess[0])] == correctOption:
                 # Question correct
                 if ctx.author.id == guessUser[1]:
@@ -137,7 +141,11 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
                     guessUser[2] -= 1
                     guessUser[4] += 1
             await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, guess[1].id))
+            with open("triviaLog.txt", "a") as file:
+                file.write(f"{pendulum.now()}: {guser} changed to {guessUser}\n")
         await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, ctx.author.id))
+        with open("triviaLog.txt", "a") as file:
+            file.write(f"{pendulum.now()}: {ouser} changed to {orgUser}\n")
         await self.updateRanks(ctx.guild.id)
 
     # Function to update the ranks for a specific guild
@@ -150,6 +158,8 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.Cog.listener()
     async def on_member_remove(self, member: Member) -> None:
         await Utils.database.execute("DELETE FROM triviaScores WHERE guildID = ? and userID = ?", (member.guild.id, member.id))
+        with open("triviaLog.txt", "a") as file:
+            file.write(f"{pendulum.now()}: {member.id} removed\n")
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a trivia question which can be answered via the emojis. It will timeout in 15 seconds. It has a cooldown of {Utils.long} seconds", description="Scoring:\n\nNo answer = 2 points lost.\nCorrect answer and answered by the original command sender = 2 points gained.\nCorrect answer and answer stolen = 1 point gained for each person.\nIncorrect answer and answered by the original command sender = 2 points lost.\nIncorrect answer and answer stolen = 1 point lost for each person.", usage="trivia", brief="Trivia")
@@ -264,6 +274,20 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def memory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.memoryImages)))
+
+    # image command with a cooldown of 1 use every 45 seconds per guild
+    @commands.command(help="")
+    @commands.cooldown(1, 0, commands.BucketType.guild)
+    async def image(self, ctx: commands.Context, *args) -> None:
+        searchParams = "tags LIKE '%/lifeisstrange/%'" if len(args) == 0 else " AND ".join([f"tags LIKE '%/{tag}/%'" for tag in args])
+        result = await Utils.database.fetch(f"SELECT * FROM images WHERE {searchParams} ORDER BY RANDOM() LIMIT 1", ())
+        result: Tuple[str, str] = list(result)[0]
+        tagString = result[1].split("/")
+        imageEmbed = Embed(title="Random Life is Strange Image", colour=self.colour)
+        imageEmbed.url = result[0]
+        imageEmbed.add_field(name="Tags", value=", ".join(tagString[1:len(tagString)-1]))
+        imageEmbed.set_image(url=result[0])
+        await ctx.channel.send(embed=imageEmbed)
 
     # # chatbot command with a cooldown of 1 use every 5 seconds per guild
     # @commands.command(help=f"Interacts with the LiS AI chatbot. It has a cooldown of {Utils.superShort} seconds", description="\nArguments:\nMessage - The message to send to the AI chatbot", usage="chatbot (message)", brief="Life Is Strange")

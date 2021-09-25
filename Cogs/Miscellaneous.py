@@ -33,31 +33,31 @@ class Miscellaneous(commands.Cog):
     async def startup(self) -> None:
         pass
 
-    # bum command with a cooldown of 1 use every 5 seconds per guild
+    # bum command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
     async def bum(self, ctx: commands.Context) -> None:
         await ctx.channel.send("https://giphy.com/gifs/midland-l4FsJgbbeKQC8MGBy")
 
-    # murica command with a cooldown of 1 use every 5 seconds per guild
+    # murica command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a patriot. It has a cooldown of {Utils.superShort} seconds", usage="murica")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
     async def murica(self, ctx: commands.Context) -> None:
         await ctx.channel.send("https://tenor.com/view/merica-gif-9091003")
 
-    # puppy command with a cooldown of 1 use every 5 seconds per guild
+    # puppy command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a cute puppy. It has a cooldown of {Utils.superShort} seconds", usage="murica")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
     async def puppy(self, ctx: commands.Context) -> None:
         await ctx.channel.send("https://www.youtube.com/watch?v=j5a0jTc9S10")
 
-    # pizza command with a cooldown of 1 use every 5 seconds per guild
+    # pizza command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a delicious pizza. It has a cooldown of {Utils.superShort} seconds", usage="pizza")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
     async def pizza(self, ctx: commands.Context) -> None:
         await ctx.channel.send("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
 
-    # joyce command with a cooldown of 1 use every 5 seconds per guild
+    # joyce command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon. It has a cooldown of {Utils.superShort} seconds", usage="joyce")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
     async def joyce(self, ctx: commands.Context) -> None:
