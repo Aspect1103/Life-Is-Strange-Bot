@@ -5,7 +5,7 @@ from pathlib import Path
 # Pip
 import asyncpraw
 import pendulum
-from discord import Colour, Embed
+from discord import Colour, Embed, Guild
 from discord.ext import tasks
 from discord.ext.commands import Bot
 # Custom
@@ -56,7 +56,7 @@ class Tasks:
                     postEmbed.set_author(name=submission.author.name, url=f"https://www.reddit.com/user/{submission.author.name}", icon_url=submission.author.icon_img)
                     # This will only display an image if the post has 1 image (no gallery)
                     postEmbed.set_image(url=submission.url)
-                    await self.sendEmbed(postEmbed)
+                    await self.sendEmbed(guild, postEmbed)
                     break
 
     # Function which sends a message detailing a LiS event which happened on the same day
@@ -68,16 +68,18 @@ class Tasks:
         tomorrowEvent = [event for event in self.historyEventsTable if tomorrowDate.strftime("%d/%m") in event[1]]
         if len(tomorrowEvent) == 1:
             tomorrowDateString = pendulum.from_format(tomorrowEvent[0][1], "D/MM/YYYY").format("Do of MMMM YYYY")
-            await self.sendEmbed(Embed(title=f"Today on the {tomorrowDateString}, this happened:", description=tomorrowEvent[0][0], colour=self.colour))
+            historyEmbed = Embed(title=f"Today on the {tomorrowDateString}, this happened:", description=tomorrowEvent[0][0], colour=self.colour)
+            for guild in self.bot.guilds:
+                await self.sendEmbed(guild, historyEmbed)
 
     # Function to send an embed to designated channel
-    async def sendEmbed(self, embed):
-        for value in Utils.restrictor.IDs["life is strange"].values():
-            try:
-                # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
-                await self.bot.get_channel(value[0]).send(embed=embed)
-            except AttributeError:
-                # This is just for testing purposes
-                # Normally this will never run since the bot will be in every guild in IDs
-                # And if it isn't then the bot automatically removes those guilds from channelIDs.json
-                continue
+    async def sendEmbed(self, guild: Guild, embed: Embed) -> None:
+        try:
+            # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
+            for channel in Utils.restrictor.IDs["life is strange"][str(guild.id)]:
+                await self.bot.get_channel(channel).send(embed=embed)
+        except AttributeError:
+            # This is just for testing purposes
+            # Normally this will never run since the bot will be in every guild in IDs
+            # And if it isn't then the bot automatically removes those guilds from channelIDs.json
+            pass

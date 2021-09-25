@@ -85,6 +85,7 @@ commandGroups = {
     "life is strange": ["choices", "memory"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "searchQuote start", "searchQuote add", "searchQuote remove", "outline", "works"],
+    "image": ["image"],
     "radio": ["connect"],
     "general": ["question", "connect4", "tictactoe", "hangmanStart", "hangmanGuess", "anagramStart", "anagramGuess", "sokoban"],
     "bot bidness": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about", "help"]

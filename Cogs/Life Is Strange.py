@@ -270,14 +270,14 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
                 await Utils.commandDebugEmbed(ctx.channel, "Not a valid episode number")
 
     # memory command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(help=f"Displays a random Life is Strange image. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
+    @commands.command(help=f"Displays a random Life is Strange screenshot. It has a cooldown of {Utils.short} seconds", usage="memory", brief="Life Is Strange")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def memory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.memoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
-    @commands.command(help="")
-    @commands.cooldown(1, 0, commands.BucketType.guild)
+    @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
+    @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
     async def image(self, ctx: commands.Context, *args) -> None:
         searchParams = "tags LIKE '%/lifeisstrange/%'" if len(args) == 0 else " AND ".join([f"tags LIKE '%/{tag}/%'" for tag in args])
         result = await Utils.database.fetch(f"SELECT * FROM images WHERE {searchParams} ORDER BY RANDOM() LIMIT 1", ())

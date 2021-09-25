@@ -21,11 +21,13 @@ class DatabaseManager:
     async def execute(self, statement: str, params: Union[Tuple[int, ...], int]) -> None:
         async with self.connection.cursor() as executeCursor:
             await executeCursor.execute(statement, params)
+            await executeCursor.commit()
 
     # Function for executing many sql statements that don't return anything
     async def executeMany(self, statement: str, arr: List[Tuple[int, ...]]) -> None:
         async with self.connection.cursor() as executeManyCursor:
             await executeManyCursor.executemany(statement, arr)
+            await executeManyCursor.commit()
 
     # Function for fetching data from the database
     async def fetch(self, statement: str, params: Union[Tuple[int, ...], int]) -> List[Tuple[int, int, int, int, int, int]]:
