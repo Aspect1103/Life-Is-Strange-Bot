@@ -1,6 +1,7 @@
 # Builtin
 import random
 import re
+from pathlib import Path
 from typing import Union, Mapping, List
 # Pip
 from discord import Embed, Colour
@@ -19,6 +20,10 @@ attributes = {
     "brief": "Bot Bidness"
 }
 
+# Path variables
+rootDirectory = Path(__file__).parent.parent
+questionPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("questions.txt")
+
 
 # Cog to manage miscellaneous commands
 class Miscellaneous(commands.Cog):
@@ -28,10 +33,13 @@ class Miscellaneous(commands.Cog):
         self.colour = Colour.orange()
         self.bot.help_command = Help(command_attrs=attributes)
         self.bot.help_command.cog = self
+        self.questionArray = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
+        self.nextQuestion = None
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
-        pass
+        # Create dictionary for each guild to store variables
+        self.nextQuestion = {guild.id: 0 for guild in self.bot.guilds}
 
     # bum command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
@@ -70,6 +78,20 @@ class Miscellaneous(commands.Cog):
             "https://tenor.com/view/pour-in-food52-omelet-yummy-gif-19595825"
         ]
         await ctx.channel.send(f"Joyce: Incoming!\n{random.choice(gifs)}")
+
+    # question command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def question(self, ctx: commands.Context) -> None:
+        if self.nextQuestion[ctx.guild.id] == len(self.questionArray):
+            # All questions done
+            random.shuffle(self.questionArray)
+            self.nextQuestion[ctx.guild.id] = 0
+        randomQuestion: str = self.questionArray[self.nextQuestion[ctx.guild.id]]
+        self.nextQuestion[ctx.guild.id] += 1
+        questionEmbed = Embed(title=randomQuestion,  colour=self.colour)
+        questionEmbed.set_footer(text=f"{len(self.questionArray)} questions")
+        await ctx.channel.send(embed=questionEmbed)
 
     # about command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays information about the bot. It has a cooldown of {Utils.short} seconds", usage="about", brief="Bot Bidness")

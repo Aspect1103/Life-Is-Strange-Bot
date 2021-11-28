@@ -114,7 +114,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
             orgUser[4] += 2
         else:
             # Get guess user's data
-            guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
+            guessUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, guess[1].id), "triviaScores")
             guser = guessUser
             if self.triviaReactions[str(guess[0])] == correctOption:
                 # Question correct
@@ -140,7 +140,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
                     orgUser[4] += 1
                     guessUser[2] -= 1
                     guessUser[4] += 1
-            await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, guess[1].id))
+            await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (guessUser[2], guessUser[3], guessUser[4], ctx.guild.id, guess[1].id))
             with open("triviaLog.txt", "a") as file:
                 file.write(f"{pendulum.now()}: {guser} changed to {guessUser}\n")
         await Utils.database.execute(f"UPDATE triviaScores SET score = ?, pointsGained = ?, pointsLost = ? WHERE guildID = ? AND userID = ?", (orgUser[2], orgUser[3], orgUser[4], ctx.guild.id, ctx.author.id))
@@ -278,10 +278,10 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def image(self, ctx: commands.Context, *args) -> None:
+    async def art(self, ctx: commands.Context, *args) -> None:
         searchParams = "tags LIKE '%/lifeisstrange/%'" if len(args) == 0 else " AND ".join([f"tags LIKE '%/{tag}/%'" for tag in args])
         result = await Utils.database.fetch(f"SELECT * FROM images WHERE {searchParams} ORDER BY RANDOM() LIMIT 1", ())
-        result: Tuple[str, str] = list(result)[0]
+        result = list(result)[0]
         tagString = result[1].split("/")
         imageEmbed = Embed(title="Random Life is Strange Image", colour=self.colour)
         imageEmbed.url = result[0]

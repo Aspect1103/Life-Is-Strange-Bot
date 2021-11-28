@@ -10,31 +10,27 @@ import asqlite
 class DatabaseManager:
     # Initialise variables
     def __init__(self, databasePath: Path) -> None:
-        self.path = databasePath
-        self.connection = None
-
-    # Function to connect to the database
-    async def connect(self) -> None:
-        self.connection = await asqlite.connect(str(self.path))
+        self.path = str(databasePath)
 
     # Function for executing sql statements that don't return anything
     async def execute(self, statement: str, params: Union[Tuple[int, ...], int]) -> None:
-        async with self.connection.cursor() as executeCursor:
-            await executeCursor.execute(statement, params)
-            await executeCursor.commit()
+        async with asqlite.connect(self.path) as connection:
+            async with connection.cursor() as executeCursor:
+                await executeCursor.execute(statement, params)
 
     # Function for executing many sql statements that don't return anything
     async def executeMany(self, statement: str, arr: List[Tuple[int, ...]]) -> None:
-        async with self.connection.cursor() as executeManyCursor:
-            await executeManyCursor.executemany(statement, arr)
-            await executeManyCursor.commit()
+        async with asqlite.connect(self.path) as connection:
+            async with connection.cursor() as executeManyCursor:
+                await executeManyCursor.executemany(statement, arr)
 
     # Function for fetching data from the database
     async def fetch(self, statement: str, params: Union[Tuple[int, ...], int]) -> List[Tuple[int, int, int, int, int, int]]:
-        async with self.connection.cursor() as fetchCursor:
-            await fetchCursor.execute(statement, params)
-            result: List[Row] = await fetchCursor.fetchall()
-            return [tuple(row) for row in result]
+        async with asqlite.connect(self.path) as connection:
+            async with connection.cursor() as fetchCursor:
+                await fetchCursor.execute(statement, params)
+                result: List[Row] = await fetchCursor.fetchall()
+                return [tuple(row) for row in result]
 
     # Function for fetching a user's data from the database (or adding a new row)
     async def fetchUser(self, statement: str, params: Tuple[int, ...], table: str) -> List[int]:

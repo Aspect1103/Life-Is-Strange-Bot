@@ -13,24 +13,9 @@ from .Tasks import Tasks
 from .Restrictor import Restrictor
 
 
-# Function to create allowedIDs
-def initIDs() -> Dict[str, Dict[str, List[int]]]:
-    return json.loads(open(idPath, "r").read())
-
-
-# Function to write changes to channelIDs.json
-def idWriter(newDict: Dict[str, Dict[str, List[int]]]) -> None:
-    open(idPath, "w").write(json.dumps(newDict, indent=4))
-
-
 # Function to write messages to error.txt
 def errorWrite(error: Union[commands.CommandError, str]) -> None:
     open(errorPath, "a").write(f"{pendulum.now()}, {error}\n")
-
-
-# Function to determine the time since last game activity
-def gameActivity(lastActivity: pendulum.datetime) -> bool:
-    return pendulum.now() > lastActivity.add(seconds=gameActivityTimeout)
 
 
 # Function to split a list with a set amount of items in each
@@ -69,18 +54,15 @@ async def errorHandler(ctx: commands.Context, error: commands.CommandError) -> N
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
-idPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("channelIDs.json")
 lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("lisBot.db")
 errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
 
 # Script variables
-extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.General", "Cogs.Miscellaneous", "Cogs.Admin"]
-gameActivityTimeout = 300
+extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.Miscellaneous", "Cogs.Admin"]
 database = DatabaseManager(lisDatabasePath)
 tasks = Tasks()
 
 # Restrictor class initialisation
-IDs = initIDs()
 commandGroups = {
     "life is strange": ["choices", "memory"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
@@ -90,7 +72,7 @@ commandGroups = {
     "general": ["question", "connect4", "tictactoe", "hangmanStart", "hangmanGuess", "anagramStart", "anagramGuess", "sokoban"],
     "bot bidness": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about", "help"]
 }
-restrictor = Restrictor(IDs, commandGroups)
+restrictor = Restrictor(commandGroups)
 
 # Cooldown variables
 superShort = 5

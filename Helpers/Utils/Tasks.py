@@ -12,6 +12,8 @@ from discord.ext.commands import Bot
 import Config
 from Helpers.Utils import Utils
 
+import traceback
+
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
 historyEventsPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("historyEvents.json")
@@ -76,10 +78,9 @@ class Tasks:
     async def sendEmbed(self, guild: Guild, embed: Embed) -> None:
         try:
             # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
-            for channel in Utils.restrictor.IDs["life is strange"][str(guild.id)]:
+            for channel in Utils.restrictor.IDs[str(guild.id)]["life is strange"]:
                 await self.bot.get_channel(channel).send(embed=embed)
         except AttributeError:
             # This is just for testing purposes
             # Normally this will never run since the bot will be in every guild in IDs
-            # And if it isn't then the bot automatically removes those guilds from channelIDs.json
             pass

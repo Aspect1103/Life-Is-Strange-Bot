@@ -18,31 +18,12 @@ rootDirectory = Path(__file__).parent
 logPath = rootDirectory.joinpath("DebugFiles").joinpath("lisBot.log")
 
 
-# Function to modify channelIDs when the bot joins a guild
-@bot.event
-async def on_guild_join(guild: Guild) -> None:
-    tempDict = Utils.IDs
-    for key, value in tempDict.items():
-        value[str(guild.id)] = [-1]
-    Utils.idWriter(tempDict)
-
-
-# Function to modify channelIDs when the bot leaves a guild
-@bot.event
-async def on_guild_remove(guild: Guild) -> None:
-    tempDict = Utils.IDs
-    for key, value in tempDict.items():
-        del value[str(guild.id)]
-    Utils.idWriter(tempDict)
-
-
 # Function which runs once the bot is setup and running
 async def startup() -> None:
     await bot.wait_until_ready()
     # Setup the helper scripts
-    Utils.restrictor.setBot(bot)
+    await Utils.restrictor.setBot(bot)
     await Utils.tasks.startup(bot)
-    await Utils.database.connect()
     # Run the startup functions for each cog
     for cog in bot.cogs.values():
         await cog.startup()
