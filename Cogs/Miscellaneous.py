@@ -80,7 +80,7 @@ class Miscellaneous(commands.Cog):
         await ctx.channel.send(f"Joyce: Incoming!\n{random.choice(gifs)}")
 
     # question command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question", brief="General")
+    @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def question(self, ctx: commands.Context) -> None:
         if self.nextQuestion[ctx.guild.id] == len(self.questionArray):

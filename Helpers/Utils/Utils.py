@@ -69,8 +69,7 @@ commandGroups = {
     "fanfic": ["quote", "nextQuote", "searchQuote", "searchQuote start", "searchQuote add", "searchQuote remove", "outline", "works"],
     "image": ["image"],
     "radio": ["connect"],
-    "general": ["question", "connect4", "tictactoe", "hangmanStart", "hangmanGuess", "anagramStart", "anagramGuess", "sokoban"],
-    "bot bidness": ["stop", "channel", "channel add", "channel remove", "channel list", "botRefresh", "channelRefresh", "about", "help"]
+    "bot bidness": ["stop", "botRefresh", "channelRefresh", "about", "help"]
 }
 restrictor = Restrictor(commandGroups)
 
