@@ -23,6 +23,7 @@ attributes = {
 # Path variables
 rootDirectory = Path(__file__).parent.parent
 questionPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("questions.txt")
+gunPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("gunLines.txt")
 
 
 # Cog to manage miscellaneous commands
@@ -35,11 +36,22 @@ class Miscellaneous(commands.Cog):
         self.bot.help_command.cog = self
         self.questionArray = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
         self.nextQuestion = None
+        self.gunLines = None
 
     # Function which runs once the bot is setup and running
     async def startup(self) -> None:
         # Create dictionary for each guild to store variables
         self.nextQuestion = {guild.id: 0 for guild in self.bot.guilds}
+        # Create gun lines list
+        lines = []
+        for line in open("../LiSBot/Resources/Files/gunLines.txt", "r").readlines():
+            if "/RARE" in line:
+                line = line.replace("/RARE", "")
+                lines.extend([line, line])
+            else:
+                line = line.replace("\n", "")
+                lines.append(line)
+        self.gunLines = lines
 
     # bum command with a cooldown of 1 use every 5 seconds per user
     @commands.command(help=f"Displays a hypnotic gif. It has a cooldown of {Utils.superShort} seconds", usage="bum")
@@ -78,6 +90,20 @@ class Miscellaneous(commands.Cog):
             "https://tenor.com/view/pour-in-food52-omelet-yummy-gif-19595825"
         ]
         await ctx.channel.send(f"Joyce: Incoming!\n{random.choice(gifs)}")
+
+    # bang command with a cooldown of 1 use every 5 seconds per user
+    @commands.command(help=f"Fires Chloe's gun at a specific person or at nobody. It has a cooldown of {Utils.superShort} seconds", usage="bang")
+    @commands.cooldown(1, Utils.superShort, commands.BucketType.user)
+    async def bang(self, ctx, message=None):
+        if message is None:
+            await ctx.channel.send(random.choice(self.gunLines))
+        else:
+            if str(self.bot.owner_id) in str(message) and ctx.author.id != self.bot.owner_id:
+                # Message is mention of myself and I did not call the command
+                await ctx.channel.send("**You cannot shoot God. Now die.** *Throws lightning bolt*")
+            else:
+                # Message is just text
+                await ctx.channel.send(random.choice(self.gunLines))
 
     # question command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(help=f"Displays a random question for users to answer. It has a cooldown of {Utils.short} seconds", usage="question")
@@ -137,7 +163,8 @@ class Help(commands.HelpCommand):
         return aliases
 
     # Function to get a cog name and separate it if needed
-    def getCogName(self, name):
+    @staticmethod
+    def getCogName(name):
         return " ".join(re.split("(?=[A-Z])", name))
 
     # Function to check and determine the end channel for the help command
