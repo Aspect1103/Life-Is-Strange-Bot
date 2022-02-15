@@ -17,7 +17,8 @@ from Helpers.Utils.Paginator import Paginator
 rootDirectory = Path(__file__).parent.parent
 triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("trivia.json")
 choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
-memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
+memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS")
+remasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS Remaster")
 
 
 # Cog to manage life is strange commands
@@ -30,6 +31,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.triviaQuestions = json.loads(open(triviaPath, "r").read())
         self.choicesTable = json.loads(open(choicesPath, "r").read())
         self.memoryImages = list(memoryPath.glob("*"))
+        self.remasterMemoryImages = list(remasterMemoryPath.glob("*"))
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -274,6 +276,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def memory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.memoryImages)))
+
+    # remasterMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["rm"], help=f"Displays a random Life is Strange Remastered screenshot. It has a cooldown of {Utils.short} seconds", usage="remasterMemory|rm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def remasterMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.remasterMemoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.medium} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")

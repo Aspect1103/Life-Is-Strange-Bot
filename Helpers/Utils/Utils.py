@@ -64,7 +64,7 @@ tasks = Tasks()
 
 # Restrictor class initialisation
 commandGroups = {
-    "life is strange": ["choices", "memory"],
+    "life is strange": ["choices", "memory", "remasterMemory"],
     "trivia": ["trivia", "triviaLeaderboard", "triviaScore"],
     "fanfic": ["quote", "nextQuote", "searchQuote", "searchQuote start", "searchQuote add", "searchQuote remove", "outline", "works"],
     "image": ["image"],
