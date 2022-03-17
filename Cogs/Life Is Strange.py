@@ -19,6 +19,7 @@ triviaPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("tri
 choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("choices.json")
 memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS")
 remasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS Remaster")
+tcMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("TC")
 
 
 # Cog to manage life is strange commands
@@ -32,6 +33,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.choicesTable = json.loads(open(choicesPath, "r").read())
         self.memoryImages = list(memoryPath.glob("*"))
         self.remasterMemoryImages = list(remasterMemoryPath.glob("*"))
+        self.tcMemoryImages = list(tcMemoryPath.glob("*"))
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -282,6 +284,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def remasterMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.remasterMemoryImages)))
+
+    # tcMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["tcm"], help=f"Displays a random Life is Strange True Colors screenshot. It has a cooldown of {Utils.short} seconds", usage="tcMemory|tcm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def tcMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.tcMemoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
