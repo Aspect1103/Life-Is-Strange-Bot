@@ -20,6 +20,7 @@ choicesPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("ch
 memoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS")
 remasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS Remaster")
 tcMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("TC")
+lis2MemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS2")
 
 
 # Cog to manage life is strange commands
@@ -34,6 +35,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.memoryImages = list(memoryPath.glob("*"))
         self.remasterMemoryImages = list(remasterMemoryPath.glob("*"))
         self.tcMemoryImages = list(tcMemoryPath.glob("*"))
+        self.lis2MemoryImages = list(lis2MemoryPath.glob("*"))
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -290,6 +292,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def tcMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.tcMemoryImages)))
+
+    # lis2Memory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["lis2"], help=f"Displays a random Life is Strange 2 screenshot. It has a cooldown of {Utils.short} seconds", usage="lis2Memory|lis2", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def lis2Memory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.lis2MemoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
