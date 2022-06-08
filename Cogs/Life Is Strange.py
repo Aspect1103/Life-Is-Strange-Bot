@@ -38,6 +38,7 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.tcMemoryImages = list(tcMemoryPath.glob("*"))
         self.lis2MemoryImages = list(lis2MemoryPath.glob("*"))
         self.btsMemoryImages = list(btsMemoryPath.glob("*"))
+        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -306,6 +307,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def btsMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.btsMemoryImages)))
+
+    # lisMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["lis"], help=f"Displays a random Life is Strange screenshot. It has a cooldown of {Utils.short} seconds", usage="lisMemory|lis", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def lisMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.lisMemoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
