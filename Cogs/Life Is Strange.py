@@ -22,6 +22,7 @@ remasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 tcMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("TC")
 lis2MemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS2")
 btsMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("BtS")
+spiritMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Captain Spirit")
 
 
 # Cog to manage life is strange commands
@@ -38,7 +39,8 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.tcMemoryImages = list(tcMemoryPath.glob("*"))
         self.lis2MemoryImages = list(lis2MemoryPath.glob("*"))
         self.btsMemoryImages = list(btsMemoryPath.glob("*"))
-        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages
+        self.spiritMemoryImages = list(spiritMemoryPath.glob("*"))
+        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.spiritMemoryImages
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -307,6 +309,12 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def btsMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.btsMemoryImages)))
+
+    # spiritMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["sm"], help=f"Displays a random Captain Spirit screenshot. It has a cooldown of {Utils.short} seconds", usage="spiritMemory|sm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def spiritMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.spiritMemoryImages)))
 
     # lisMemory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(aliases=["lis"], help=f"Displays a random Life is Strange screenshot. It has a cooldown of {Utils.short} seconds", usage="lisMemory|lis", brief="Life Is Strange")
