@@ -25,6 +25,7 @@ btsMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").join
 spiritMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Captain Spirit")
 btsRemasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("BtS Remaster")
 wavelengthsMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Wavelengths")
+farewellMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Farewell")
 
 
 # Cog to manage life is strange commands
@@ -44,7 +45,10 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.spiritMemoryImages = list(spiritMemoryPath.glob("*"))
         self.btsRemasterMemoryImages = list(btsRemasterMemoryPath.glob("*"))
         self.wavelengthsMemoryImages = list(wavelengthsMemoryPath.glob("*"))
-        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.spiritMemoryImages + self.btsRemasterMemoryImages + self.wavelengthsMemoryImages
+        self.farewellMemoryImages = list(farewellMemoryPath.glob("*"))
+        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages
+        self.dlcMemoryImages = self.spiritMemoryImages + self.wavelengthsMemoryImages + self.farewellMemoryImages
+        self.allMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.btsRemasterMemoryImages + self.spiritMemoryImages + self.wavelengthsMemoryImages + self.farewellMemoryImages
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -332,11 +336,29 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     async def wavelengthsMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.wavelengthsMemoryImages)))
 
+    # farewellMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["fm"], help=f"Displays a random Life is Strange Farewell screenshot. It has a cooldown of {Utils.short} seconds", usage="farewellMemory|fm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def farewellMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.farewellMemoryImages)))
+
     # lisMemory command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["lis"], help=f"Displays a random Life is Strange screenshot. It has a cooldown of {Utils.short} seconds", usage="lisMemory|lis", brief="Life Is Strange")
+    @commands.command(aliases=["lis"], help=f"Displays a random Life is Strange screenshot from any Life is Strange game. It has a cooldown of {Utils.short} seconds", usage="lisMemory|lis", brief="Life Is Strange")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def lisMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.lisMemoryImages)))
+
+    # dlcMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["dlc"], help=f"Displays a random Life is Strange DLC screenshot. It has a cooldown of {Utils.short} seconds", usage="dlcMemory|dlc", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def dlcMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.dlcMemoryImages)))
+
+    # allMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["all"], help=f"Displays a random screenshot from any Life is Strange game including DLCs. It has a cooldown of {Utils.short} seconds", usage="allMemory|all", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def allMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.allMemoryImages)))
 
     # image command with a cooldown of 1 use every 45 seconds per guild
     @commands.command(help=f"Displays a random Life is Strange art piece using tags. It has a cooldown of {Utils.short} seconds", description="\nArguments:\nTags - A Life is Strange tag to search for. If none are provided, a random image is fetched", usage="image [tag1] [tag2] ...", brief="Image")
