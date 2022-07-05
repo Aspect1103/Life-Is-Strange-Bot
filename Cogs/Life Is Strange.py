@@ -23,6 +23,8 @@ tcMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinp
 lis2MemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("LiS2")
 btsMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("BtS")
 spiritMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Captain Spirit")
+btsRemasterMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("BtS Remaster")
+wavelengthsMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots").joinpath("Wavelengths")
 
 
 # Cog to manage life is strange commands
@@ -40,7 +42,9 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
         self.lis2MemoryImages = list(lis2MemoryPath.glob("*"))
         self.btsMemoryImages = list(btsMemoryPath.glob("*"))
         self.spiritMemoryImages = list(spiritMemoryPath.glob("*"))
-        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.spiritMemoryImages
+        self.btsRemasterMemoryImages = list(btsRemasterMemoryPath.glob("*"))
+        self.wavelengthsMemoryImages = list(wavelengthsMemoryPath.glob("*"))
+        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.spiritMemoryImages + self.btsRemasterMemoryImages + self.farewellMemoryImages + self.wavelengthsMemoryImages
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -315,6 +319,18 @@ class lifeIsStrange(commands.Cog, name="LifeIsStrange"):
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def spiritMemory(self, ctx: commands.Context) -> None:
         await ctx.channel.send(file=File(random.choice(self.spiritMemoryImages)))
+
+    # btsRemasterMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["btsrm"], help=f"Displays a random Life is Strange Before the Storm Remastered screenshot. It has a cooldown of {Utils.short} seconds", usage="btsRemasterMemory|btsrm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def btsRemasterMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.btsRemasterMemoryImages)))
+
+    # wavelengthsMemory command with a cooldown of 1 use every 20 seconds per guild
+    @commands.command(aliases=["wm"], help=f"Displays a random Life is Strange Wavelengths screenshot. It has a cooldown of {Utils.short} seconds", usage="wavelengthsMemory|wm", brief="Life Is Strange")
+    @commands.cooldown(1, Utils.short, commands.BucketType.guild)
+    async def wavelengthsMemory(self, ctx: commands.Context) -> None:
+        await ctx.channel.send(file=File(random.choice(self.wavelengthsMemoryImages)))
 
     # lisMemory command with a cooldown of 1 use every 20 seconds per guild
     @commands.command(aliases=["lis"], help=f"Displays a random Life is Strange screenshot. It has a cooldown of {Utils.short} seconds", usage="lisMemory|lis", brief="Life Is Strange")
