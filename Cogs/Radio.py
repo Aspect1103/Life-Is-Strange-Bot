@@ -165,9 +165,9 @@ class Radio(commands.Cog):
                 self.tracks[ctx.guild.id]: List[wavelink.PartialTrack] = self.orgTracks
                 await player.play(self.tracks[ctx.guild.id][self.nextTrack[ctx.guild.id]])
             else:
-                await Utils.commandDebugEmbed(ctx.channel, f"Ensure there is both a text channel and a voice channel registered with {ctx.prefix}channel")
+                await Utils.commandDebugEmbed(ctx, f"Ensure there is both a text channel and a voice channel registered with {ctx.prefix}channel")
         else:
-            await Utils.commandDebugEmbed(ctx.channel, f"Bot is already connected to a voice channel. Please use {ctx.prefix}disconnnect to disconnect it")
+            await Utils.commandDebugEmbed(ctx, f"Bot is already connected to a voice channel. Please use {ctx.prefix}disconnnect to disconnect it")
 
     # disconnect command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Disconnects the bot from a voice channel. It has a cooldown of {Utils.long} seconds", usage="disconnect", brief="Radio")
@@ -178,7 +178,7 @@ class Radio(commands.Cog):
             # Stop the bot
             await self.stopBot(ctx.guild)
         else:
-            await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
+            await Utils.commandDebugEmbed(ctx, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
     # queue command with a cooldown of 1 use every 60 seconds per guild
     @commands.command(help=f"Displays a server's radio queue. It has a cooldown of {Utils.long} seconds", usage="queue", brief="Radio")
@@ -206,7 +206,7 @@ class Radio(commands.Cog):
             paginator.addPages(pages)
             await paginator.start()
         else:
-            await Utils.commandDebugEmbed(ctx.channel, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
+            await Utils.commandDebugEmbed(ctx, f"Bot is not connected to a voice channel. Please use {ctx.prefix}connect to connect it to one")
 
     # Function to run channelCheck for Radio
     async def cog_check(self, ctx: commands.Context) -> bool:

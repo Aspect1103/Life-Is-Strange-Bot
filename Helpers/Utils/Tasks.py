@@ -5,14 +5,11 @@ from pathlib import Path
 # Pip
 import asyncpraw
 import pendulum
-from discord import Colour, Embed, Guild
+from discord import Colour, Embed, Guild, Bot
 from discord.ext import tasks
-from discord.ext.commands import Bot
 # Custom
 import Config
 from Helpers.Utils import Utils
-
-import traceback
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent.parent
@@ -30,10 +27,10 @@ class Tasks:
             client_secret=Config.redditSecret,
             user_agent="linux:LiSBot:1.0 (by u/JackAshwell1)"
         )
-        self.bot = None
+        self.bot: Bot = None
         self.posts = None
 
-    # Function which runs once the bot is setup and running
+    # Function which runs once the bot is set up and running
     async def startup(self, bot: Bot) -> None:
         self.bot = bot
         self.posts = {guild.id: [] for guild in self.bot.guilds}
@@ -47,7 +44,7 @@ class Tasks:
     @tasks.loop(hours=3)
     async def redditPoster(self) -> None:
         subreddit = await self.redditClient.subreddit("lifeisstrange")
-        for guild in self.bot.guilds:
+        async for guild in self.bot.fetch_guilds():
             # Grab top 100 posts from the last week
             async for submission in subreddit.top("week"):
                 if submission.id not in self.posts[guild.id]:
@@ -79,7 +76,8 @@ class Tasks:
         try:
             # If the amount of allowed channels for a specific guild is larger than 1, then the first channel is used
             for channel in Utils.restrictor.IDs[str(guild.id)]["life is strange"]:
-                await self.bot.get_channel(channel).send(embed=embed)
+                channel = await self.bot.fetch_channel(channel)
+                await channel.send(embed=embed)
         except AttributeError:
             # This is just for testing purposes
             # Normally this will never run since the bot will be in every guild in IDs

@@ -2,8 +2,7 @@
 from pathlib import Path
 from typing import Union, List, Dict
 # Pip
-from discord import TextChannel, VoiceChannel
-from discord.ext.commands import Context, Bot
+from discord import TextChannel, VoiceChannel, ApplicationContext, Bot
 
 # Path variables
 rootDirectory = Path(__file__).parent.parent
@@ -19,7 +18,7 @@ class Restrictor:
         self.bot = None
 
     # Function to get the allowed channels for a command
-    def getAllowed(self, ctx: Context) -> Union[List[int], None]:
+    def getAllowed(self, ctx: ApplicationContext) -> Union[List[int], None]:
         for key, value in self.commandGroups.items():
             if str(ctx.command) in value:
                 allowedChannels = self.IDs[str(ctx.guild.id)][key]
@@ -52,14 +51,14 @@ class Restrictor:
         return tempDict
 
     # Function to check if a command is allowed in a specific channel
-    async def commandCheck(self, ctx: Context) -> bool:
+    async def commandCheck(self, ctx: ApplicationContext) -> bool:
         allowedChannel = self.getAllowed(ctx)
         if allowedChannel is not None:
             return ctx.channel.id in allowedChannel
         return True
 
     # Function to grab the allowed channels
-    async def grabAllowed(self, ctx: Context) -> str:
+    async def grabAllowed(self, ctx: ApplicationContext) -> str:
         allowedChannel = self.getAllowed(ctx)
         textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [self.bot.get_channel(channel) for channel in allowedChannel]
         guildAllowed = ", ".join([channel.mention for channel in textChannelAllowed])

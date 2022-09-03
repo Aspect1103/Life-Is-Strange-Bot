@@ -1,7 +1,7 @@
 # Builtin
-from typing import Tuple, Union, List
+from typing import Tuple, Union
 # Pip
-from discord import Embed, Colour, TextChannel, VoiceChannel
+from discord import Colour, Bot, Cog, command, ApplicationContext
 from discord.ext import commands
 # Custom
 from Helpers.Utils import Utils
@@ -9,7 +9,7 @@ from Helpers.Utils import Utils
 
 # Custom check for administrator permissions or owner
 def adminOrOwner():
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: ApplicationContext) -> bool:
         if ctx.author.permissions_in(ctx.channel).administrator:
             return True
         else:
@@ -20,13 +20,13 @@ def adminOrOwner():
 
 
 # Cog to manage admin commands
-class Admin(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+class Admin(Cog):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.colour = Colour.orange()
 
     # Function to verify a channel command
-    def channelVerify(self, ctx: commands.Context, sect: str, chnlMent: str) -> Tuple[Union[bool, str], Union[str, None], Union[int, None]]:
+    def channelVerify(self, ctx: ApplicationContext, sect: str, chnlMent: str) -> Tuple[Union[bool, str], Union[str, None], Union[int, None]]:
         if sect is None and chnlMent is None:
             # Too little arguments
             return "Missing arguments", None, None
@@ -46,50 +46,45 @@ class Admin(commands.Cog):
                 validSections = "/".join(Utils.IDs.keys())
                 return f"Section not found. Try {validSections}", None, None
 
-    # Function which runs once the bot is setup and running
+    # Function which runs once the bot is set up and running
     async def startup(self) -> None:
         pass
 
     # stop command to stop the bot
-    @commands.command(help="Stops the bot", usage="stop", brief="Bot Bidness")
-    @commands.is_owner()
-    async def stop(self, ctx: commands.Context) -> None:
-        await ctx.channel.send("Stopping bot")
+    @command(description="Stops the bot", check=commands.is_owner)
+    async def stop(self, ctx: ApplicationContext) -> None:
+        await ctx.respond("Stopping bot")
         await self.bot.close()
 
     # botRefresh command
-    @commands.command(aliases=["br"], help="Refreshes stored variables used by the bot", usage="botRefresh|br", brief="Bot Bidness")
-    @commands.is_owner()
-    async def botRefresh(self, ctx: commands.Context) -> None:
-        await Utils.commandDebugEmbed(ctx.channel, "Refreshing extensions")
-        # List to store extension names
-        extensions = Utils.extensions
+    @command(description="Refreshes stored variables used by the bot", check=commands.is_owner)
+    async def botrefresh(self, ctx: ApplicationContext) -> None:
+        interaction = await ctx.respond("Refreshing extensions")
         # Unload all extensions
-        for extension in extensions:
+        for extension in Utils.extensions:
             self.bot.unload_extension(extension)
         # Load all extensions
-        for extension in extensions:
+        for extension in Utils.extensions:
             self.bot.load_extension(extension)
-        await Utils.commandDebugEmbed(ctx.channel, "Finished refreshing extensions")
+        message = await interaction.original_message()
+        await message.edit("Refreshed extensions")
 
     # channelRefresh command with a cooldown of 1 use every 20 seconds per guild
-    @commands.command(aliases=["cr"], help=f"Refreshes channel IDs. It has a cooldown of {Utils.short} seconds", usage="channelRefresh|cr", brief="Bot Bidness")
+    @command(description=f"Refreshes channel IDs", check=adminOrOwner)
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    @adminOrOwner()
-    async def channelRefresh(self, ctx: commands.Context) -> None:
-        await Utils.commandDebugEmbed(ctx.channel, "Refreshing channel IDs")
+    async def channelrefresh(self, ctx: ApplicationContext) -> None:
         Utils.restrictor.IDs = await Utils.restrictor.getIDs()
-        await Utils.commandDebugEmbed(ctx.channel, "Finished channel IDs")
+        await ctx.respond("Refreshed channel IDs")
 
     # Function to run channelCheck for Admin
-    async def cog_check(self, ctx: commands.Context) -> bool:
+    async def cog_check(self, ctx: ApplicationContext) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+    async def cog_command_error(self, ctx: ApplicationContext, error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the Admin cog
-def setup(bot: commands.Bot) -> None:
+def setup(bot: Bot) -> None:
     bot.add_cog(Admin(bot))

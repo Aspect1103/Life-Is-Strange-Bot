@@ -1,26 +1,63 @@
 # Builtin
-import asyncio
 from typing import Optional, List
 # Pip
-from discord import Embed, Reaction, User, Message
-from discord.ext.commands import Context, Bot
+from discord import Embed, ApplicationContext, Bot, Interaction, Message, ButtonStyle, ui
 # Custom
 from Helpers.Utils import Utils
 
 
 # Paginator class to switch between different embeds
-class Paginator:
+class Paginator(ui.View):
     # Initialise variables
-    def __init__(self, ctx: Context, bot: Bot, timeout: float = 300) -> None:
+    def __init__(self, ctx: ApplicationContext, bot: Bot, timeout: float = 300) -> None:
+        super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
         self.bot = bot
         self.pages = []
-        self.reactions = ["⏪", "⬅️", "⏹️", "➡️", "⏩"]
-        self.timeout = timeout
         self.message = None
-        self.isRunning = True
         self.currentIndex = 0
         self.maxIndex = -1
+
+    @ui.button(emoji="⏪", style=ButtonStyle.primary)
+    async def toStartButton(self, button: ui.Button, interaction: Interaction) -> None:
+        if self.currentIndex != 0:
+            await self.message.edit(embed=self.pages[0])
+            self.currentIndex = 0
+            await interaction.response.send_message('Displaying first page', ephemeral=True)
+        else:
+            await interaction.response.send_message('Already on first page', ephemeral=True)
+
+    @ui.button(emoji="⬅️", style=ButtonStyle.primary)
+    async def backButton(self, button: ui.Button, interaction: Interaction) -> None:
+        if self.currentIndex != 0:
+            await self.message.edit(embed=self.pages[self.currentIndex - 1])
+            self.currentIndex -= 1
+            await interaction.response.send_message('Displaying previous page', ephemeral=True)
+        else:
+            await interaction.response.send_message('Already on first page', ephemeral=True)
+
+    @ui.button(emoji="⏹️", style=ButtonStyle.primary)
+    async def stopButton(self, button: ui.Button, interaction: Interaction) -> None:
+        self.stop()
+        await interaction.response.send_message("Stopped buttons", ephemeral=True)
+
+    @ui.button(emoji="➡️", style=ButtonStyle.primary)
+    async def nextButton(self, button: ui.Button, interaction: Interaction) -> None:
+        if self.currentIndex != self.maxIndex:
+            await self.message.edit(embed=self.pages[self.currentIndex + 1])
+            self.currentIndex += 1
+            await interaction.response.send_message('Displaying next page', ephemeral=True)
+        else:
+            await interaction.response.send_message('Already on last page', ephemeral=True)
+
+    @ui.button(emoji="⏩", style=ButtonStyle.primary)
+    async def toEndButton(self, button: ui.Button, interaction: Interaction) -> None:
+        if self.currentIndex != self.maxIndex:
+            await self.message.edit(embed=self.pages[self.maxIndex])
+            self.currentIndex = self.maxIndex
+            await interaction.response.send_message('Displaying last page', ephemeral=True)
+        else:
+            await interaction.response.send_message('Already on last page', ephemeral=True)
 
     # Function to add pages to the class
     def addPages(self, pages: Optional[List[Embed]]) -> None:
@@ -29,52 +66,14 @@ class Paginator:
                 self.pages.extend(pages)
                 self.maxIndex = len(self.pages)-1
             else:
-                Utils.commandDebugEmbed(self.ctx.channel, "Can't paginate an empty list")
+                Utils.commandDebugEmbed(self.ctx, "Can't paginate an empty list")
         else:
-            Utils.commandDebugEmbed(self.ctx.channel, "Invalid pages parameter")
-
-    # Function to check a reaction
-    def checker(self, reaction: Reaction, user: User) -> bool:
-        return reaction.message.id == self.message.id and user.id != self.bot.user.id and str(reaction) in self.reactions
-
-    # Function to stop the paginator
-    async def stop(self) -> None:
-        self.isRunning = False
-        await self.message.clear_reactions()
-
-    # Function to control the paginator
-    async def manager(self, reaction: str) -> None:
-        if reaction == "⏪":
-            if self.currentIndex != 0:
-                await self.message.edit(embed=self.pages[0])
-                self.currentIndex = 0
-        elif reaction == "⬅️":
-            if self.currentIndex != 0:
-                await self.message.edit(embed=self.pages[self.currentIndex-1])
-                self.currentIndex -= 1
-        elif reaction == "⏹️":
-            await self.stop()
-        elif reaction == "➡️":
-            if self.currentIndex != self.maxIndex:
-                await self.message.edit(embed=self.pages[self.currentIndex+1])
-                self.currentIndex += 1
-        elif reaction == "⏩":
-            if self.currentIndex != self.maxIndex:
-                await self.message.edit(embed=self.pages[self.maxIndex])
-                self.currentIndex = self.maxIndex
+            Utils.commandDebugEmbed(self.ctx, "Invalid pages parameter")
 
     # Function to start the paginator
     async def start(self) -> None:
         if len(self.pages) != 0:
-            self.message: Message = await self.ctx.channel.send(embed=self.pages[0])
-            for reaction in self.reactions:
-                await self.message.add_reaction(reaction)
-            while self.isRunning:
-                try:
-                    reaction, user = await self.bot.wait_for("reaction_add", timeout=self.timeout, check=self.checker)
-                    await self.message.remove_reaction(reaction, user)
-                    await self.manager(str(reaction))
-                except asyncio.TimeoutError:
-                    await self.stop()
+            interaction: Interaction = await self.ctx.respond(embed=self.pages[0], view=self)
+            self.message: Message = await interaction.original_message()
         else:
-            await Utils.commandDebugEmbed(self.ctx.channel, "No embeds to display")
+            await Utils.commandDebugEmbed(self.ctx, "No embeds to display")

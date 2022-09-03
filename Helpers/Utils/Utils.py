@@ -1,11 +1,10 @@
 # Builtin
-import json
 from pathlib import Path
-from typing import List, Dict, Any, Union, Tuple
+from typing import List, Any, Union, Tuple
 # Pip
 import pendulum
 from AO3.utils import HTTPError
-from discord import TextChannel, Embed, Colour, Message
+from discord import TextChannel, Embed, Colour, Message, ApplicationContext
 from discord.ext import commands
 # Custom
 from Helpers.Managers.DatabaseManager import DatabaseManager
@@ -32,23 +31,23 @@ def rankSort(arr: List[Tuple[int, ...]], indexToSort: int) -> List[Tuple[int, ..
 
 
 # Function to create an embed displaying the command error
-async def commandDebugEmbed(channel: TextChannel, message: str) -> Message:
-    return await channel.send(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
+async def commandDebugEmbed(ctx: ApplicationContext, message: str) -> Message:
+    return await ctx.respond(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
 
 
 # Handle errors
-async def errorHandler(ctx: commands.Context, error: commands.CommandError) -> None:
+async def errorHandler(ctx: ApplicationContext, error: commands.CommandError) -> None:
     if isinstance(error, commands.errors.MissingPermissions):
-        await commandDebugEmbed(ctx.channel, "You do not have sufficient permission to run this command")
+        await commandDebugEmbed(ctx, "You do not have sufficient permission to run this command")
     elif isinstance(error, commands.errors.NotOwner):
-        await commandDebugEmbed(ctx.channel, "You are not owner")
+        await commandDebugEmbed(ctx, "You are not owner")
     elif isinstance(error, commands.errors.CommandOnCooldown):
-        await commandDebugEmbed(ctx.channel, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
+        await commandDebugEmbed(ctx, f"Command is on cooldown, try again in {round(error.retry_after, 2)} seconds")
     elif isinstance(error, commands.errors.CheckFailure):
         result = await restrictor.grabAllowed(ctx)
-        await commandDebugEmbed(ctx.channel, result)
+        await commandDebugEmbed(ctx, result)
     elif isinstance(error.original, HTTPError):
-        await commandDebugEmbed(ctx.channel, error.original)
+        await commandDebugEmbed(ctx, error.original)
     errorWrite(error)
 
 
@@ -58,7 +57,7 @@ lisDatabasePath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath
 errorPath = rootDirectory.joinpath("DebugFiles").joinpath("error.txt")
 
 # Script variables
-extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Radio", "Cogs.Miscellaneous", "Cogs.Admin"]
+extensions = ["Cogs.Life Is Strange", "Cogs.Fanfic", "Cogs.Miscellaneous", "Cogs.Admin"]  # Cogs.Radio
 database = DatabaseManager(lisDatabasePath)
 tasks = Tasks()
 

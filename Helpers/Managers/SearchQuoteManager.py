@@ -1,8 +1,7 @@
 # Builtin
 from typing import List
 # Pip
-from discord import Embed, Colour, Message
-from discord.ext.commands import Context, Bot
+from discord import Embed, Colour, Message, ApplicationContext, Bot
 # Custom
 from Helpers.Utils import Utils
 
@@ -10,7 +9,7 @@ from Helpers.Utils import Utils
 # SearchQuoteManager class to switch between different embeds
 class SearchQuoteManager:
     # Initialise variables
-    def __init__(self, bot: Bot, ctx: Context, message: Message, colour: Colour, worksheet: List[List[str]]):
+    def __init__(self, bot: Bot, ctx: ApplicationContext, message: Message, colour: Colour, worksheet: List[List[str]]):
         self.bot = bot
         self.ctx = ctx
         self.message = message
@@ -89,15 +88,15 @@ class SearchQuoteManager:
     # Add a filter to the array
     async def addFilter(self, category: str, term: str) -> None:
         if category is None:
-            await Utils.commandDebugEmbed(self.ctx.channel, "Invalid category")
+            await Utils.commandDebugEmbed(self.ctx, "Invalid category")
         elif term is None:
-            await Utils.commandDebugEmbed(self.ctx.channel, "Invalid term")
+            await Utils.commandDebugEmbed(self.ctx, "Invalid term")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await Utils.commandDebugEmbed(self.ctx.channel, "Unknown category")
+                await Utils.commandDebugEmbed(self.ctx, "Unknown category")
             elif self.filters[lowerCase][1] is not None:
-                await Utils.commandDebugEmbed(self.ctx.channel, f"Filter already added. Use {self.ctx.prefix}searchQuote remove to remove the filter")
+                await Utils.commandDebugEmbed(self.ctx, f"Filter already added. Use /searchQuote remove to remove the filter")
             else:
                 # Filter the array and store the term
                 self.finalArray: List[List[str]] = self.filters[lowerCase][0](term)
@@ -112,13 +111,13 @@ class SearchQuoteManager:
     # Remove a filter from the array
     async def removeFilter(self, category):
         if category is None:
-            await Utils.commandDebugEmbed(self.ctx.channel, "Invalid category")
+            await Utils.commandDebugEmbed(self.ctx, "Invalid category")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await Utils.commandDebugEmbed(self.ctx.channel, "Unknown category")
+                await Utils.commandDebugEmbed(self.ctx, "Unknown category")
             elif self.filters[lowerCase][1] is None:
-                await Utils.commandDebugEmbed(self.ctx.channel, f"Filter already added. Use {self.ctx.prefix}searchQuote remove to remove the filter")
+                await Utils.commandDebugEmbed(self.ctx, f"Filter already added. Use /searchQuote remove to remove the filter")
             else:
                 # Remove the term and re-filter the array from the start
                 self.filters[lowerCase][1] = None
