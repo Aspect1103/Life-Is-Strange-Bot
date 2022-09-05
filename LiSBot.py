@@ -3,15 +3,18 @@ import logging
 from pathlib import Path
 
 # Pip
-from discord import Status, Activity, ActivityType, Intents, Bot
+from discord import Status, Activity, ActivityType, Intents
+from discord.ext import bridge
 
 # Custom
 import Config
 from Helpers.Utils import Utils
 
 # Discord variables
-intents = Intents(members=True, message_content=True, reactions=True)
-bot = Bot(intents=intents)
+intents = Intents().default()
+intents.members = True
+intents.message_content = True
+bot = bridge.Bot(command_prefix="$", case_insensitive=True, intents=intents)
 
 # Path variables
 rootDirectory = Path(__file__).parent

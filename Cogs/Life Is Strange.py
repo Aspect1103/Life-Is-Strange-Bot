@@ -5,8 +5,8 @@ import random
 from pathlib import Path
 from typing import Tuple, Union, List, Dict
 # Pip
-from discord import Colour, Embed, File, Member, Message, command, ApplicationContext, Cog, Bot, Option, ui, ButtonStyle, Interaction
-from discord.ext import commands
+from discord import Colour, Embed, File, Member, Message, Cog, ui, ButtonStyle, Interaction, option
+from discord.ext import commands, bridge
 # Custom
 from Helpers.Utils import Utils
 from Helpers.Utils.Paginator import Paginator
@@ -29,7 +29,7 @@ farewellMemoryPath = rootDirectory.joinpath("Resources").joinpath("Screenshots")
 # Trivia class for trivia displaying
 class TriviaView(ui.View):
     # Initialise variables
-    def __init__(self, ctx: ApplicationContext, bot: Bot, lifeIsStrangeCog, timeout: float = 15) -> None:
+    def __init__(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], bot: bridge.Bot, lifeIsStrangeCog, timeout: float = 15) -> None:
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
         self.bot = bot
@@ -79,13 +79,13 @@ class TriviaView(ui.View):
 # Cog to manage life is strange commands
 class lifeIsStrange(Cog, name="LifeIsStrange"):
     # Initialise the bot
-    def __init__(self, bot: Bot) -> None:
+    def __init__(self, bot: bridge.Bot) -> None:
         self.bot = bot
         self.colour = Colour.purple()
         self.triviaReactions = {"🇦": 1, "🇧": 2, "🇨": 3, "🇩": 4}
         self.triviaQuestions = json.loads(open(triviaPath, "r").read())
         self.choicesTable = json.loads(open(choicesPath, "r").read())
-        self.memoryImages = list(memoryPath.glob("*"))
+        self.lisMemoryImages = list(memoryPath.glob("*"))
         self.remasterMemoryImages = list(remasterMemoryPath.glob("*"))
         self.tcMemoryImages = list(tcMemoryPath.glob("*"))
         self.lis2MemoryImages = list(lis2MemoryPath.glob("*"))
@@ -94,9 +94,9 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
         self.btsRemasterMemoryImages = list(btsRemasterMemoryPath.glob("*"))
         self.wavelengthsMemoryImages = list(wavelengthsMemoryPath.glob("*"))
         self.farewellMemoryImages = list(farewellMemoryPath.glob("*"))
-        self.lisMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages
+        self.memoryImages = self.lisMemoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages
         self.dlcMemoryImages = self.spiritMemoryImages + self.wavelengthsMemoryImages + self.farewellMemoryImages
-        self.allMemoryImages = self.memoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.btsRemasterMemoryImages + self.spiritMemoryImages + self.wavelengthsMemoryImages + self.farewellMemoryImages
+        self.allMemoryImages = self.lisMemoryImages + self.remasterMemoryImages + self.tcMemoryImages + self.lis2MemoryImages + self.btsMemoryImages + self.btsRemasterMemoryImages + self.spiritMemoryImages + self.wavelengthsMemoryImages + self.farewellMemoryImages
         # self.pastInputs = []
         # self.pastResponses = []
         self.nextTrivia = None
@@ -108,7 +108,7 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
         self.nextTrivia = {guild.id: 0 for guild in self.bot.guilds}
 
     # Function to create trivia questions
-    def triviaMaker(self, ctx: ApplicationContext) -> Tuple[Embed, int]:
+    def triviaMaker(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> Tuple[Embed, int]:
         if self.nextTrivia[ctx.guild.id] == len(self.triviaQuestions):
             # All questions done
             random.shuffle(self.triviaQuestions)
@@ -171,7 +171,7 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
     #                          json=payload).json()
 
     # Function to update a user's trivia score
-    async def updateTriviaScores(self, ctx: ApplicationContext, correctOption: int, guess: Union[Interaction, None]) -> None:
+    async def updateTriviaScores(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], correctOption: int, guess: Union[Interaction, None]) -> None:
         # REMOVE THIS STUFF ONCE BUG FOUND
         orgUser = await Utils.database.fetchUser("SELECT * FROM triviaScores WHERE guildID = ? and userID = ?", (ctx.guild.id, ctx.author.id), "triviaScores")
         if guess is None:
@@ -221,21 +221,22 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
         await Utils.database.execute("DELETE FROM triviaScores WHERE guildID = ? and userID = ?", (member.guild.id, member.id))
 
     # trivia command with a cooldown of 1 use every 60 seconds per guild
-    @command(description=f"Displays a trivia question which can be answered via the emojis. Times out in 15 seconds")
+    @bridge.bridge_command(description=f"Displays a trivia question which can be answered via the emojis. Times out in 15 seconds")
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def trivia(self, ctx: ApplicationContext) -> None:
+    async def trivia(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         triviaView = TriviaView(ctx, self.bot, self)
         await triviaView.start(*self.triviaMaker(ctx))
 
-    # triviaScore command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a user's trivia score")
+    # triviascore command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["ts"], description=f"Displays a user's trivia score")
+    @option("targetuser", Member, description="A mention of the person who's trivia score you want. Returns the author's trivia score by default", default=None)
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def triviascore(self, ctx: ApplicationContext, target: Option(Member, description="A mention of the person who's trivia score you want. Returns the author's trivia score by default", required=False)) -> None:
-        if target is None:
+    async def triviascore(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], targetuser: Member = None) -> None:
+        if targetuser is None:
             targetUser = ctx.author
         else:
             try:
-                targetUser = await self.bot.fetch_user(target.id)
+                targetUser = await self.bot.fetch_user(targetuser.id)
             except commands.MemberNotFound:
                 targetUser = ctx.author
         user = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ? AND userID = ?", (ctx.guild.id, targetUser.id))
@@ -251,10 +252,11 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
             triviaScoreEmbed.set_thumbnail(url=userObj.avatar.url)
             await ctx.respond(embed=triviaScoreEmbed)
 
-    # triviaLeaderboard command with a cooldown of 1 use every 45 seconds per guild
-    @command(description=f"Displays the server's trivia scores leaderboard")
+    # trivialeaderboard command with a cooldown of 1 use every 45 seconds per guild
+    @bridge.bridge_command(aliases=["tl"], description=f"Displays the server's trivia scores leaderboard")
+    @option("pageno", str, description="The page of the leaderboard that you want to see. Displays the 1st page by default", default="1")
     @commands.cooldown(1, Utils.medium, commands.BucketType.guild)
-    async def trivialeaderboard(self, ctx: ApplicationContext, pageno: Option(int, description="The page of the leaderboard that you want to see. Displays the 1st page by default", default="1")) -> None:
+    async def trivialeaderboard(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], pageno: str = "1") -> None:
         if pageno.isdigit():
             guildUsers = await Utils.database.fetch("SELECT * FROM triviaScores WHERE guildID = ?", (ctx.guild.id, ))
             guildUsers = Utils.rankSort(guildUsers, 2)
@@ -286,9 +288,10 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
             await Utils.commandDebugEmbed(ctx, f"Invalid argument. Pick a valid number")
 
     # choices command with a cooldown of 1 use every 60 seconds per guild
-    @command(description=f"Displays the different choices in the game and their responses")
+    @bridge.bridge_command(description=f"Displays the different choices in the game and their responses")
+    @option("epnumber", int, description="Either 1, 2, 3, 4 or 5. Displays all choices by default", default=None)
     @commands.cooldown(1, Utils.long, commands.BucketType.guild)
-    async def choices(self, ctx: ApplicationContext, epnumber: Option(int, description="Either 1, 2, 3, 4 or 5. Displays all choices by default", required=False)) -> None:
+    async def choices(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], epnumber: int = None) -> None:
         if epnumber is None:
             # Display all choices with a paginator
             pages = []
@@ -306,76 +309,76 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
             else:
                 await Utils.commandDebugEmbed(ctx, "Not a valid episode number")
 
-    # memory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange screenshot")
+    # lismemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["lm"], description=f"Displays a random Life is Strange screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def memory(self, ctx: ApplicationContext) -> None:
-        await ctx.respond(file=File(random.choice(self.memoryImages)))
+    async def lismemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
+        await ctx.respond(file=File(random.choice(self.memorylisMemoryImages)))
 
-    # remasterMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange Remastered screenshot")
+    # remastermemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["rm"], description=f"Displays a random Life is Strange Remastered screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def remastermemory(self, ctx: ApplicationContext) -> None:
+    async def remastermemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.remasterMemoryImages)))
 
-    # tcMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange True Colors screenshot")
+    # tcmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["tm"], description=f"Displays a random Life is Strange True Colors screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def tcmemory(self, ctx: ApplicationContext) -> None:
+    async def tcmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.tcMemoryImages)))
 
-    # lis2Memory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange 2 screenshot")
+    # lis2memory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["l2m"], description=f"Displays a random Life is Strange 2 screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def lis2memory(self, ctx: ApplicationContext) -> None:
+    async def lis2memory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.lis2MemoryImages)))
 
-    # btsMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange Before the Storm screenshot")
+    # btsmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["bm"], description=f"Displays a random Life is Strange Before the Storm screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def btsmemory(self, ctx: ApplicationContext) -> None:
+    async def btsmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.btsMemoryImages)))
 
-    # spiritMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Captain Spirit screenshot")
+    # spiritmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["sm"], description=f"Displays a random Captain Spirit screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def spiritmemory(self, ctx: ApplicationContext) -> None:
+    async def spiritmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.spiritMemoryImages)))
 
-    # btsRemasterMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange Before the Storm Remastered screenshot")
+    # btsremastermemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["brm"], description=f"Displays a random Life is Strange Before the Storm Remastered screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def btsremastermemory(self, ctx: ApplicationContext) -> None:
+    async def btsremastermemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.btsRemasterMemoryImages)))
 
-    # wavelengthsMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange Wavelengths screenshot")
+    # wavelengthsmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["wm"], description=f"Displays a random Life is Strange Wavelengths screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def wavelengthsmemory(self, ctx: ApplicationContext) -> None:
+    async def wavelengthsmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.wavelengthsMemoryImages)))
 
-    # farewellMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange Farewell screenshot")
+    # farewellmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["fm"], description=f"Displays a random Life is Strange Farewell screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def farewellmemory(self, ctx: ApplicationContext) -> None:
+    async def farewellmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.farewellMemoryImages)))
 
-    # lisMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange screenshot from any Life is Strange game")
+    # lismemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["m"], description=f"Displays a random Life is Strange screenshot from any Life is Strange game")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def lismemory(self, ctx: ApplicationContext) -> None:
-        await ctx.respond(file=File(random.choice(self.lisMemoryImages)))
+    async def memory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
+        await ctx.respond(file=File(random.choice(self.memoryImages)))
 
-    # dlcMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random Life is Strange DLC screenshot")
+    # dlcmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["dm"], description=f"Displays a random Life is Strange DLC screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def dlcmemory(self, ctx: ApplicationContext) -> None:
+    async def dlcmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.dlcMemoryImages)))
 
-    # allMemory command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random screenshot from any Life is Strange game including DLCs")
+    # allmemory command with a cooldown of 1 use every 20 seconds per guild
+    @bridge.bridge_command(aliases=["am"], description=f"Displays a random screenshot from any Life is Strange game including DLCs")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def allmemory(self, ctx: ApplicationContext) -> None:
+    async def allmemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond(file=File(random.choice(self.allMemoryImages)))
 
     # # image command with a cooldown of 1 use every 45 seconds per guild
@@ -408,14 +411,14 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
     #     await ctx.channel.send(messageToSend)
 
     # Function to run channelCheck for Life Is Strange
-    async def cog_check(self, ctx: ApplicationContext) -> bool:
+    async def cog_check(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx: ApplicationContext, error: commands.CommandError) -> None:
+    async def cog_command_error(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
 # Function which initialises the life is strange cog
-def setup(bot: Bot) -> None:
+def setup(bot: bridge.Bot) -> None:
     bot.add_cog(lifeIsStrange(bot))

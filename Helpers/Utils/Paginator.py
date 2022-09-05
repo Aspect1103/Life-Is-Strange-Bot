@@ -1,7 +1,8 @@
 # Builtin
-from typing import Optional, List
+from typing import Optional, List, Union
 # Pip
-from discord import Embed, ApplicationContext, Bot, Interaction, Message, ButtonStyle, ui
+from discord import Embed, Interaction, Message, ButtonStyle, ui
+from discord.ext import bridge
 # Custom
 from Helpers.Utils import Utils
 
@@ -9,7 +10,7 @@ from Helpers.Utils import Utils
 # Paginator class to switch between different embeds
 class Paginator(ui.View):
     # Initialise variables
-    def __init__(self, ctx: ApplicationContext, bot: Bot, timeout: float = 300) -> None:
+    def __init__(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], bot: bridge.Bot, timeout: float = 300) -> None:
         super().__init__(timeout=timeout, disable_on_timeout=True)
         self.ctx = ctx
         self.bot = bot

@@ -1,16 +1,19 @@
 # Builtin
 import random
+import re
+from typing import Union, Mapping, List
 from pathlib import Path
 # Pip
-from discord import Embed, Colour, Bot, ApplicationContext, Cog, command
+from discord import Embed, Colour, Cog
 from discord.appinfo import AppInfo
-from discord.ext import commands
+from discord.ext import commands, bridge
 # Custom
 from Helpers.Utils import Utils
+from Helpers.Utils.Paginator import Paginator
 
 # Attributes for the help command
 attributes = {
-    "cooldown": commands.CooldownMapping(commands.Cooldown(1, Utils.superShort), lambda x: x),
+    "cooldown": commands.CooldownMapping(commands.Cooldown(1, Utils.superShort), commands.BucketType.guild),
     "help": f"Displays the help command. It has a cooldown of {Utils.superShort} seconds",
     "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
     "usage": "help [cog/group/command name]",
@@ -26,10 +29,11 @@ gunPath = rootDirectory.joinpath("Resources").joinpath("Files").joinpath("gunLin
 # Cog to manage miscellaneous commands
 class Miscellaneous(Cog):
     # Initialise the bot
-    def __init__(self, bot: Bot) -> None:
+    def __init__(self, bot: bridge.Bot) -> None:
         self.bot = bot
         self.colour = Colour.orange()
         # self.bot.help_command = Help(command_attrs=attributes)
+        # self.bot.help_command.set_bot(self.bot)
         # self.bot.help_command.cog = self
         self.questionArray = [line.replace("\n", "") for line in open(questionPath, "r", encoding="utf").readlines()]
         self.nextQuestion = None
@@ -51,33 +55,33 @@ class Miscellaneous(Cog):
         self.gunLines = lines
 
     # bum command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Displays a hypnotic gif")
+    @bridge.bridge_command(description=f"Displays a hypnotic gif")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def bum(self, ctx: ApplicationContext) -> None:
+    async def bum(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond("https://giphy.com/gifs/midland-l4FsJgbbeKQC8MGBy")
 
     # murica command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Displays a patriot")
+    @bridge.bridge_command(description=f"Displays a patriot")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def murica(self, ctx: ApplicationContext) -> None:
+    async def murica(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond("https://tenor.com/view/merica-gif-9091003")
 
     # puppy command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Displays a cute puppy")
+    @bridge.bridge_command(description=f"Displays a cute puppy")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def puppy(self, ctx: ApplicationContext) -> None:
+    async def puppy(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond("https://www.youtube.com/watch?v=j5a0jTc9S10")
 
     # pizza command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Displays a delicious pizza")
+    @bridge.bridge_command(description=f"Displays a delicious pizza")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def pizza(self, ctx: ApplicationContext) -> None:
+    async def pizza(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         await ctx.respond("https://tenor.com/view/pizza-party-dance-dancing-gif-10213545")
 
     # joyce command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon")
+    @bridge.bridge_command(description=f"Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def joyce(self, ctx: ApplicationContext) -> None:
+    async def joyce(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         gifs = [
             "https://tenor.com/view/coffee-coffee-cup-hot-hot-coffee-gif-16748161",
             "https://tenor.com/view/cup-of-tea-teapot-cuppa-hot-cup-of-tea-scalding-hot-gif-17825685",
@@ -89,9 +93,9 @@ class Miscellaneous(Cog):
         await ctx.respond(f"Joyce: Incoming!\n{random.choice(gifs)}")
 
     # bang command with a cooldown of 1 use every 5 seconds per user
-    @command(description=f"Fires Chloe's gun")
+    @bridge.bridge_command(description=f"Fires Chloe's gun")
     @commands.cooldown(1, Utils.superShort, commands.BucketType.guild)
-    async def bang(self, ctx: ApplicationContext, message=None):
+    async def bang(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], message=None):
         if message is None:
             await ctx.respond(random.choice(self.gunLines))
         else:
@@ -103,9 +107,9 @@ class Miscellaneous(Cog):
                 await ctx.respond(random.choice(self.gunLines))
 
     # question command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays a random question for users to answer")
+    @bridge.bridge_command(description=f"Displays a random question for users to answer")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def question(self, ctx: ApplicationContext) -> None:
+    async def question(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         if self.nextQuestion[ctx.guild.id] == len(self.questionArray):
             # All questions done
             random.shuffle(self.questionArray)
@@ -117,9 +121,9 @@ class Miscellaneous(Cog):
         await ctx.respond(embed=questionEmbed)
 
     # about command with a cooldown of 1 use every 20 seconds per guild
-    @command(description=f"Displays information about the bot. It has a cooldown of {Utils.short} seconds")
+    @bridge.bridge_command(description=f"Displays information about the bot. It has a cooldown of {Utils.short} seconds")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
-    async def about(self, ctx: ApplicationContext) -> None:
+    async def about(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
         # Create embed
         botInfo: AppInfo = await self.bot.application_info()
         aboutEmbed = Embed(title=f"About {botInfo.name}", colour=self.colour)
@@ -133,11 +137,11 @@ class Miscellaneous(Cog):
         await ctx.respond(embed=aboutEmbed)
 
     # Function to run channelCheck for Miscellaneous
-    async def cog_check(self, ctx: ApplicationContext) -> bool:
+    async def cog_check(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> bool:
         return await Utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
-    async def cog_command_error(self, ctx: ApplicationContext, error: commands.CommandError) -> None:
+    async def cog_command_error(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], error: commands.CommandError) -> None:
         await Utils.errorHandler(ctx, error)
 
 
@@ -147,17 +151,21 @@ class Miscellaneous(Cog):
 #     def __init__(self, **options) -> None:
 #         super().__init__(**options)
 #         self.colour = Colour.orange()
+#         self.bot = None
 #
 #     # Function to get the command signature (the actual command)
-#     def get_command_signature(self, command: commands.Command) -> str:
-#         return f"`{self.clean_prefix}{command.qualified_name}` - {command.help}"
+#     def get_command_signature(self, command: Union[bridge.BridgeSlashCommand, bridge.BridgeExtCommand]) -> str:
+#         return f"`/{command.qualified_name}` - {command.description}"
 #
 #     # Function to create aliases string
-#     def createAliases(self, command: commands.Command) -> str:
+#     def createAliases(self, command: Union[bridge.BridgeSlashCommand, bridge.BridgeExtCommand]) -> str:
 #         aliases = None
 #         if len(command.aliases) > 0:
-#             aliases = "Aliases: " + ", ".join([f"{self.clean_prefix}{comm}" for comm in command.aliases])
+#             aliases = "Aliases: " + ", ".join([f"/{comm}" for comm in command.aliases])
 #         return aliases
+#
+#     def set_bot(self, bot: bridge.Bot):
+#         self.bot = bot
 #
 #     # Function to get a cog name and separate it if needed
 #     @staticmethod
@@ -169,7 +177,7 @@ class Miscellaneous(Cog):
 #         return None if await Utils.restrictor.commandCheck(self.context) else await Utils.restrictor.grabAllowed(self.context)
 #
 #     # Function to display help on the entire bot
-#     async def send_bot_help(self, mapping: Mapping[commands.Cog, List[Union[commands.Command, commands.Group, commands.HelpCommand]]]) -> None:
+#     async def send_bot_help(self, mapping: Mapping[commands.Cog, List[Union[bridge.BridgeSlashCommand, bridge.BridgeExtCommand]]]) -> None:
 #         # Test if the current channel is correct
 #         result = await self.channelCheck()
 #         if result is None:
@@ -192,9 +200,9 @@ class Miscellaneous(Cog):
 #                     helpEmbed.set_footer(text=f"{len(commandList)} commands")
 #                     pages.append(helpEmbed)
 #                     # Append cog to the home page
-#                     pages[0].add_field(name=f"{self.getCogName(cog.qualified_name)}", value=f"For more information type:\n`{self.clean_prefix}help {cog.qualified_name}`")
+#                     pages[0].add_field(name=f"{self.getCogName(cog.qualified_name)}", value=f"For more information type:\n`/help {cog.qualified_name}`")
 #             # Create paginator
-#             paginator = Paginator(self.context, self.context.bot)
+#             paginator = Paginator(self.context, self.bot)
 #             paginator.addPages(pages)
 #             await paginator.start()
 #         else:
@@ -212,9 +220,9 @@ class Miscellaneous(Cog):
 #                 # Create aliases string
 #                 aliases = self.createAliases(command)
 #                 if aliases is not None:
-#                     cogHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}\n\n{aliases}", inline=False)
+#                     cogHelpEmbed.add_field(name=f"/{command.qualified_name}", value=f"{command.help}\n\n{aliases}", inline=False)
 #                 else:
-#                     cogHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}", inline=False)
+#                     cogHelpEmbed.add_field(name=f"/{command.qualified_name}", value=f"{command.help}", inline=False)
 #             # Send embed
 #             channel = self.get_destination()
 #             await channel.send(embed=cogHelpEmbed)
@@ -234,7 +242,7 @@ class Miscellaneous(Cog):
 #             if aliases is not None:
 #                 groupHelpEmbed.description = aliases
 #             for command in group.commands:
-#                 groupHelpEmbed.add_field(name=f"{self.clean_prefix}{command.qualified_name}", value=f"{command.help}", inline=False)
+#                 groupHelpEmbed.add_field(name=f"/{command.qualified_name}", value=f"{command.help}", inline=False)
 #             # Send embed
 #             channel = self.get_destination()
 #             await channel.send(embed=groupHelpEmbed)
@@ -242,20 +250,20 @@ class Miscellaneous(Cog):
 #             await Utils.commandDebugEmbed(self.get_destination(), result)
 #
 #     # Function to display help on a specific command
-#     async def send_command_help(self, command: commands.Command) -> None:
+#     async def send_command_help(self, command: Union[bridge.BridgeSlashCommand, bridge.BridgeExtCommand]) -> None:
 #         # Test if the current channel is correct
 #         result = await self.channelCheck()
 #         if result is None:
 #             # Create aliases string
 #             aliases = self.createAliases(command)
 #             # Create embed
-#             commandHelpEmbed = Embed(title=f"{self.clean_prefix}{command.qualified_name} Help", colour=self.colour)
+#             commandHelpEmbed = Embed(title=f"/{command.qualified_name} Help", colour=self.colour)
 #             if aliases is not None:
 #                 commandHelpEmbed.set_footer(text=aliases)
 #             if command.description == "":
-#                 commandHelpEmbed.add_field(name=command.help, value=f"No arguments\n\nUsage: {self.clean_prefix}{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
+#                 commandHelpEmbed.add_field(name=command.help, value=f"No arguments\n\nUsage: /{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
 #             else:
-#                 commandHelpEmbed.add_field(name=command.help, value=f"{command.description}\n\nUsage: {self.clean_prefix}{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
+#                 commandHelpEmbed.add_field(name=command.help, value=f"{command.description}\n\nUsage: /{command.usage}\n\nRestricted to {command.brief} section. See $channel list")
 #             # Send embed
 #             channel = self.get_destination()
 #             await channel.send(embed=commandHelpEmbed)
@@ -270,5 +278,5 @@ class Miscellaneous(Cog):
 
 
 # Function which initialises the Miscellaneous cog
-def setup(bot: Bot) -> None:
+def setup(bot: bridge.Bot) -> None:
     bot.add_cog(Miscellaneous(bot))

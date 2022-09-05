@@ -5,8 +5,8 @@ from pathlib import Path
 # Pip
 import asyncpraw
 import pendulum
-from discord import Colour, Embed, Guild, Bot
-from discord.ext import tasks
+from discord import Colour, Embed, Guild
+from discord.ext import tasks, bridge
 # Custom
 import Config
 from Helpers.Utils import Utils
@@ -27,11 +27,11 @@ class Tasks:
             client_secret=Config.redditSecret,
             user_agent="linux:LiSBot:1.0 (by u/JackAshwell1)"
         )
-        self.bot: Bot = None
+        self.bot = None
         self.posts = None
 
     # Function which runs once the bot is set up and running
-    async def startup(self, bot: Bot) -> None:
+    async def startup(self, bot: bridge.Bot) -> None:
         self.bot = bot
         self.posts = {guild.id: [] for guild in self.bot.guilds}
 

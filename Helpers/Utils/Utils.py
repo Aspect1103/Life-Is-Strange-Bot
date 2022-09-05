@@ -4,8 +4,8 @@ from typing import List, Any, Union, Tuple
 # Pip
 import pendulum
 from AO3.utils import HTTPError
-from discord import TextChannel, Embed, Colour, Message, ApplicationContext
-from discord.ext import commands
+from discord import Embed, Colour, Message
+from discord.ext import commands, bridge
 # Custom
 from Helpers.Managers.DatabaseManager import DatabaseManager
 from .Tasks import Tasks
@@ -31,12 +31,12 @@ def rankSort(arr: List[Tuple[int, ...]], indexToSort: int) -> List[Tuple[int, ..
 
 
 # Function to create an embed displaying the command error
-async def commandDebugEmbed(ctx: ApplicationContext, message: str) -> Message:
+async def commandDebugEmbed(ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], message: str) -> Message:
     return await ctx.respond(embed=Embed(title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)))
 
 
 # Handle errors
-async def errorHandler(ctx: ApplicationContext, error: commands.CommandError) -> None:
+async def errorHandler(ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], error: commands.CommandError) -> None:
     if isinstance(error, commands.errors.MissingPermissions):
         await commandDebugEmbed(ctx, "You do not have sufficient permission to run this command")
     elif isinstance(error, commands.errors.NotOwner):
