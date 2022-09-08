@@ -133,7 +133,7 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
             if guess is not None:
                 try:
                     if int(guess.custom_id) == count+1:
-                        temp += f" \U00002B05 {guess.user.name} guessed"
+                        temp += f" \U00002B05 {guess.user.name}#{guess.user.discriminator} guessed"
                 except KeyError:
                     # Unknown emoji
                     pass
