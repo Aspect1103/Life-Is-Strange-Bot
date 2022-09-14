@@ -313,7 +313,7 @@ class lifeIsStrange(Cog, name="LifeIsStrange"):
     @bridge.bridge_command(aliases=["lm"], description=f"Displays a random Life is Strange screenshot")
     @commands.cooldown(1, Utils.short, commands.BucketType.guild)
     async def lismemory(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> None:
-        await ctx.respond(file=File(random.choice(self.memorylisMemoryImages)))
+        await ctx.respond(file=File(random.choice(self.lisMemoryImages)))
 
     # remastermemory command with a cooldown of 1 use every 20 seconds per guild
     @bridge.bridge_command(aliases=["rm"], description=f"Displays a random Life is Strange Remastered screenshot")

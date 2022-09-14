@@ -13,8 +13,8 @@ from .Restrictor import Restrictor
 
 
 # Function to write messages to error.txt
-def errorWrite(error: Union[commands.CommandError, str]) -> None:
-    open(errorPath, "a").write(f"{pendulum.now()}, {error}\n")
+def errorWrite(error: commands.CommandError) -> None:
+    open(errorPath, "a").write(f"{pendulum.now()}, {error.with_traceback()}\n")
 
 
 # Function to split a list with a set amount of items in each
