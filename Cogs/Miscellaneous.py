@@ -45,7 +45,7 @@ class Miscellaneous(Cog):
         self.nextQuestion = {guild.id: 0 for guild in self.bot.guilds}
         # Create gun lines list
         lines = []
-        for line in open("../LiSBot/Resources/Files/gunLines.txt", "r").readlines():
+        for line in open(gunPath, "r").readlines():
             if "/RARE" in line:
                 line = line.replace("/RARE", "")
                 lines.extend([line, line])
