@@ -1,9 +1,9 @@
 # Builtin
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 # Pip
-import pendulum
 from AO3.utils import HTTPError
 from discord import Embed, Colour, Message
 from discord.ext import commands, bridge
@@ -28,12 +28,12 @@ def rankSort(arr: list[tuple[int, ...]], indexToSort: int) -> list[tuple[int, ..
 
 # Function to create an embed displaying the command error
 async def commandDebugEmbed(
-    ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, message: str
+    ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, message: str,
 ) -> Message:
     return await ctx.respond(
         embed=Embed(
-            title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0)
-        )
+            title="Command Info", description=message, colour=Colour.from_rgb(0, 0, 0),
+        ),
     )
 
 
@@ -44,7 +44,7 @@ async def errorHandler(
 ) -> None:
     if isinstance(error, commands.errors.MissingPermissions):
         await commandDebugEmbed(
-            ctx, "You do not have sufficient permission to run this command"
+            ctx, "You do not have sufficient permission to run this command",
         )
     elif isinstance(error, commands.errors.NotOwner):
         await commandDebugEmbed(ctx, "You are not owner")
@@ -60,7 +60,7 @@ async def errorHandler(
         await commandDebugEmbed(ctx, error.original)
 
     # Write the error message
-    open(errorPath, "a").write(f"{pendulum.now()}, {error.with_traceback()}\n")
+    open(errorPath, "a").write(f"{datetime.now()}, {error.with_traceback()}\n")
 
 
 # Path variables
