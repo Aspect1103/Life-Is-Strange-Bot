@@ -1,15 +1,24 @@
 # Builtin
 from typing import List
+
 # Pip
 from discord import Embed, Colour, Message, ApplicationContext, Bot
+
 # Custom
-from lis_bot.helpers.utils import Utils
+from lis_bot.helpers.utils import utils
 
 
 # SearchQuoteManager class to switch between different embeds
 class SearchQuoteManager:
     # Initialise variables
-    def __init__(self, bot: Bot, ctx: ApplicationContext, message: Message, colour: Colour, worksheet: List[List[str]]):
+    def __init__(
+        self,
+        bot: Bot,
+        ctx: ApplicationContext,
+        message: Message,
+        colour: Colour,
+        worksheet: List[List[str]],
+    ):
         self.bot = bot
         self.ctx = ctx
         self.message = message
@@ -24,7 +33,7 @@ class SearchQuoteManager:
             "status": [self.statusFilter, None],
             "smut": [self.smutFilter, None],
             "words": [self.wordsFilter, None],
-            "chapters": [self.chaptersFilter, None]
+            "chapters": [self.chaptersFilter, None],
         }
 
     # Filter for a title arguments
@@ -60,7 +69,8 @@ class SearchQuoteManager:
         return [item for item in self.finalArray if self.intSearch(item[9], arg)]
 
     # Search for possible matches for words and chapters
-    def intSearch(self, rowElement: str, arg: str) -> bool:
+    @staticmethod
+    def intSearch(rowElement: str, arg: str) -> bool:
         # If the searchNumber is only letters, then None is returned which causes the if statement to be False
         searchNumber = int("".join([str(num) for num in arg if num.isdigit()]))
         if "==" in arg:
@@ -88,15 +98,18 @@ class SearchQuoteManager:
     # Add a filter to the array
     async def addFilter(self, category: str, term: str) -> None:
         if category is None:
-            await Utils.commandDebugEmbed(self.ctx, "Invalid category")
+            await utils.commandDebugEmbed(self.ctx, "Invalid category")
         elif term is None:
-            await Utils.commandDebugEmbed(self.ctx, "Invalid term")
+            await utils.commandDebugEmbed(self.ctx, "Invalid term")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await Utils.commandDebugEmbed(self.ctx, "Unknown category")
+                await utils.commandDebugEmbed(self.ctx, "Unknown category")
             elif self.filters[lowerCase][1] is not None:
-                await Utils.commandDebugEmbed(self.ctx, f"Filter already added. Use /searchQuote remove to remove the filter")
+                await utils.commandDebugEmbed(
+                    self.ctx,
+                    f"Filter already added. Use /searchQuote remove to remove the filter",
+                )
             else:
                 # Filter the array and store the term
                 self.finalArray: List[List[str]] = self.filters[lowerCase][0](term)
@@ -111,13 +124,16 @@ class SearchQuoteManager:
     # Remove a filter from the array
     async def removeFilter(self, category):
         if category is None:
-            await Utils.commandDebugEmbed(self.ctx, "Invalid category")
+            await utils.commandDebugEmbed(self.ctx, "Invalid category")
         else:
             lowerCase = category.lower()
             if lowerCase not in self.filters.keys():
-                await Utils.commandDebugEmbed(self.ctx, "Unknown category")
+                await utils.commandDebugEmbed(self.ctx, "Unknown category")
             elif self.filters[lowerCase][1] is None:
-                await Utils.commandDebugEmbed(self.ctx, f"Filter already added. Use /searchQuote remove to remove the filter")
+                await utils.commandDebugEmbed(
+                    self.ctx,
+                    f"Filter already added. Use /searchQuote remove to remove the filter",
+                )
             else:
                 # Remove the term and re-filter the array from the start
                 self.filters[lowerCase][1] = None

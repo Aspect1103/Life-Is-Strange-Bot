@@ -1,13 +1,9 @@
 # Builtin
-from pathlib import Path
 from typing import Union, List, Dict
+
 # Pip
 from discord import TextChannel, VoiceChannel
 from discord.ext import bridge
-
-# Path variables
-rootDirectory = Path(__file__).parent.parent
-idPath = rootDirectory.joinpath("resources").joinpath("files").joinpath("IDs.txt")
 
 
 # Restrictor class to switch between different embeds
@@ -19,7 +15,9 @@ class Restrictor:
         self.bot = None
 
     # Function to get the allowed channels for a command
-    def getAllowed(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> Union[List[int], None]:
+    def getAllowed(
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+    ) -> Union[List[int], None]:
         for key, value in self.commandGroups.items():
             if str(ctx.command) in value:
                 allowedChannels = self.IDs[str(ctx.guild.id)][key]
@@ -35,32 +33,44 @@ class Restrictor:
     # Function to get IDs from the database
     async def getIDs(self) -> Dict[str, Dict[str, List[int]]]:
         # Import utils to avoid a circular import
-        from .Utils import database
+        from lis_bot.helpers.utils.utils import database
+
         tempDict = {}
         for guild in self.bot.guilds:
-            result = await database.fetch("SELECT guildID, lifeIsStrangeID, triviaID, fanficID, imageID, radioTextID, radioVoiceID, botBidnessID FROM settings WHERE guildID = ?", (guild.id, ))
+            result = await database.fetch(
+                "SELECT guildID, lifeIsStrangeID, triviaID, fanficID, imageID, radioTextID, radioVoiceID, botBidnessID FROM settings WHERE guildID = ?",
+                (guild.id,),
+            )
             result = result[0]
             tempDict[str(guild.id)] = {
-                "life is strange": [int(channelID) for channelID in result[1].split(",")],
+                "life is strange": [
+                    int(channelID) for channelID in result[1].split(",")
+                ],
                 "trivia": [int(channelID) for channelID in result[2].split(",")],
                 "fanfic": [int(channelID) for channelID in result[3].split(",")],
                 "image": [int(channelID) for channelID in result[4].split(",")],
                 "radio text": [int(channelID) for channelID in result[5].split(",")],
                 "radio voice": [int(channelID) for channelID in result[6].split(",")],
-                "bot bidness": [int(channelID) for channelID in result[7].split(",")]
+                "bot bidness": [int(channelID) for channelID in result[7].split(",")],
             }
         return tempDict
 
     # Function to check if a command is allowed in a specific channel
-    async def commandCheck(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> bool:
+    async def commandCheck(
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+    ) -> bool:
         allowedChannel = self.getAllowed(ctx)
         if allowedChannel is not None:
             return ctx.channel.id in allowedChannel
         return True
 
     # Function to grab the allowed channels
-    async def grabAllowed(self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]) -> str:
+    async def grabAllowed(
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+    ) -> str:
         allowedChannel = self.getAllowed(ctx)
-        textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [self.bot.get_channel(channel) for channel in allowedChannel]
+        textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [
+            self.bot.get_channel(channel) for channel in allowedChannel
+        ]
         guildAllowed = ", ".join([channel.mention for channel in textChannelAllowed])
         return f"This command is only allowed in {guildAllowed}"
