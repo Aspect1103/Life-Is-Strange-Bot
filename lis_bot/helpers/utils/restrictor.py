@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 # Builtin
-from typing import Union, List, Dict
+from typing import Union
 
 # Pip
 from discord import TextChannel, VoiceChannel
@@ -9,15 +11,15 @@ from discord.ext import bridge
 # Restrictor class to switch between different embeds
 class Restrictor:
     # Initialise variables
-    def __init__(self, commandGroups: Dict[str, List[str]]) -> None:
+    def __init__(self, commandGroups: dict[str, list[str]]) -> None:
         self.commandGroups = commandGroups
         self.IDs = None
         self.bot = None
 
     # Function to get the allowed channels for a command
     def getAllowed(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
-    ) -> Union[List[int], None]:
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
+    ) -> Union[list[int], None]:
         for key, value in self.commandGroups.items():
             if str(ctx.command) in value:
                 allowedChannels = self.IDs[str(ctx.guild.id)][key]
@@ -31,7 +33,7 @@ class Restrictor:
         self.IDs = await self.getIDs()
 
     # Function to get IDs from the database
-    async def getIDs(self) -> Dict[str, Dict[str, List[int]]]:
+    async def getIDs(self) -> dict[str, dict[str, list[int]]]:
         # Import utils to avoid a circular import
         from lis_bot.helpers.utils.utils import database
 
@@ -57,7 +59,7 @@ class Restrictor:
 
     # Function to check if a command is allowed in a specific channel
     async def commandCheck(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> bool:
         allowedChannel = self.getAllowed(ctx)
         if allowedChannel is not None:
@@ -66,10 +68,10 @@ class Restrictor:
 
     # Function to grab the allowed channels
     async def grabAllowed(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> str:
         allowedChannel = self.getAllowed(ctx)
-        textChannelAllowed: List[Union[TextChannel, VoiceChannel]] = [
+        textChannelAllowed: list[Union[TextChannel, VoiceChannel]] = [
             self.bot.get_channel(channel) for channel in allowedChannel
         ]
         guildAllowed = ", ".join([channel.mention for channel in textChannelAllowed])

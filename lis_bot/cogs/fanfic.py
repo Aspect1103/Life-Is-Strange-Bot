@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 # Builtin
 import math
 import random
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 # Pip
 import AO3
@@ -42,8 +44,8 @@ class Fanfic(Cog):
 
     # Function to create quotes
     def quoteMaker(
-        self, ficLink: str
-    ) -> tuple[str, AO3.Work | None, str | None, str | None]:
+        self, ficLink: str,
+    ) -> tuple[str, Union[AO3.Work, None], Union[str, None], Union[str, None]]:
         work = AO3.Work(AO3.utils.workid_from_url(ficLink), self.session)
         if work.title == "":
             # Work is secret
@@ -77,7 +79,7 @@ class Fanfic(Cog):
 
     # Function to create embeds
     def quoteEmbedCreater(
-        self, quote: str, work: AO3.Work, authors: str, chapterName: str
+        self, quote: str, work: AO3.Work, authors: str, chapterName: str,
     ) -> Embed:
         quoteEmbed = Embed(colour=self.colour)
         quoteEmbed.title = work.title
@@ -94,10 +96,10 @@ class Fanfic(Cog):
     # Function to find the last quote posted
     async def findLastQuote(
         self,
-        ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
+        ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
         before: datetime = None,
         repeats: int = 0,
-    ) -> Message | None:
+    ) -> Union[Message, None]:
         lastMessage = None
         repeats += 1
         async for message in ctx.channel.history(limit=100, before=before):
@@ -129,7 +131,7 @@ class Fanfic(Cog):
     @commands.cooldown(1, utils.medium, commands.BucketType.guild)
     async def quote(
         self,
-        ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
+        ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
         includensfw: str = "No",
     ) -> None:
         if includensfw.capitalize() == "Yes":
@@ -145,13 +147,13 @@ class Fanfic(Cog):
         while quote == "" and ficCount < 5:
             ficCount += 1
             quote, work, authors, chapterName = self.quoteMaker(
-                tempArr.pop(random.randrange(len(tempArr)))[10]
+                tempArr.pop(random.randrange(len(tempArr)))[10],
             )
         if quote == "":
             await utils.commandDebugEmbed(ctx, "No valid quotes found")
         else:
             await ctx.respond(
-                embed=self.quoteEmbedCreater(quote, work, authors, chapterName)
+                embed=self.quoteEmbedCreater(quote, work, authors, chapterName),
             )
 
     # nextquote command with a cooldown of 1 use every 45 seconds per guild
@@ -161,12 +163,12 @@ class Fanfic(Cog):
     )
     @commands.cooldown(1, utils.medium, commands.BucketType.guild)
     async def nextquote(
-        self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
             await utils.commandDebugEmbed(
-                ctx, f"Cannot find the last quote. Try running {ctx.prefix}quote"
+                ctx, f"Cannot find the last quote. Try running {ctx.prefix}quote",
             )
         else:
             quote, work, authors, chapterName = self.quoteMaker(lastQuote.url)
@@ -179,22 +181,22 @@ class Fanfic(Cog):
                 await utils.commandDebugEmbed(ctx, "Cannot find any more quotes")
             else:
                 await ctx.respond(
-                    embed=self.quoteEmbedCreater(quote, work, authors, chapterName)
+                    embed=self.quoteEmbedCreater(quote, work, authors, chapterName),
                 )
 
     # outline command with a cooldown of 1 use every 45 seconds per guild
     @bridge.bridge_command(
-        description="Finds the last quote posted and displays the metadata for that fic"
+        description="Finds the last quote posted and displays the metadata for that fic",
     )
     @commands.cooldown(1, utils.medium, commands.BucketType.guild)
     async def outline(
-        self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         # Get the last quote posted and store its url
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
             await utils.commandDebugEmbed(
-                ctx, "Cannot find the last quote. Try running /quote"
+                ctx, "Cannot find the last quote. Try running /quote",
             )
         else:
             lastUrl: str = lastQuote.url
@@ -225,24 +227,24 @@ class Fanfic(Cog):
                 infoEmbed.add_field(name="Additional Tags:", value=tags)
             infoEmbed.add_field(name="Summary:", value=work.summary)
             infoEmbed.set_footer(
-                text=f"Words: {work.words}. Chapters: {work.nchapters}. Language: {work.language}"
+                text=f"Words: {work.words}. Chapters: {work.nchapters}. Language: {work.language}",
             )
             # Display the embed
             await ctx.respond(embed=infoEmbed)
 
     # works command with a cooldown of 1 use every 60 seconds per guild
     @bridge.bridge_command(
-        description="Finds the last quote posted and displays all works posted by that author"
+        description="Finds the last quote posted and displays all works posted by that author",
     )
     @commands.cooldown(1, utils.long, commands.BucketType.guild)
     async def works(
-        self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         # Get the last quote posted and create an AO3 User object
         lastQuote = await self.findLastQuote(ctx)
         if lastQuote is None:
             await utils.commandDebugEmbed(
-                ctx, "Cannot find the last quote. Try running /quote"
+                ctx, "Cannot find the last quote. Try running /quote",
             )
         else:
             authorName: str = random.choice(lastQuote.author.name.split(", "))
@@ -265,7 +267,7 @@ class Fanfic(Cog):
                         tempEmbed.title = authorName
                         tempEmbed.url = user.url
                         tempEmbed.set_footer(
-                            text=f"Page {count+1} of {maxPage}. Fic Total: {len(works)}"
+                            text=f"Page {count+1} of {maxPage}. Fic Total: {len(works)}",
                         )
                         for work in arr:
                             tempEmbed.add_field(name=work.title, value=work.url)
@@ -290,14 +292,14 @@ class Fanfic(Cog):
 
     # Function to run channelCheck for Fanfic
     async def cog_check(
-        self, ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> bool:
         return await utils.restrictor.commandCheck(ctx)
 
     # Catch any cog errors
     async def cog_command_error(
         self,
-        ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
+        ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
         error: commands.CommandError,
     ) -> None:
         await utils.errorHandler(ctx, error)

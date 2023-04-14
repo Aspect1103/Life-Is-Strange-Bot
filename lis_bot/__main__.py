@@ -11,7 +11,10 @@ from lis_bot.config import token
 from lis_bot.helpers.utils.utils import extensions, restrictor
 
 # Discord variables
-bot = bridge.Bot(command_prefix="$", case_insensitive=True, intents=Intents().all())
+intents = Intents.default()
+intents.messages = True
+intents.message_content = True
+bot = bridge.Bot(command_prefix="$", case_insensitive=True, intents=intents)
 
 # Path variables
 logPath = Path(__file__).parent.joinpath("debug_files").joinpath("lisBot.log")

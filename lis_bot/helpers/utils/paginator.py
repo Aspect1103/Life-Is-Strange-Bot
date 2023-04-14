@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 # Builtin
-from typing import Optional, List, Union
+from typing import Union
 
 # Pip
 from discord import Embed, Interaction, Message, ButtonStyle, ui
@@ -26,66 +28,66 @@ class Paginator(ui.View):
         self.currentIndex = 0
         self.maxIndex = -1
 
-    @ui.button(emoji="⏪", style=ButtonStyle.primary)
+    @ui.button(emoji="â�ª", style=ButtonStyle.primary)
     async def toStartButton(self, interaction: Interaction) -> None:
         if self.currentIndex != 0:
             await self.message.edit(embed=self.pages[0])
             self.currentIndex = 0
             await interaction.response.send_message(
-                "Displaying first page", ephemeral=True
+                "Displaying first page", ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                "Already on first page", ephemeral=True
+                "Already on first page", ephemeral=True,
             )
 
-    @ui.button(emoji="⬅️", style=ButtonStyle.primary)
+    @ui.button(emoji="â¬…ï¸�", style=ButtonStyle.primary)
     async def backButton(self, interaction: Interaction) -> None:
         if self.currentIndex != 0:
             await self.message.edit(embed=self.pages[self.currentIndex - 1])
             self.currentIndex -= 1
             await interaction.response.send_message(
-                "Displaying previous page", ephemeral=True
+                "Displaying previous page", ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                "Already on first page", ephemeral=True
+                "Already on first page", ephemeral=True,
             )
 
-    @ui.button(emoji="⏹️", style=ButtonStyle.primary)
+    @ui.button(emoji="â�¹ï¸�", style=ButtonStyle.primary)
     async def stopButton(self, interaction: Interaction) -> None:
         self.stop()
         await interaction.response.send_message("Stopped buttons", ephemeral=True)
 
-    @ui.button(emoji="➡️", style=ButtonStyle.primary)
+    @ui.button(emoji="âž¡ï¸�", style=ButtonStyle.primary)
     async def nextButton(self, interaction: Interaction) -> None:
         if self.currentIndex != self.maxIndex:
             await self.message.edit(embed=self.pages[self.currentIndex + 1])
             self.currentIndex += 1
             await interaction.response.send_message(
-                "Displaying next page", ephemeral=True
+                "Displaying next page", ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                "Already on last page", ephemeral=True
+                "Already on last page", ephemeral=True,
             )
 
-    @ui.button(emoji="⏩", style=ButtonStyle.primary)
+    @ui.button(emoji="â�©", style=ButtonStyle.primary)
     async def toEndButton(self, interaction: Interaction) -> None:
         if self.currentIndex != self.maxIndex:
             await self.message.edit(embed=self.pages[self.maxIndex])
             self.currentIndex = self.maxIndex
             await interaction.response.send_message(
-                "Displaying last page", ephemeral=True
+                "Displaying last page", ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                "Already on last page", ephemeral=True
+                "Already on last page", ephemeral=True,
             )
 
     # Function to add pages to the class
-    def addPages(self, pages: Optional[List[Embed]]) -> None:
-        if isinstance(pages, List) and all([isinstance(page, Embed) for page in pages]):
+    def addPages(self, pages: Union[list[Embed], None]) -> None:
+        if isinstance(pages, list) and all(isinstance(page, Embed) for page in pages):
             if len(pages) > 0:
                 self.pages.extend(pages)
                 self.maxIndex = len(self.pages) - 1
@@ -98,7 +100,7 @@ class Paginator(ui.View):
     async def start(self) -> None:
         if len(self.pages) != 0:
             interaction: Interaction = await self.ctx.respond(
-                embed=self.pages[0], view=self
+                embed=self.pages[0], view=self,
             )
             self.message: Message = await interaction.original_message()
         else:

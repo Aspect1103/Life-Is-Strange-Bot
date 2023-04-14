@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 # Builtin
 import random
-from typing import Union
 from pathlib import Path
+from typing import Union
 
 # Pip
 from discord import Embed, Colour, Cog
@@ -14,7 +16,7 @@ from lis_bot.helpers.utils import utils
 # Attributes for the help command
 attributes = {
     "cooldown": commands.CooldownMapping(
-        commands.Cooldown(1, utils.superShort), commands.BucketType.guild
+        commands.Cooldown(1, utils.superShort), commands.BucketType.guild,
     ),
     "help": f"Displays the help command. It has a cooldown of {utils.superShort} seconds",
     "description": "\nArguments:\nCog/Group/Command name - The name of the cog/group/command which you want help on",
@@ -38,7 +40,7 @@ class Miscellaneous(Cog):
         self.colour = Colour.orange()
         self.questionArray = [
             line.replace("\n", "")
-            for line in open(questionPath, "r", encoding="utf").readlines()
+            for line in open(questionPath, encoding="utf").readlines()
         ]
         self.nextQuestion = None
         self.gunLines = None
@@ -49,7 +51,7 @@ class Miscellaneous(Cog):
         self.nextQuestion = {guild.id: 0 for guild in self.bot.guilds}
         # Create gun lines list
         lines = []
-        for line in open(gunPath, "r").readlines():
+        for line in open(gunPath).readlines():
             if "/RARE" in line:
                 line = line.replace("/RARE", "")
                 lines.extend([line, line])
@@ -59,46 +61,46 @@ class Miscellaneous(Cog):
         self.gunLines = lines
 
     # bum command with a cooldown of 1 use every 5 seconds per user
-    @bridge.bridge_command(description=f"Displays a hypnotic gif")
+    @bridge.bridge_command(description="Displays a hypnotic gif")
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def bum(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         await ctx.respond("https://giphy.com/gifs/midland-l4FsJgbbeKQC8MGBy")
 
     # murica command with a cooldown of 1 use every 5 seconds per user
-    @bridge.bridge_command(description=f"Displays a patriot")
+    @bridge.bridge_command(description="Displays a patriot")
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def murica(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         await ctx.respond("https://tenor.com/view/merica-gif-9091003")
 
     # puppy command with a cooldown of 1 use every 5 seconds per user
-    @bridge.bridge_command(description=f"Displays a cute puppy")
+    @bridge.bridge_command(description="Displays a cute puppy")
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def puppy(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         await ctx.respond("https://www.youtube.com/watch?v=j5a0jTc9S10")
 
     # pizza command with a cooldown of 1 use every 5 seconds per user
-    @bridge.bridge_command(description=f"Displays a delicious pizza")
+    @bridge.bridge_command(description="Displays a delicious pizza")
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def pizza(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         await ctx.respond(
-            "https://tenor.com/view/pizza-party-dance-dancing-gif-10213545"
+            "https://tenor.com/view/pizza-party-dance-dancing-gif-10213545",
         )
 
     # joyce command with a cooldown of 1 use every 5 seconds per user
     @bridge.bridge_command(
-        description=f"Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon"
+        description="Displays either a cup of coffee, a cup of tea, some belgian waffles or some bacon",
     )
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def joyce(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         gifs = [
             "https://tenor.com/view/coffee-coffee-cup-hot-hot-coffee-gif-16748161",
@@ -111,7 +113,7 @@ class Miscellaneous(Cog):
         await ctx.respond(f"Joyce: Incoming!\n{random.choice(gifs)}")
 
     # bang command with a cooldown of 1 use every 5 seconds per user
-    @bridge.bridge_command(description=f"Fires Chloe's gun")
+    @bridge.bridge_command(description="Fires Chloe's gun")
     @commands.cooldown(1, utils.superShort, commands.BucketType.guild)
     async def bang(
         self,
@@ -127,7 +129,7 @@ class Miscellaneous(Cog):
             ):
                 # Message is mention of myself and I did not call the command
                 await ctx.respond(
-                    "**You cannot shoot God. Now die.** *Throws lightning bolt*"
+                    "**You cannot shoot God. Now die.** *Throws lightning bolt*",
                 )
             else:
                 # Message is just text
@@ -135,11 +137,11 @@ class Miscellaneous(Cog):
 
     # question command with a cooldown of 1 use every 20 seconds per guild
     @bridge.bridge_command(
-        description=f"Displays a random question for users to answer"
+        description="Displays a random question for users to answer",
     )
     @commands.cooldown(1, utils.short, commands.BucketType.guild)
     async def question(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         if self.nextQuestion[ctx.guild.id] == len(self.questionArray):
             # All questions done
@@ -153,27 +155,27 @@ class Miscellaneous(Cog):
 
     # about command with a cooldown of 1 use every 20 seconds per guild
     @bridge.bridge_command(
-        description=f"Displays information about the bot. It has a cooldown of {utils.short} seconds"
+        description=f"Displays information about the bot. It has a cooldown of {utils.short} seconds",
     )
     @commands.cooldown(1, utils.short, commands.BucketType.guild)
     async def about(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         # Create embed
         botInfo: AppInfo = await self.bot.application_info()
         aboutEmbed = Embed(title=f"About {botInfo.name}", colour=self.colour)
         aboutEmbed.add_field(name="Developer", value=botInfo.owner.name, inline=True)
-        aboutEmbed.add_field(name="Need Help?", value=f"Use /help", inline=True)
+        aboutEmbed.add_field(name="Need Help?", value="Use /help", inline=True)
         aboutEmbed.add_field(
             name="GitHub Link",
             value="https://github.com/Aspect1103/Life-Is-Strange-Bot",
             inline=True,
         )
         aboutEmbed.set_image(
-            url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg"
+            url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg",
         )
         aboutEmbed.set_thumbnail(
-            url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg"
+            url="https://cdn.vox-cdn.com/thumbor/MfcKIGSMdpBNX1zKzquqFK776io=/0x0:3500x2270/1200x800/filters:focal(1455x422:2015x982)/cdn.vox-cdn.com/uploads/chorus_image/image/68988445/LiS_Remastered_Collection_Art.0.jpg",
         )
         aboutEmbed.set_footer(
             text="Have a suggestion to improve the bot? DM me!",
@@ -184,7 +186,7 @@ class Miscellaneous(Cog):
 
     # Function to run channelCheck for Miscellaneous
     async def cog_check(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> bool:
         return await utils.restrictor.commandCheck(ctx)
 

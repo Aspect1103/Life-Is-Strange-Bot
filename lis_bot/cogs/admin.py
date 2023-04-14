@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 # Builtin
-from typing import Tuple, Union
+from typing import Union
 
 # Pip
 from discord import Colour, Cog, Message
@@ -12,7 +14,7 @@ from lis_bot.helpers.utils import utils
 # Custom check for administrator permissions or owner
 def adminOrOwner():
     async def predicate(
-        ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> bool:
         if ctx.author.permissions_in(ctx.channel).administrator:
             return True
@@ -36,7 +38,7 @@ class Admin(Cog):
         ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
         sect: str,
         chnlMent: str,
-    ) -> Tuple[Union[bool, str], Union[str, None], Union[int, None]]:
+    ) -> tuple[Union[bool, str, int, None]]:
         if sect is None and chnlMent is None:
             # Too little arguments
             return "Missing arguments", None, None
@@ -45,7 +47,7 @@ class Admin(Cog):
             if sect.lower() in utils.IDs:
                 # Section exists
                 channelID = int(
-                    "".join([str(num) for num in chnlMent if num.isdigit()])
+                    "".join([str(num) for num in chnlMent if num.isdigit()]),
                 )
                 if self.bot.get_channel(channelID).guild.id == ctx.guild.id:
                     # Valid channel
@@ -66,18 +68,18 @@ class Admin(Cog):
     @bridge.bridge_command(description="Stops the bot")
     @commands.is_owner()
     async def stop(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         await ctx.respond("Stopping bot")
         await self.bot.close()
 
     # botrefresh command
     @bridge.bridge_command(
-        aliases=["br"], description="Refreshes stored variables used by the bot"
+        aliases=["br"], description="Refreshes stored variables used by the bot",
     )
     @commands.is_owner()
     async def botrefresh(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         message: Message = await ctx.respond("Refreshing extensions")
         # Unload all extensions
@@ -93,18 +95,18 @@ class Admin(Cog):
         await message.edit(content="Refreshed extensions")
 
     # channelrefresh command with a cooldown of 1 use every 20 seconds per guild
-    @bridge.bridge_command(aliases=["cr"], description=f"Refreshes channel IDs")
+    @bridge.bridge_command(aliases=["cr"], description="Refreshes channel IDs")
     @adminOrOwner()
     @commands.cooldown(1, utils.short, commands.BucketType.guild)
     async def channelrefresh(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> None:
         utils.restrictor.IDs = await utils.restrictor.getIDs()
         await ctx.respond("Refreshed channel IDs")
 
     # Function to run channelCheck for Admin
     async def cog_check(
-        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext]
+        self, ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     ) -> bool:
         return await utils.restrictor.commandCheck(ctx)
 

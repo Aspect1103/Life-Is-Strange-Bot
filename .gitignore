@@ -1,5 +1,6 @@
 .idea/
+venv/
 __pycache__/
-src/lis_bot/config.py
-src/lis_bot/resources/files/lisBot.db
-src/lis_bot/debug_files/
+lis_bot/config.py
+lis_bot/resources/files/lisBot.db
+lis_bot/debug_files/

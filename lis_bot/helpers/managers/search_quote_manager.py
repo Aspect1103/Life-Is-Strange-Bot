@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 # Builtin
-from typing import List
 
 # Pip
 from discord import Embed, Colour, Message, ApplicationContext, Bot
@@ -17,8 +18,8 @@ class SearchQuoteManager:
         ctx: ApplicationContext,
         message: Message,
         colour: Colour,
-        worksheet: List[List[str]],
-    ):
+        worksheet: list[list[str]],
+    ) -> None:
         self.bot = bot
         self.ctx = ctx
         self.message = message
@@ -37,35 +38,35 @@ class SearchQuoteManager:
         }
 
     # Filter for a title arguments
-    def titleFilter(self, arg: str) -> List[List[str]]:
+    def titleFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg in item[1]]
 
     # Filter for a author arguments
-    def authorFilter(self, arg: str) -> List[List[str]]:
+    def authorFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg in item[2]]
 
     # Filter for a ship arguments
-    def shipFilter(self, arg: str) -> List[List[str]]:
+    def shipFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg in item[3].split("/")]
 
     # Filter for a series arguments
-    def seriesFilter(self, arg: str) -> List[List[str]]:
+    def seriesFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg in item[5]]
 
     # Filter for a status arguments
-    def statusFilter(self, arg: str) -> List[List[str]]:
+    def statusFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg.capitalize() == item[6]]
 
     # Filter for a smut arguments
-    def smutFilter(self, arg: str) -> List[List[str]]:
+    def smutFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if arg.capitalize() == item[7]]
 
     # Filter for a words arguments
-    def wordsFilter(self, arg: str) -> List[List[str]]:
+    def wordsFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if self.intSearch(item[8], arg)]
 
     # Filter for a chapters arguments
-    def chaptersFilter(self, arg: str) -> List[List[str]]:
+    def chaptersFilter(self, arg: str) -> list[list[str]]:
         return [item for item in self.finalArray if self.intSearch(item[9], arg)]
 
     # Search for possible matches for words and chapters
@@ -76,7 +77,7 @@ class SearchQuoteManager:
         if "==" in arg:
             return int(rowElement) == searchNumber
         elif "!=" in arg:
-            return not int(rowElement) == searchNumber
+            return int(rowElement) != searchNumber
         elif ">" in arg:
             return int(rowElement) > searchNumber
         elif ">=" in arg:
@@ -86,7 +87,7 @@ class SearchQuoteManager:
         elif "<=" in arg:
             return int(rowElement) <= searchNumber
         elif "-" in arg:
-            splitted: List[str] = arg.split("-")
+            splitted: list[str] = arg.split("-")
             num1 = int("".join([str(num) for num in splitted[0] if num.isdigit()]))
             num2 = int("".join([str(num) for num in splitted[1] if num.isdigit()]))
             return num1 < int(rowElement) < num2
@@ -108,11 +109,11 @@ class SearchQuoteManager:
             elif self.filters[lowerCase][1] is not None:
                 await utils.commandDebugEmbed(
                     self.ctx,
-                    f"Filter already added. Use /searchQuote remove to remove the filter",
+                    "Filter already added. Use /searchQuote remove to remove the filter",
                 )
             else:
                 # Filter the array and store the term
-                self.finalArray: List[List[str]] = self.filters[lowerCase][0](term)
+                self.finalArray: list[list[str]] = self.filters[lowerCase][0](term)
                 if lowerCase == "status":
                     self.filters["status"][1] = term.capitalize()
                 elif lowerCase == "smut":
@@ -132,12 +133,12 @@ class SearchQuoteManager:
             elif self.filters[lowerCase][1] is None:
                 await utils.commandDebugEmbed(
                     self.ctx,
-                    f"Filter already added. Use /searchQuote remove to remove the filter",
+                    "Filter already added. Use /searchQuote remove to remove the filter",
                 )
             else:
                 # Remove the term and re-filter the array from the start
                 self.filters[lowerCase][1] = None
-                self.finalArray: List[List[str]] = self.orgArray
+                self.finalArray: list[list[str]] = self.orgArray
                 for key, value in self.filters.items():
                     if value[1] is not None:
                         self.finalArray = self.filters[key][0](value[1])

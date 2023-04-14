@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Builtin
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +30,7 @@ def rankSort(arr: list[tuple[int, ...]], indexToSort: int) -> list[tuple[int, ..
 
 # Function to create an embed displaying the command error
 async def commandDebugEmbed(
-    ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext, message: str,
+    ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext], message: str,
 ) -> Message:
     return await ctx.respond(
         embed=Embed(
@@ -39,7 +41,7 @@ async def commandDebugEmbed(
 
 # Handle errors
 async def errorHandler(
-    ctx: bridge.BridgeApplicationContext | bridge.BridgeExtContext,
+    ctx: Union[bridge.BridgeApplicationContext, bridge.BridgeExtContext],
     error: commands.CommandError,
 ) -> None:
     if isinstance(error, commands.errors.MissingPermissions):
@@ -60,7 +62,7 @@ async def errorHandler(
         await commandDebugEmbed(ctx, error.original)
 
     # Write the error message
-    open(errorPath, "a").write(f"{datetime.now()}, {error.with_traceback()}\n")
+    open(errorPath, "a").write(f"{datetime.now()}, {error.with_traceback(error.__traceback__)}\n")
 
 
 # Path variables
@@ -71,7 +73,7 @@ lisDatabasePath = (
 errorPath = rootDirectory.joinpath("debug_files").joinpath("error.txt")
 
 # Script variables
-extensions = ["cogs.life_is_strange", "cogs.fanfic", "cogs.miscellaneous", "cogs.admin"]
+extensions = ["lis_bot.cogs.life_is_strange", "lis_bot.cogs.fanfic", "lis_bot.cogs.miscellaneous", "lis_bot.cogs.admin"]
 database = DatabaseManager(lisDatabasePath)
 
 # Restrictor class initialisation
